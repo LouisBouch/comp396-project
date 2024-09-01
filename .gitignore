@@ -4,5 +4,13 @@
 # Ignore Gradle build output directory
 build
 
-# Ignore any gradle specific file from the gradle init command
+# Ignore gradle specific file from the gradle init command
 *gradle*
+
+# Ignore Eclipse specific files
+*eclipse*
+.project
+.classpath
+
+# Build artifacts
+*.class
