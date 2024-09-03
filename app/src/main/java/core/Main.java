@@ -11,5 +11,6 @@ public class Main {
         System.out.println(new Main().getGreeting());
         System.out.println(new More().moreGreetings());
         System.out.println(new Helper().helperGreetings());
+        new Helper().helperGreetings();
     }
 }
