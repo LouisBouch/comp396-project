@@ -5,8 +5,7 @@ import java.awt.Rectangle;
 
 import javax.swing.JFrame;
 
-
-public class Main {
+public class Window {
   private int frameWidth = 800;
   private int frameHeight = 500;
 
@@ -19,7 +18,7 @@ public class Main {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          Main window = new Main();
+          Window window = new Window();
           window.frame.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();
@@ -31,7 +30,7 @@ public class Main {
   /**
    * Create the application
    */
-  public Main() {
+  public Window() {
     initialize();
   }
 
@@ -48,7 +47,7 @@ public class Main {
     int panelWidth = frameWidth - (frame.getInsets().left - frame.getInsets().right);
     int panelHeight = frameHeight - (frame.getInsets().top - frame.getInsets().bottom);
 
-    More mainPanel = new More(new Rectangle(panelWidth, panelHeight));
+    MainPanel mainPanel = new MainPanel(new Rectangle(panelWidth, panelHeight));
     frame.setContentPane(mainPanel);
     frame.pack(); // Resizes the frame to match the size of the mainPanel
 

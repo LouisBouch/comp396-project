@@ -10,14 +10,14 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-public class Helper extends JPanel {
+public class FirstPanel extends JPanel {
 
   private static final long serialVersionUID = 4223433857831514467L;
 
   /**
    * Create the panel.
    */
-  public Helper(Rectangle dimensions) {
+  public FirstPanel(Rectangle dimensions) {
     this.setBounds(new Rectangle((int) dimensions.getWidth() / 3, (int) dimensions.getHeight() / 3));
     this.setPreferredSize(new Dimension((int) dimensions.getWidth() / 3, (int) dimensions.getHeight() / 3));
 

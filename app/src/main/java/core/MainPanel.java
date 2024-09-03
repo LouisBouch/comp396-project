@@ -11,16 +11,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import package1.Helper;
+import package1.FirstPanel;
 
-public class More extends JPanel {
+public class MainPanel extends JPanel {
 
   private static final long serialVersionUID = 6992977983635887677L;
 
   /**
    * Create the panel.
    */
-  public More(Rectangle dimensions) {
+  public MainPanel(Rectangle dimensions) {
     this.setBounds(new Rectangle(dimensions.width, dimensions.height));
     this.setPreferredSize(new Dimension((int) dimensions.getWidth(), (int) dimensions.getHeight()));
 
@@ -33,7 +33,7 @@ public class More extends JPanel {
     springLayout.putConstraint(SpringLayout.NORTH, lblNewLabel, 75, SpringLayout.NORTH, this);
     this.add(lblNewLabel);
 
-    Helper firstPanel = new Helper(this.getBounds());
+    FirstPanel firstPanel = new FirstPanel(this.getBounds());
     springLayout.putConstraint(SpringLayout.SOUTH, firstPanel, 0, SpringLayout.SOUTH, this);
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, firstPanel, 0, SpringLayout.HORIZONTAL_CENTER, this);
     this.add(firstPanel);
