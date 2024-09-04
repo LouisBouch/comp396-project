@@ -15,6 +15,7 @@ public class Window {
    * Launch the application
    */
   public static void main(String[] args) {
+    //System.setProperty("sun.java2d.opengl", "true"); // Solves stuttering issues
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {

@@ -1,4 +1,4 @@
-package package1;
+package simulation;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,8 +18,7 @@ public class FirstPanel extends JPanel {
    * Create the panel.
    */
   public FirstPanel(Rectangle dimensions) {
-    this.setBounds(new Rectangle((int) dimensions.getWidth() / 3, (int) dimensions.getHeight() / 3));
-    this.setPreferredSize(new Dimension((int) dimensions.getWidth() / 3, (int) dimensions.getHeight() / 3));
+    this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int) (dimensions.getHeight())));
 
     SpringLayout springLayout = new SpringLayout();
     this.setLayout(springLayout);

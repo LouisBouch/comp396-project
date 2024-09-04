@@ -11,7 +11,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import package1.FirstPanel;
+import simulation.FirstPanel;
+import simulation.SimPanel;
 
 public class MainPanel extends JPanel {
 
@@ -33,10 +34,15 @@ public class MainPanel extends JPanel {
     springLayout.putConstraint(SpringLayout.NORTH, lblNewLabel, 75, SpringLayout.NORTH, this);
     this.add(lblNewLabel);
 
-    FirstPanel firstPanel = new FirstPanel(this.getBounds());
+    FirstPanel firstPanel = new FirstPanel(new Rectangle((int) this.getBounds().getWidth()/3,(int) this.getBounds().getHeight()/3) );
     springLayout.putConstraint(SpringLayout.SOUTH, firstPanel, 0, SpringLayout.SOUTH, this);
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, firstPanel, 0, SpringLayout.HORIZONTAL_CENTER, this);
     this.add(firstPanel);
+
+    SimPanel simPanel = new SimPanel(new Rectangle((int) this.getBounds().getWidth()/4,(int) this.getBounds().getHeight()/4));
+    springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, simPanel, 0, SpringLayout.VERTICAL_CENTER, this);
+    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, simPanel, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    this.add(simPanel);
 
     JPanel thisP = this;
     JButton btnNewButton = new JButton("Get dimensions");
