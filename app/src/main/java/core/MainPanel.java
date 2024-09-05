@@ -56,5 +56,4 @@ public class MainPanel extends JPanel {
     this.add(btnNewButton);
 
   }
-
 }

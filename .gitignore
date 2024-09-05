@@ -18,3 +18,6 @@ build
 # Ignore Intellij crap
 .idea
 *.iml
+
+# Ignore .html files
+*.html
