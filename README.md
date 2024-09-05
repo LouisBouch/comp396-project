@@ -1,4 +1,4 @@
-# Comp 396 project: Habitability simulator
+# Comp 396 project: Habitability simulator (2D/3D?)
 
 ## Overview
 
