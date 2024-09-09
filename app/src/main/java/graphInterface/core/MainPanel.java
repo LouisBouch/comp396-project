@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import graphInterface.simulation.FirstPanel;
-import graphInterface.simulation.SimPanel;
+import graphInterface.simulation.SimulationP;
 
 public class MainPanel extends JPanel {
 
@@ -39,7 +39,7 @@ public class MainPanel extends JPanel {
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, firstPanel, 0, SpringLayout.HORIZONTAL_CENTER, this);
     this.add(firstPanel);
 
-    SimPanel simPanel = new SimPanel(new Rectangle((int) this.getBounds().getWidth()/4,(int) this.getBounds().getHeight()/4));
+    SimulationP simPanel = new SimulationP(new Rectangle((int) this.getBounds().getWidth()/4,(int) this.getBounds().getHeight()/4));
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, simPanel, 0, SpringLayout.VERTICAL_CENTER, this);
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, simPanel, 0, SpringLayout.HORIZONTAL_CENTER, this);
     this.add(simPanel);
