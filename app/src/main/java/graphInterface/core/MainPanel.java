@@ -1,4 +1,4 @@
-package core;
+package graphInterface.core;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -11,8 +11,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import simulation.FirstPanel;
-import simulation.SimPanel;
+import graphInterface.simulation.FirstPanel;
+import graphInterface.simulation.SimPanel;
 
 public class MainPanel extends JPanel {
 

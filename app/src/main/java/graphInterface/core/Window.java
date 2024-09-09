@@ -1,4 +1,4 @@
-package core;
+package graphInterface.core;
 
 import java.awt.EventQueue;
 import java.awt.Rectangle;
