@@ -6,8 +6,8 @@ import java.awt.Rectangle;
 import javax.swing.JFrame;
 
 public class Window {
-  private int frameWidth = 800;
-  private int frameHeight = 500;
+  private int frameWidth = 1200;
+  private int frameHeight = 700;
 
   private JFrame frame;
 
@@ -15,7 +15,7 @@ public class Window {
    * Launch the application
    */
   public static void main(String[] args) {
-    //System.setProperty("sun.java2d.opengl", "true"); // Solves stuttering issues
+    // System.setProperty("sun.java2d.opengl", "true"); // Solves stuttering issues
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
@@ -40,6 +40,7 @@ public class Window {
    */
   private void initialize() {
     frame = new JFrame();
+    // Set windowed size
     frame.setBounds(100, 100, frameWidth, frameHeight);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setVisible(true);
@@ -51,7 +52,8 @@ public class Window {
     MainPanel mainPanel = new MainPanel(new Rectangle(panelWidth, panelHeight));
     frame.setContentPane(mainPanel);
     frame.pack(); // Resizes the frame to match the size of the mainPanel
-
+    // Makes it windowed fullscreen
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
   }
 
 }

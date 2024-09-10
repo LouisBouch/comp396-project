@@ -1,5 +1,6 @@
 package graphInterface.core;
 
+import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Rectangle;
@@ -7,15 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import graphInterface.simulation.SimulationP;
-
 public class MainPanel extends JPanel {
-  boolean simRunning = false;
 
+  final String APP_NAME = "Application";
+  final String LANDING_NAME = "Landing";
   private static final long serialVersionUID = 6992977983635887677L;
 
   /**
@@ -25,38 +24,53 @@ public class MainPanel extends JPanel {
     this.setBounds(new Rectangle(dimensions.width, dimensions.height));
     this.setPreferredSize(new Dimension((int) dimensions.getWidth(), (int) dimensions.getHeight()));
 
-    SpringLayout springLayout = new SpringLayout();
-    this.setLayout(springLayout);
+    CardLayout cardLayout = new CardLayout();
+    this.setLayout(cardLayout);
 
-    JLabel lblNewLabel = new JLabel("Hi, God");
-    lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 30));
-    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, lblNewLabel, 0, SpringLayout.HORIZONTAL_CENTER, this);
-    springLayout.putConstraint(SpringLayout.NORTH, lblNewLabel, 75, SpringLayout.NORTH, this);
-    this.add(lblNewLabel);
+    // Cards
+    LandingP landingP = new LandingP();
+    ApplicationP applicationP = new ApplicationP();
 
-
+    this.add(applicationP, APP_NAME);
+    this.add(landingP, LANDING_NAME);
 
 
     JPanel thisP = this;
-    JButton btnNewButton = new JButton("Start Simulation");
-    btnNewButton.addActionListener(new ActionListener() {
+    Font boldFont = new Font("Tahoma", Font.BOLD, 20);
+
+    // Button for switching card to simulation
+    JButton btnSwitchFromApp = new JButton("←");
+    btnSwitchFromApp.setFont(boldFont);
+    btnSwitchFromApp.setFocusable(false);
+    btnSwitchFromApp.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (!simRunning) {
-          SimulationP simPanel = new SimulationP(new Rectangle((int) thisP.getBounds().getWidth() / 4, (int) thisP.getBounds().getHeight() / 4));
-          springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, simPanel, 0, SpringLayout.VERTICAL_CENTER, thisP);
-          springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, simPanel, 0, SpringLayout.HORIZONTAL_CENTER, thisP);
-          thisP.add(simPanel);
-
-          thisP.revalidate();
-
-          simRunning = true;
-        }
-
+        cardLayout.show(thisP, LANDING_NAME);
+        thisP.revalidate();
       }
     });
-    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, btnNewButton, 0, SpringLayout.HORIZONTAL_CENTER, this);
-    springLayout.putConstraint(SpringLayout.NORTH, btnNewButton, 30, SpringLayout.NORTH, this);
-    this.add(btnNewButton);
+
+    // Button for switching card to simulation
+    JButton btnSwitchFromLanding = new JButton("Go to sim");
+    btnSwitchFromLanding.setFont(boldFont);
+    btnSwitchFromLanding.setFocusable(false);
+    btnSwitchFromLanding.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        cardLayout.show(thisP, APP_NAME);
+        thisP.revalidate();
+      }
+    });
+
+    // Place switch button in application panel
+    applicationP.add(btnSwitchFromApp);
+    SpringLayout simLayout = (SpringLayout) applicationP.getLayout();
+    simLayout.putConstraint(SpringLayout.EAST, btnSwitchFromApp, -6, SpringLayout.EAST, applicationP);
+    simLayout.putConstraint(SpringLayout.NORTH, btnSwitchFromApp, 6, SpringLayout.NORTH, applicationP);
+
+    // Place switch button in application panel
+    landingP.add(btnSwitchFromLanding);
+    SpringLayout appLayout = (SpringLayout) landingP.getLayout();
+    appLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, btnSwitchFromLanding, 0, SpringLayout.HORIZONTAL_CENTER, landingP);
+    appLayout.putConstraint(SpringLayout.SOUTH, btnSwitchFromLanding, -100, SpringLayout.SOUTH, landingP);
 
   }
 }

@@ -22,8 +22,8 @@ public class SimulationP extends JPanel implements Runnable {
   /**
    * Create the panel.
    */
-  public SimulationP(Rectangle dimensions) {
-    this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int) (dimensions.getHeight())));
+  public SimulationP() {
+    //this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int) (dimensions.getHeight())));
 
     this.setBackground(Color.BLACK);
     // For testing purposes only. Remove as soon as possible
