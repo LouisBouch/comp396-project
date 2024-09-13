@@ -1,5 +1,7 @@
 package graphInterface.simulation;
 
+import environment.SolarSystem;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -19,22 +21,20 @@ public class SimulationP extends JPanel implements Runnable {
 
   private static final long serialVersionUID = 4223433857831514467L;
 
+  private SolarSystem solarSystem;
+
   /**
    * Create the panel.
    */
   public SimulationP() {
     //this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int) (dimensions.getHeight())));
+    solarSystem = new SolarSystem();
 
     this.setBackground(Color.BLACK);
-    // For testing purposes only. Remove as soon as possible
-    start();
   }
 
-  // TODO the following 2 functions should belong in the environment class. This
-  // is temporary
-  private int x = 0;
+
   public void step() {
-    x = (x + 1) % 200;
   }
 
   public void start() {
@@ -42,6 +42,22 @@ public class SimulationP extends JPanel implements Runnable {
       running = true;
       new Thread(this).start();
     }
+  }
+
+  /**
+   * Handles the stopping of the simulation
+   */
+  public void stop(){
+    if (running) {
+      running = false;
+    }
+  }
+
+  /**
+   * TODO: Resets simulation
+   */
+  public void reset(){
+
   }
 
   /**
@@ -71,8 +87,6 @@ public class SimulationP extends JPanel implements Runnable {
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    // TODO this is just an example. Remove it later
-    g2d.setColor(Color.YELLOW);
-    g2d.fillOval(x, 10, 10, 10);
+    solarSystem.paintThis(g2d);
   }
 }

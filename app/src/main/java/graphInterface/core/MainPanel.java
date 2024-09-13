@@ -31,8 +31,9 @@ public class MainPanel extends JPanel {
     LandingP landingP = new LandingP();
     ApplicationP applicationP = new ApplicationP();
 
-    this.add(applicationP, APP_NAME);
     this.add(landingP, LANDING_NAME);
+    this.add(applicationP, APP_NAME);
+
 
 
     JPanel thisP = this;
@@ -46,6 +47,8 @@ public class MainPanel extends JPanel {
       public void actionPerformed(ActionEvent e) {
         cardLayout.show(thisP, LANDING_NAME);
         thisP.revalidate();
+        applicationP.getSimPanel().stop();
+
       }
     });
 
@@ -57,6 +60,7 @@ public class MainPanel extends JPanel {
       public void actionPerformed(ActionEvent e) {
         cardLayout.show(thisP, APP_NAME);
         thisP.revalidate();
+        applicationP.getSimPanel().start();
       }
     });
 
