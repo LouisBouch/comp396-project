@@ -11,7 +11,8 @@ More aspect are likely to be considered as the project evolves.
 This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downloads/#java21). Make you have java installed before running this application.  
 - [Intellij](https://www.jetbrains.com/idea/)
   - Clone repo into a project directory
-  - TODO
+  - Select/download JDK. Consider Oracle OpenJDK: version 19
+
 - [Gradle](https://gradle.org/)
   - Clone repo into a project directory
   - TODO
