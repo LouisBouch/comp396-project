@@ -2,75 +2,124 @@ package lib;
 
 public class Vector3D {
 
-  double[] position = new double[3];
+  double[] components = new double[3];
 
   /**
-   * Creates a 3D vector given 3 coordinates
+   * Creates a 3D vector given 3 component
    * 
-   * @param x in meters
-   * @param y in meters
-   * @param z in meters
+   * @param x x component
+   * @param y y component
+   * @param z z component
    */
   public Vector3D(double x, double y, double z) {
-    position[0] = x;
-    position[1] = y;
-    position[2] = z;
+    components[0] = x;
+    components[1] = y;
+    components[2] = z;
   }
 
   /**
-   * Creates a 3D vector given a position array
+   * Creates a 3D vector given a component array
    * 
-   * @param position a position vector containing the vector coordinates in meters
+   * @param compnents A vector containing the vector components
    */
-  public Vector3D(double[] position) {
-    this.position[0] = position[0];
-    this.position[1] = position[1];
-    this.position[2] = position[2];
+  public Vector3D(double[] components) {
+    this.components[0] = components[0];
+    this.components[1] = components[1];
+    this.components[2] = components[2];
   }
 
   /**
-   * Creates a 3D vector initialized to 0 for all 3 coordinates
+   * Creates a 3D vector initialized to 0 for all 3 components
    */
   public Vector3D() {
-    position[0] = 0;
-    position[1] = 0;
-    position[2] = 0;
+    components[0] = 0;
+    components[1] = 0;
+    components[2] = 0;
   }
 
   /**
-   * Getter for the position
+   * Getter for the Vector3D
    * 
-   * @return Returns the position vector
+   * @return Returns the Vector3D compnents
    */
-  public double[] getPosition() {
-    return position;
+  public double[] components() {
+    return components;
   }
 
   /**
    * Getter for the x value
    * 
-   * @return Returns x value of position in meters
+   * @return Returns x component
    */
   public double getX() {
-    return position[0];
+    return components[0];
   }
 
   /**
    * Getter for the y value
    * 
-   * @return Returns y value of position in meters
+   * @return Returns Y compoenent
    */
   public double getY() {
-    return position[1];
+    return components[1];
   }
 
   /**
    * Getter for the z value
    * 
-   * @return Returns z value of position in meters
+   * @return Returns Z component
    */
   public double getZ() {
-    return position[2];
+    return components[2];
+  }
+
+  /**
+   * Sets the value of the X value
+   *
+   * @param value of the X component
+   */
+  public void setX(double v) {
+    components[0] = v;
+  }
+
+  /**
+   * Sets the value of the Y value
+   *
+   * @param value of the Y component
+   */
+  public void setY(double v) {
+    components[1] = v;
+  }
+
+  /**
+   * Sets the value of the Z value
+   *
+   * @param value of the Z component
+   */
+  public void setZ(double v) {
+    components[2] = v;
+  }
+
+  /**
+   * Sets all three value of the Vector3D
+   *
+   * @param comp The values of the vector to set
+   */
+  public void setComponents(double[] comp) {
+    components[0] = comp[0];
+    components[1] = comp[1];
+    components[2] = comp[2];
+  }
+
+  /**
+   * Copy values of another Vector3D
+   *
+   * @param vec The Vector3D to copy
+   */
+  public void setComponents(Vector3D vec) {
+    components[0] = vec.getX();
+    components[1] = vec.getY();
+    components[2] = vec.getZ();
   }
 
   /**
@@ -85,12 +134,12 @@ public class Vector3D {
   /**
    * Adds Vector3D to the current Vector3D
    * 
-   * @vec Position Vector3D to add to our current Vector3D
+   * @vec Vector3D to add to our current Vector3D
    */
   public void add(Vector3D vec) {
-    position[0] += vec.getX();
-    position[1] += vec.getY();
-    position[2] += vec.getZ();
+    components[0] += vec.getX();
+    components[1] += vec.getY();
+    components[2] += vec.getZ();
   }
 
   /**
@@ -107,12 +156,12 @@ public class Vector3D {
   /**
    * Subtracts Vector3D to the current Vector3D
    * 
-   * @vec Position Vector3D to subtract to from current Vector3D
+   * @vec Vector3D to subtract to from current Vector3D
    */
   public void sub(Vector3D vec) {
-    position[0] -= vec.getX();
-    position[1] -= vec.getY();
-    position[2] -= vec.getZ();
+    components[0] -= vec.getX();
+    components[1] -= vec.getY();
+    components[2] -= vec.getZ();
   }
 
   /**
@@ -133,9 +182,9 @@ public class Vector3D {
    * @scalar scalar used to multiply our Vector3D
    */
   public void scalarMult(double scalar) {
-    position[0] *= scalar;
-    position[1] *= scalar;
-    position[2] *= scalar;
+    components[0] *= scalar;
+    components[1] *= scalar;
+    components[2] *= scalar;
   }
 
   /**
@@ -155,9 +204,9 @@ public class Vector3D {
    * @scalar scalar used to divide our Vector3D
    */
   public void scalarDiv(double scalar) {
-    position[0] /= scalar;
-    position[1] /= scalar;
-    position[2] /= scalar;
+    components[0] /= scalar;
+    components[1] /= scalar;
+    components[2] /= scalar;
   }
 
   /**
@@ -177,9 +226,9 @@ public class Vector3D {
    * @scalar scalar used to exponentiate our Vector3D
    */
   public void scalarExp(double scalar) {
-    position[0] = Math.pow(position[0], scalar);
-    position[1] = Math.pow(position[1], scalar);
-    position[2] = Math.pow(position[2], scalar);
+    components[0] = Math.pow(components[0], scalar);
+    components[1] = Math.pow(components[1], scalar);
+    components[2] = Math.pow(components[2], scalar);
   }
 
   /**
@@ -196,7 +245,7 @@ public class Vector3D {
   /**
    * Dots Vector3D with the current Vector3D
    * 
-   * @vec Position Vector3D to dot with our current Vector3D
+   * @vec Vector3D to dot with our current Vector3D
    * @return resulting dot product
    */
   public double dot(Vector3D vec) {
@@ -217,7 +266,7 @@ public class Vector3D {
   /**
    * Takes cross product of Vector3D with the current Vector3D
    * 
-   * @vec Position Vector3D to cross with our current Vector3D
+   * @vec Vector3D to cross with our current Vector3D
    * @return resulting cross product
    */
   public Vector3D cross(Vector3D vec) {

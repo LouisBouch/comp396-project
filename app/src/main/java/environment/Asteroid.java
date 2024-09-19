@@ -16,7 +16,6 @@ public class Asteroid extends Body  {
     @Override
     public void paintThis(Graphics2D g2d) {
         g2d.setColor(Color.GRAY);
-        g2d.fillOval(10, 10, 2*radius, radius);
-
+        g2d.fillOval((int) this.getX(), (int) this.getY(), (int) this.getRadius() * 2, (int) this.getRadius() * 2);
     }
 }
