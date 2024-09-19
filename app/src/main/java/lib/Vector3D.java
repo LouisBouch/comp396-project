@@ -100,7 +100,7 @@ public class Vector3D {
    * @v2 Second Vector3D to add
    * @return Vector3D that is the sum of both Vector3Ds
    */
-  public Vector3D add(Vector3D v1, Vector3D v2) {
+  public static Vector3D add(Vector3D v1, Vector3D v2) {
     return new Vector3D(v1.getX() + v2.getX(), v1.getY() + v2.getY(), v1.getZ() + v2.getZ());
   }
 
@@ -123,7 +123,7 @@ public class Vector3D {
    * @v2 Vector3D used to subtract
    * @return Vector3D that is the difference of v1-v2.
    */
-  public Vector3D sub(Vector3D v1, Vector3D v2) {
+  public static Vector3D sub(Vector3D v1, Vector3D v2) {
     return new Vector3D(v1.getX() - v2.getX(), v1.getY() - v2.getY(), v1.getZ() - v2.getZ());
   }
 
@@ -145,7 +145,7 @@ public class Vector3D {
    * @scalar scalar used to multiply our Vector3D
    * @return scaled Vector3D
    */
-  public Vector3D scalarMult(Vector3D v, double scalar) {
+  public static Vector3D scalarMult(Vector3D v, double scalar) {
     return new Vector3D(v.getX() * scalar, v.getY() * scalar, v.getZ() * scalar);
   }
 
@@ -167,7 +167,7 @@ public class Vector3D {
    * @scalar scalar used to divide our Vector3D
    * @return divided Vector3D
    */
-  public Vector3D scalarDiv(Vector3D v, double scalar) {
+  public static Vector3D scalarDiv(Vector3D v, double scalar) {
     return new Vector3D(v.getX() / scalar, v.getY() / scalar, v.getZ() / scalar);
   }
 
@@ -189,7 +189,7 @@ public class Vector3D {
    * @scalar scalar used to exponentiate our Vector3D
    * @return exponentiated Vector3D
    */
-  public Vector3D scalarExp(Vector3D v, double scalar) {
+  public static Vector3D scalarExp(Vector3D v, double scalar) {
     return new Vector3D(Math.pow(v.getX(), scalar), Math.pow(v.getY(), scalar), Math.pow(v.getZ(), scalar));
   }
 
@@ -210,7 +210,7 @@ public class Vector3D {
    * @v2 Vector3D second Vector3D
    * @return Resulting output form dott product
    */
-  public double dot(Vector3D v1, Vector3D v2) {
+  public static double dot(Vector3D v1, Vector3D v2) {
     return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
   }
 
@@ -224,9 +224,9 @@ public class Vector3D {
     double a1 = this.getX();
     double a2 = this.getY();
     double a3 = this.getZ();
-    double b1 = this.getX();
-    double b2 = this.getY();
-    double b3 = this.getZ();
+    double b1 = vec.getX();
+    double b2 = vec.getY();
+    double b3 = vec.getZ();
     return new Vector3D(a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1);
   }
 
@@ -237,7 +237,7 @@ public class Vector3D {
    * @v2 Vector3D second Vector3D
    * @return Resulting output form dott product
    */
-  public Vector3D cross(Vector3D v1, Vector3D v2) {
+  public static Vector3D cross(Vector3D v1, Vector3D v2) {
     return v1.cross(v2);
   }
 }

@@ -12,6 +12,7 @@ This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downl
 - [Intellij](https://www.jetbrains.com/idea/)
   - Clone repo into a project directory
   - Select/download JDK. Consider Oracle OpenJDK: version 19
+  - TODO
 
 - [Gradle](https://gradle.org/)
   - Clone repo into a project directory
