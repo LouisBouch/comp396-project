@@ -3,6 +3,7 @@ package environment;
 import lib.Vector3D;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 /**
  * Star
@@ -10,13 +11,15 @@ import java.awt.*;
 public class Star extends Body {
 
 
-    public Star(int radius, int mass, Vector3D position, Vector3D velocity) {
+    public Star(double radius, double mass, Vector3D position, Vector3D velocity) {
         super(radius, mass, position, velocity);
     }
 
     @Override
     public void paintThis(Graphics2D g2d) {
         g2d.setColor(Color.YELLOW);
-        g2d.fillOval(10, 10, 2*radius, radius);
+        Ellipse2D.Double shape = new Ellipse2D.Double(this.getX()-this.getRadius(), this.getY()-this.getRadius(), this.getRadius() * 2, this.getRadius() * 2);
+        g2d.fill(shape);
+
     }
 }

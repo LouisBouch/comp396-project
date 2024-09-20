@@ -28,7 +28,7 @@ public class SimulationP extends JPanel implements Runnable {
 
   private SolarSystem solarSystem;
 
-  private double basePixelPerMeter = 1 / 10.0;
+  private double basePixelPerMeter = 1115/9e9;
   private double pixelPerMeter = basePixelPerMeter;
   // Positive means zoom in, negative means zoom out
   private double nbZooms = 0;

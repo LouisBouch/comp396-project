@@ -20,7 +20,7 @@ public class Vector3D {
   /**
    * Creates a 3D vector given a component array
    * 
-   * @param compnents A vector containing the vector components
+   * @param components A vector containing the vector components
    */
   public Vector3D(double[] components) {
     this.components[0] = components[0];
@@ -76,7 +76,7 @@ public class Vector3D {
   /**
    * Sets the value of the X value
    *
-   * @param value of the X component
+   * @param v value of the X component
    */
   public void setX(double v) {
     components[0] = v;
@@ -85,7 +85,7 @@ public class Vector3D {
   /**
    * Sets the value of the Y value
    *
-   * @param value of the Y component
+   * @param v value of the Y component
    */
   public void setY(double v) {
     components[1] = v;
@@ -94,7 +94,7 @@ public class Vector3D {
   /**
    * Sets the value of the Z value
    *
-   * @param value of the Z component
+   * @param v value of the Z component
    */
   public void setZ(double v) {
     components[2] = v;
@@ -134,7 +134,7 @@ public class Vector3D {
   /**
    * Adds Vector3D to the current Vector3D
    * 
-   * @vec Vector3D to add to our current Vector3D
+   * @param vec Vector3D to add to our current Vector3D
    */
   public void add(Vector3D vec) {
     components[0] += vec.getX();
@@ -145,8 +145,8 @@ public class Vector3D {
   /**
    * Adds two Vector3D together and return new Vector3D that is the sum of both
    *
-   * @v1 First Vector3D to add
-   * @v2 Second Vector3D to add
+   * @param v1 First Vector3D to add
+   * @param v2 Second Vector3D to add
    * @return Vector3D that is the sum of both Vector3Ds
    */
   public static Vector3D add(Vector3D v1, Vector3D v2) {
@@ -156,7 +156,7 @@ public class Vector3D {
   /**
    * Subtracts Vector3D to the current Vector3D
    * 
-   * @vec Vector3D to subtract to from current Vector3D
+   * @param vec Vector3D to subtract to from current Vector3D
    */
   public void sub(Vector3D vec) {
     components[0] -= vec.getX();
@@ -168,8 +168,8 @@ public class Vector3D {
    * Subtracts one Vector3D from another and return new Vector3D that is the
    * difference of both
    *
-   * @v1 Vector3D to subtract from
-   * @v2 Vector3D used to subtract
+   * @param v1 Vector3D to subtract from
+   * @param v2 Vector3D used to subtract
    * @return Vector3D that is the difference of v1-v2.
    */
   public static Vector3D sub(Vector3D v1, Vector3D v2) {
@@ -179,7 +179,7 @@ public class Vector3D {
   /**
    * Multiply Vector3D by a scalar
    * 
-   * @scalar scalar used to multiply our Vector3D
+   * @param scalar scalar used to multiply our Vector3D
    */
   public void scalarMult(double scalar) {
     components[0] *= scalar;
@@ -190,8 +190,8 @@ public class Vector3D {
   /**
    * Scales a Vector3D by a scalar
    *
-   * @v Initial Vector3D
-   * @scalar scalar used to multiply our Vector3D
+   * @param v Initial Vector3D
+   * @param scalar scalar used to multiply our Vector3D
    * @return scaled Vector3D
    */
   public static Vector3D scalarMult(Vector3D v, double scalar) {
@@ -201,7 +201,7 @@ public class Vector3D {
   /**
    * Divides Vector3D by a scalar
    * 
-   * @scalar scalar used to divide our Vector3D
+   * @param scalar scalar used to divide our Vector3D
    */
   public void scalarDiv(double scalar) {
     components[0] /= scalar;
@@ -212,8 +212,8 @@ public class Vector3D {
   /**
    * Divides a Vector3D by a scalar
    *
-   * @v Initial Vector3D
-   * @scalar scalar used to divide our Vector3D
+   * @param v Initial Vector3D
+   * @param scalar scalar used to divide our Vector3D
    * @return divided Vector3D
    */
   public static Vector3D scalarDiv(Vector3D v, double scalar) {
@@ -223,7 +223,7 @@ public class Vector3D {
   /**
    * Exponentiate Vector3D by a scalar
    * 
-   * @scalar scalar used to exponentiate our Vector3D
+   * @param scalar scalar used to exponentiate our Vector3D
    */
   public void scalarExp(double scalar) {
     components[0] = Math.pow(components[0], scalar);
@@ -234,8 +234,8 @@ public class Vector3D {
   /**
    * Exponentiate Vector3D by a scalar
    *
-   * @v Initial Vector3D
-   * @scalar scalar used to exponentiate our Vector3D
+   * @param v Initial Vector3D
+   * @param scalar scalar used to exponentiate our Vector3D
    * @return exponentiated Vector3D
    */
   public static Vector3D scalarExp(Vector3D v, double scalar) {
@@ -245,7 +245,7 @@ public class Vector3D {
   /**
    * Dots Vector3D with the current Vector3D
    * 
-   * @vec Vector3D to dot with our current Vector3D
+   * @param vec Vector3D to dot with our current Vector3D
    * @return resulting dot product
    */
   public double dot(Vector3D vec) {
@@ -255,8 +255,8 @@ public class Vector3D {
   /**
    * Dots one Vector3D with another
    *
-   * @v1 Vector3D first Vector3D
-   * @v2 Vector3D second Vector3D
+   * @param v1 Vector3D first Vector3D
+   * @param v2 Vector3D second Vector3D
    * @return Resulting output form dott product
    */
   public static double dot(Vector3D v1, Vector3D v2) {
@@ -266,7 +266,7 @@ public class Vector3D {
   /**
    * Takes cross product of Vector3D with the current Vector3D
    * 
-   * @vec Vector3D to cross with our current Vector3D
+   * @param vec Vector3D to cross with our current Vector3D
    * @return resulting cross product
    */
   public Vector3D cross(Vector3D vec) {
@@ -282,9 +282,9 @@ public class Vector3D {
   /**
    * Dots one Vector3D with another
    *
-   * @v1 Vector3D first Vector3D
-   * @v2 Vector3D second Vector3D
-   * @return Resulting output form dott product
+   * @param v1 Vector3D first Vector3D
+   * @param v2 Vector3D second Vector3D
+   * @return Resulting output form dot product
    */
   public static Vector3D cross(Vector3D v1, Vector3D v2) {
     return v1.cross(v2);

@@ -10,14 +10,14 @@ import java.awt.*;
  */
 public abstract class Body implements Paintable {
 
-  int radius;
-  int mass;
+  double radius;
+  double mass;
 
   Vector3D position;
 
   Vector3D velocity;
 
-  public Body(int radius, int mass, Vector3D position, Vector3D velocity) {
+  public Body(double radius, double mass, Vector3D position, Vector3D velocity) {
     this.radius = radius;
     this.mass = mass;
     this.position = position;
