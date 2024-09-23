@@ -246,14 +246,13 @@ public class Vector3DTest {
     assertEquals(-10 * 18 + 2 * -82 + 3 * 23, val);
   }
 
-
   // Tests the self.cross method
   @Test
   public void testCrossSelf() {
     // Positive values
     Vector3D vec1 = new Vector3D(10, 2, 3);
     Vector3D vec2 = new Vector3D(18, 82, 23);
-    vec1 = vec1.cross(vec2);
+    vec1.cross(vec2);
     assertEquals(-200, vec1.getX());
     assertEquals(-176, vec1.getY());
     assertEquals(784, vec1.getZ());
@@ -261,7 +260,7 @@ public class Vector3DTest {
     // Negative values
     vec1 = new Vector3D(-10, 2, -3);
     vec2 = new Vector3D(18, -82, -23.5);
-    vec1 = vec1.cross(vec2);
+    vec1.cross(vec2);
     assertEquals(-293, vec1.getX());
     assertEquals(-289, vec1.getY());
     assertEquals(784, vec1.getZ());
@@ -285,5 +284,47 @@ public class Vector3DTest {
     assertEquals(-293, vec1.getX());
     assertEquals(-289, vec1.getY());
     assertEquals(784, vec1.getZ());
+  }
+
+  // Test the projection on self method
+  @Test
+  public void testProjectionSelf() {
+    // Positive values
+    Vector3D vec1 = new Vector3D(10, 2, 3);
+    Vector3D vec2 = new Vector3D(18, 82, 23);
+    vec1.project(vec2);
+    assertEquals(0.9811270951563943, vec1.getX());
+    assertEquals(33866. / 7577.0, vec1.getY());
+    assertEquals(9499.0 / 7577.0, vec1.getZ());
+
+    // Positive values
+    vec1 = new Vector3D(-10, 2, -3);
+    vec2 = new Vector3D(18, -82, 23.5);
+    vec1.project(vec2);
+    assertEquals(-29844.0 / 30401.0, vec1.getX());
+    assertEquals(135956.0 / 30401.0, vec1.getY());
+    assertEquals(-38963.0 / 30401.0, vec1.getZ());
+
+  }
+
+  // Test the projection on static method
+  @Test
+  public void testProjectionStatic() {
+    // Positive values
+    Vector3D vec1 = new Vector3D(10, 2, 3);
+    Vector3D vec2 = new Vector3D(18, 82, 23);
+    vec1 = Vector3D.project(vec1, vec2);
+    assertEquals(0.9811270951563943, vec1.getX());
+    assertEquals(33866. / 7577.0, vec1.getY());
+    assertEquals(9499.0 / 7577.0, vec1.getZ());
+
+    // Positive values
+    vec1 = new Vector3D(-10, 2, -3);
+    vec2 = new Vector3D(18, -82, 23.5);
+    vec1 = Vector3D.project(vec1, vec2);
+    assertEquals(-29844.0 / 30401.0, vec1.getX());
+    assertEquals(135956.0 / 30401.0, vec1.getY());
+    assertEquals(-38963.0 / 30401.0, vec1.getZ());
+
   }
 }

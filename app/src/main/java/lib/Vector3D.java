@@ -132,14 +132,75 @@ public class Vector3D {
   }
 
   /**
+   * Obtains length of vector
+   * 
+   * @param v Vector3D from which to get the length
+   *
+   * @return returns the length of the 2 norm of our vector
+   */
+  public static double len(Vector3D v) {
+    return Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ());
+  }
+
+  /**
+   * Normalize the self Vector3D
+   */
+  public Vector3D normalize() {
+    double len = this.len();
+    this.setX(this.getX() / len);
+    this.setY(this.getY() / len);
+    this.setZ(this.getZ() / len);
+    return this;
+  }
+
+  /**
+   * Normalize the Vector3D
+   *
+   * @param v The Vector3D to normalize
+   *
+   * @return The new normalized vector
+   */
+  public static Vector3D normalize(Vector3D v) {
+    double len = v.len();
+    return new Vector3D(v.getX() / len, v.getY() / len, v.getZ() / len);
+  }
+
+  /**
+   * Project the self Vector3D on v
+   *
+   * @param v The vector to project onto
+   */
+  public Vector3D project(Vector3D v) {
+    double scalar = this.dot(v) / v.dot(v);
+    this.setX(scalar * v.getX());
+    this.setY(scalar * v.getY());
+    this.setZ(scalar * v.getZ());
+    return this;
+  }
+
+  /**
+   * Project a Vector3D onto another
+   *
+   * @param v1 The vector to project
+   * @param v2 The vector to project onto
+   *
+   * @return The resulting projected Vector3D
+   */
+  public static Vector3D project(Vector3D v1, Vector3D v2) {
+    double scalar = v1.dot(v2) / v2.dot(v2);
+    return Vector3D.scalarMult(v2, scalar);
+  }
+
+  /**
    * Adds Vector3D to the current Vector3D
    * 
    * @param vec Vector3D to add to our current Vector3D
    */
-  public void add(Vector3D vec) {
+  public Vector3D add(Vector3D vec) {
     components[0] += vec.getX();
     components[1] += vec.getY();
     components[2] += vec.getZ();
+    return this;
   }
 
   /**
@@ -158,10 +219,11 @@ public class Vector3D {
    * 
    * @param vec Vector3D to subtract to from current Vector3D
    */
-  public void sub(Vector3D vec) {
+  public Vector3D sub(Vector3D vec) {
     components[0] -= vec.getX();
     components[1] -= vec.getY();
     components[2] -= vec.getZ();
+    return this;
   }
 
   /**
@@ -181,16 +243,17 @@ public class Vector3D {
    * 
    * @param scalar scalar used to multiply our Vector3D
    */
-  public void scalarMult(double scalar) {
+  public Vector3D scalarMult(double scalar) {
     components[0] *= scalar;
     components[1] *= scalar;
     components[2] *= scalar;
+    return this;
   }
 
   /**
    * Scales a Vector3D by a scalar
    *
-   * @param v Initial Vector3D
+   * @param v      Initial Vector3D
    * @param scalar scalar used to multiply our Vector3D
    * @return scaled Vector3D
    */
@@ -203,16 +266,17 @@ public class Vector3D {
    * 
    * @param scalar scalar used to divide our Vector3D
    */
-  public void scalarDiv(double scalar) {
+  public Vector3D scalarDiv(double scalar) {
     components[0] /= scalar;
     components[1] /= scalar;
     components[2] /= scalar;
+    return this;
   }
 
   /**
    * Divides a Vector3D by a scalar
    *
-   * @param v Initial Vector3D
+   * @param v      Initial Vector3D
    * @param scalar scalar used to divide our Vector3D
    * @return divided Vector3D
    */
@@ -225,16 +289,17 @@ public class Vector3D {
    * 
    * @param scalar scalar used to exponentiate our Vector3D
    */
-  public void scalarExp(double scalar) {
+  public Vector3D scalarExp(double scalar) {
     components[0] = Math.pow(components[0], scalar);
     components[1] = Math.pow(components[1], scalar);
     components[2] = Math.pow(components[2], scalar);
+    return this;
   }
 
   /**
    * Exponentiate Vector3D by a scalar
    *
-   * @param v Initial Vector3D
+   * @param v      Initial Vector3D
    * @param scalar scalar used to exponentiate our Vector3D
    * @return exponentiated Vector3D
    */
@@ -276,17 +341,25 @@ public class Vector3D {
     double b1 = vec.getX();
     double b2 = vec.getY();
     double b3 = vec.getZ();
-    return new Vector3D(a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1);
+    this.setX(a2 * b3 - a3 * b2);
+    this.setY(a3 * b1 - a1 * b3);
+    this.setZ(a1 * b2 - a2 * b1);
+    return this;
   }
 
   /**
-   * Dots one Vector3D with another
+   * Crosses one Vector3D with another and saves the result in the first vector
    *
    * @param v1 Vector3D first Vector3D
    * @param v2 Vector3D second Vector3D
-   * @return Resulting output form dot product
    */
   public static Vector3D cross(Vector3D v1, Vector3D v2) {
-    return v1.cross(v2);
+    double a1 = v1.getX();
+    double a2 = v1.getY();
+    double a3 = v1.getZ();
+    double b1 = v2.getX();
+    double b2 = v2.getY();
+    double b3 = v2.getZ();
+    return new Vector3D(a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1);
   }
 }
