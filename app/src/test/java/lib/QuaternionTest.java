@@ -24,7 +24,7 @@ public class QuaternionTest {
     assertEquals(-1064.4, q1.getScalar());
     assertEquals(487.3, q1.getI());
     assertEquals(182.5, q1.getJ());
-    assertEquals(140.84000000000003, q1.getK());
+    assertEquals(140.84, q1.getK());
   }
 
   // Tests the static mulQuaternion method
@@ -37,7 +37,7 @@ public class QuaternionTest {
     assertEquals(-1064.4, q1.getScalar());
     assertEquals(487.3, q1.getI());
     assertEquals(182.5, q1.getJ());
-    assertEquals(140.84000000000003, q1.getK());
+    assertEquals(140.84, q1.getK());
   }
 
   // Tests the self.mulQuaternionReverse method
@@ -50,7 +50,7 @@ public class QuaternionTest {
     assertEquals(-1064.4, q2.getScalar());
     assertEquals(487.3, q2.getI());
     assertEquals(182.5, q2.getJ());
-    assertEquals(140.84000000000003, q2.getK());
+    assertEquals(140.84, q2.getK());
   }
   // Tests the fromAxisAngle method
   @Test

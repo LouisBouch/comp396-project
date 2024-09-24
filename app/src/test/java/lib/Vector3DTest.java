@@ -327,4 +327,43 @@ public class Vector3DTest {
     assertEquals(-38963.0 / 30401.0, vec1.getZ());
 
   }
+
+  // Test the rotation with quaternion on self method
+  @Test
+  public void testQatRotSelf() {
+    // Big vector
+    Quaternion q = Quaternion.fromAxisAngle(2.1, new Vector3D(1, 2, 3));
+    Vector3D v = new Vector3D(412, 64, -214);
+    v.qatRot(q);
+    assertEquals(v.getX(), -361.9959664210556);
+    assertEquals(v.getY(), 280.28058245491195);
+    assertEquals(v.getZ(), -100.1883994962561);
+
+    // Small vector
+    q = Quaternion.fromAxisAngle(-0.1, new Vector3D(-0.1, 2.3, 31.2));
+    v = new Vector3D(0.12, 0.04, -0.314);
+    v.qatRot(q);
+    assertEquals(v.getX(), 0.12569259165585064);
+    assertEquals(v.getY(), 0.02783876288761145);
+    assertEquals(v.getZ(), -0.31308525306012575);
+  }
+  // Test the rotation with static quaternion method
+  @Test
+  public void testQatRotStatic() {
+    // Big vector
+    Quaternion q = Quaternion.fromAxisAngle(2.1, new Vector3D(1, 2, 3));
+    Vector3D v = new Vector3D(412, 64, -214);
+    v = Vector3D.qatRot(v, q);
+    assertEquals(v.getX(), -361.9959664210556);
+    assertEquals(v.getY(), 280.28058245491195);
+    assertEquals(v.getZ(), -100.1883994962561);
+
+    // Small vector
+    q = Quaternion.fromAxisAngle(-0.1, new Vector3D(-0.1, 2.3, 31.2));
+    v = new Vector3D(0.12, 0.04, -0.314);
+    v = Vector3D.qatRot(v, q);
+    assertEquals(v.getX(), 0.12569259165585064);
+    assertEquals(v.getY(), 0.02783876288761145);
+    assertEquals(v.getZ(), -0.31308525306012575);
+  }
 }

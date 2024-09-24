@@ -18,6 +18,17 @@ public class Vector3D {
   }
 
   /**
+   * Creates a 3D vector given a Vector3D
+   * 
+   * @param v Vector3D to copy
+   */
+  public Vector3D(Vector3D v) {
+    components[0] = v.getX();
+    components[1] = v.getY();
+    components[2] = v.getZ();
+  }
+
+  /**
    * Creates a 3D vector given a component array
    * 
    * @param components A vector containing the vector components
@@ -361,5 +372,97 @@ public class Vector3D {
     double b2 = v2.getY();
     double b3 = v2.getZ();
     return new Vector3D(a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1);
+  }
+
+  /**
+   * Rotates the vector with the help of a Quaternion
+   *
+   * @param q The quaternion that defines rotation
+   *
+   * @return The resulting changed vector
+   */
+  public Vector3D qatRot(Quaternion q) {
+    // Start by normalizing vector
+    double len = this.len();
+    this.normalize();
+
+    // Get values of quaternion
+    double s = q.getScalar();
+    double i = q.getImaginaryVector().getX();
+    double j = q.getImaginaryVector().getY();
+    double k = q.getImaginaryVector().getZ();
+
+    // Make vector quaternion
+    double sv = 0;
+    double iv = getX();
+    double jv = getY();
+    double kv = getZ();
+
+    // First multiplication (new = q*v)
+    double newS = s * sv - i * iv - j * jv - k * kv;
+    double newI = s * iv + i * sv + j * kv - k * jv;
+    double newJ = s * jv - i * kv + j * sv + k * iv;
+    double newK = s * kv + i * jv - j * iv + k * sv;
+
+    // Second multiplication (final = new*q')
+    sv = newS * s + newI * i + newJ * j + newK * k;
+    iv = -newS * i + newI * s - newJ * k + newK * j;
+    jv = -newS * j + newI * k + newJ * s - newK * i;
+    kv = -newS * k - newI * j + newJ * i + newK * s;
+
+    // Sets new rotated vector
+    this.setX(iv);
+    this.setY(jv);
+    this.setZ(kv);
+    // Give vector its length back
+    this.scalarMult(len);
+    return this;
+  }
+  /**
+   * Rotates a vector with the help of a Quaternion
+   *
+   * @param v The vector to rotate
+   * @param q The quaternion that defines rotation
+   *
+   * @return The resulting changed vector
+   */
+  public static Vector3D qatRot(Vector3D v, Quaternion q) {
+    Vector3D newV = new Vector3D(v);
+    // Start by normalizing vector
+    double len = newV.len();
+    newV.normalize();
+
+    // Get values of quaternion
+    double s = q.getScalar();
+    double i = q.getImaginaryVector().getX();
+    double j = q.getImaginaryVector().getY();
+    double k = q.getImaginaryVector().getZ();
+
+    // Make vector quaternion
+    double sv = 0;
+    double iv = newV.getX();
+    double jv = newV.getY();
+    double kv = newV.getZ();
+
+    // First multiplication (new = q*v)
+    double newS = s * sv - i * iv - j * jv - k * kv;
+    double newI = s * iv + i * sv + j * kv - k * jv;
+    double newJ = s * jv - i * kv + j * sv + k * iv;
+    double newK = s * kv + i * jv - j * iv + k * sv;
+
+    // Second multiplication (final = new*q')
+    sv = newS * s + newI * i + newJ * j + newK * k;
+    iv = -newS * i + newI * s - newJ * k + newK * j;
+    jv = -newS * j + newI * k + newJ * s - newK * i;
+    kv = -newS * k - newI * j + newJ * i + newK * s;
+
+    // Sets new rotated vector
+    newV.setX(iv);
+    newV.setY(jv);
+    newV.setZ(kv);
+
+    // Give vector its length back
+    newV.scalarMult(len);
+    return newV;
   }
 }

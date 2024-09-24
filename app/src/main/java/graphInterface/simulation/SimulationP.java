@@ -186,8 +186,8 @@ public class SimulationP extends JPanel implements Runnable {
     g2d.setTransform(originalTransform);
 
     // Paints point at center of universe
-    g2d.setColor(Color.WHITE);
-    g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() * pixelPerMeter);
-    g2d.fillRect(0, 0, 1, 1);
+    //g2d.setColor(Color.WHITE);
+    //g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() * pixelPerMeter);
+    //g2d.fillRect(0, 0, 1, 1);
   }
 }

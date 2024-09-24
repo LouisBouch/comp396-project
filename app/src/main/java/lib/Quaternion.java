@@ -176,38 +176,69 @@ public class Quaternion {
    * @param q Quaternion used for multiplication (self=self*q)
    */
   public Quaternion mulQuaternion(Quaternion q) {
-    Vector3D imaginaryVec2 = q.getImaginaryVector();
-    double scalar2 = q.getScalar();
+    double s1 = scalar;
+    double i1 = imaginaryVec.getX();
+    double j1 = imaginaryVec.getY();
+    double k1 = imaginaryVec.getZ();
 
-    double newS = scalar * scalar2 - imaginaryVec.dot(imaginaryVec2);
-    double newI = (imaginaryVec2.getX() * scalar + scalar2 * imaginaryVec.getX()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getX());
-    double newJ = (imaginaryVec2.getY() * scalar + scalar2 * imaginaryVec.getY()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getY());
-    double newK = (imaginaryVec2.getZ() * scalar + scalar2 * imaginaryVec.getZ()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getZ());
+    Vector3D imaginaryVec2 = q.getImaginaryVector();
+    double s2 = q.getScalar();
+    double i2 = imaginaryVec2.getX();
+    double j2 = imaginaryVec2.getY();
+    double k2 = imaginaryVec2.getZ();
+
+    double newS = s1 * s2 - i1 * i2 - j1 * j2 - k1 * k2;
+    double newI = s1 * i2 + i1 * s2 + j1 * k2 - k1 * j2;
+    double newJ = s1 * j2 - i1 * k2 + j1 * s2 + k1 * i2;
+    double newK = s1 * k2 + i1 * j2 - j1 * i2 + k1 * s2;
+
+    // Works, but requires creating new objects
+    // double newS = scalar * scalar2 - imaginaryVec.dot(imaginaryVec2);
+    // double newI = (imaginaryVec2.getX() * scalar + scalar2 * imaginaryVec.getX()
+    // + Vector3D.cross(imaginaryVec, imaginaryVec2).getX());
+    // double newJ = (imaginaryVec2.getY() * scalar + scalar2 * imaginaryVec.getY()
+    // + Vector3D.cross(imaginaryVec, imaginaryVec2).getY());
+    // double newK = (imaginaryVec2.getZ() * scalar + scalar2 * imaginaryVec.getZ()
+    // + Vector3D.cross(imaginaryVec, imaginaryVec2).getZ());
     this.setScalar(newS);
     this.setI(newI);
     this.setJ(newJ);
     this.setK(newK);
     return this;
   }
+
   /**
    * Multiply self Quaternion with another quaternion in the reverse order
    *
    * @param q Quaternion used for multiplication (self=q*self)
    */
   public Quaternion mulQuaternionReverse(Quaternion q) {
-    Vector3D imaginaryVec2 = q.getImaginaryVector();
-    double scalar2 = q.getScalar();
+    double s2 = scalar;
+    double i2 = imaginaryVec.getX();
+    double j2 = imaginaryVec.getY();
+    double k2 = imaginaryVec.getZ();
 
-    double newS = scalar * scalar2 - imaginaryVec.dot(imaginaryVec2);
-    double newI = (imaginaryVec2.getX() * scalar + scalar2 * imaginaryVec.getX()
-        + Vector3D.cross(imaginaryVec2, imaginaryVec).getX());
-    double newJ = (imaginaryVec2.getY() * scalar + scalar2 * imaginaryVec.getY()
-        + Vector3D.cross(imaginaryVec2, imaginaryVec).getY());
-    double newK = (imaginaryVec2.getZ() * scalar + scalar2 * imaginaryVec.getZ()
-        + Vector3D.cross(imaginaryVec2, imaginaryVec).getZ());
+    Vector3D imaginaryVec2 = q.getImaginaryVector();
+    double s1 = q.getScalar();
+    double i1 = imaginaryVec2.getX();
+    double j1 = imaginaryVec2.getY();
+    double k1 = imaginaryVec2.getZ();
+
+    double newS = s1 * s2 - i1 * i2 - j1 * j2 - k1 * k2;
+    double newI = s1 * i2 + i1 * s2 + j1 * k2 - k1 * j2;
+    double newJ = s1 * j2 - i1 * k2 + j1 * s2 + k1 * i2;
+    double newK = s1 * k2 + i1 * j2 - j1 * i2 + k1 * s2;
+
+
+
+    // Works but creates objects
+    //double newS = scalar * scalar2 - imaginaryVec.dot(imaginaryVec2);
+    //double newI = (imaginaryVec2.getX() * scalar + scalar2 * imaginaryVec.getX()
+    //    + Vector3D.cross(imaginaryVec2, imaginaryVec).getX());
+    //double newJ = (imaginaryVec2.getY() * scalar + scalar2 * imaginaryVec.getY()
+    //    + Vector3D.cross(imaginaryVec2, imaginaryVec).getY());
+    //double newK = (imaginaryVec2.getZ() * scalar + scalar2 * imaginaryVec.getZ()
+    //    + Vector3D.cross(imaginaryVec2, imaginaryVec).getZ());
     this.setScalar(newS);
     this.setI(newI);
     this.setJ(newJ);
@@ -224,20 +255,23 @@ public class Quaternion {
    * @return Multiplied Quaternion (q1*q2)
    */
   public static Quaternion mulQuaternion(Quaternion q1, Quaternion q2) {
-    double scalar = q1.getScalar();
-    Vector3D imaginaryVec = q1.getImaginaryVector();
-    double scalar2 = q2.getScalar();
+    double s1 = q1.getScalar();
+    double i1 = q1.getImaginaryVector().getX();
+    double j1 = q1.getImaginaryVector().getY();
+    double k1 = q1.getImaginaryVector().getZ();
+
     Vector3D imaginaryVec2 = q2.getImaginaryVector();
+    double s2 = q2.getScalar();
+    double i2 = imaginaryVec2.getX();
+    double j2 = imaginaryVec2.getY();
+    double k2 = imaginaryVec2.getZ();
 
-    double s = scalar * scalar2 - imaginaryVec.dot(imaginaryVec2);
-    double i = imaginaryVec2.getX() * scalar + scalar2 * imaginaryVec.getX()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getX();
-    double j = imaginaryVec2.getY() * scalar + scalar2 * imaginaryVec.getY()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getY();
-    double k = imaginaryVec2.getZ() * scalar + scalar2 * imaginaryVec.getZ()
-        + Vector3D.cross(imaginaryVec, imaginaryVec2).getZ();
+    double newS = s1 * s2 - i1 * i2 - j1 * j2 - k1 * k2;
+    double newI = s1 * i2 + i1 * s2 + j1 * k2 - k1 * j2;
+    double newJ = s1 * j2 - i1 * k2 + j1 * s2 + k1 * i2;
+    double newK = s1 * k2 + i1 * j2 - j1 * i2 + k1 * s2;
 
-    return new Quaternion(s, new Vector3D(i, j, k));
+    return new Quaternion(newS, new Vector3D(newI, newJ, newK));
   }
 
   /**
