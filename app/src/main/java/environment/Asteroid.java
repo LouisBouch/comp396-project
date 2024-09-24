@@ -3,6 +3,7 @@ package environment;
 import lib.Vector3D;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 /**
  * Asteroid
@@ -16,6 +17,7 @@ public class Asteroid extends Body  {
     @Override
     public void paintThis(Graphics2D g2d) {
         g2d.setColor(Color.GRAY);
-        g2d.fillOval((int) (this.getX()-this.getRadius()), (int) (this.getY()-this.getRadius()), (int) this.getRadius() * 2, (int) this.getRadius() * 2);
+        Ellipse2D.Double shape = new Ellipse2D.Double(this.getX()-this.getRadius(), this.getY()-this.getRadius(), this.getRadius() * 2, this.getRadius() * 2);
+        g2d.fill(shape);
     }
 }
