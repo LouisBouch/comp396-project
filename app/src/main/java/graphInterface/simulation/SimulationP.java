@@ -14,6 +14,7 @@ import java.awt.geom.AffineTransform;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import environment.Camera3D;
 import environment.SolarSystem;
 import lib.Vector3D;
 
@@ -28,7 +29,7 @@ public class SimulationP extends JPanel implements Runnable {
 
   private SolarSystem solarSystem;
 
-  private double basePixelPerMeter = 1115/4.5e11;
+  private double basePixelPerMeter = 1115 / 4.5e11;
   private double pixelPerMeter = basePixelPerMeter;
   // Positive means zoom in, negative means zoom out
   private double nbZooms = 0;
@@ -38,7 +39,7 @@ public class SimulationP extends JPanel implements Runnable {
   /**
    * Position of the observer in meters
    */
-  private Vector3D cameraPosM;
+  private Camera3D camera;
   private Vector3D lastMouseClickPosM = new Vector3D();
 
   /**
@@ -48,67 +49,28 @@ public class SimulationP extends JPanel implements Runnable {
     // this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int)
     // (dimensions.getHeight())));
     solarSystem = new SolarSystem();
+    camera = new Camera3D(new Vector3D(-10.96340e8, 0, 0), solarSystem);
 
     // Sets background color
     this.setBackground(Color.BLACK);
 
-    // Adds event listener for mousewheel
-    this.addMouseWheelListener(new MouseWheelListener() {
-      @Override
-      public void mouseWheelMoved(MouseWheelEvent e) {
-        // If e.get.. is negative then we have scrollup, which is zoom in
-        // So we need positive value
-        nbZooms += -e.getWheelRotation();
-        double zoomMulti = Math.pow(zoomValue, -e.getWheelRotation());
-        translationM.setX((e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti);
-        translationM.setY((e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
-        pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
-      }
-    });
-    // Adds listener for mouse click
-    this.addMouseListener(new MouseListener() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
-        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
-      }
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-      }
-
-    });
-    // Adds listener for mouse drag
-    this.addMouseMotionListener(new MouseMotionListener() {
-      @Override
-      public void mouseDragged(MouseEvent e) {
-        translationM.setX(translationM.getX() + (e.getX() / pixelPerMeter - lastMouseClickPosM.getX()));
-        translationM.setY(translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
-        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
-        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
-      }
-
-      @Override
-      public void mouseMoved(MouseEvent e) {
-      }
-    });
+    // Sets up MouseWheelListener
+    setupMouseWheelListerner();
+    // Sets up MouseMotionListener
+    setupMouseMovListerner();
+    // Sets up MouseListener
+    setupMouseListerner();
   }
 
+  /**
+   * Steps the simulation
+   */
   public void step() {
   }
 
+  /**
+   * Starts the simulation
+   */
   public void start() {
     if (!running) {
       running = true;
@@ -129,7 +91,6 @@ public class SimulationP extends JPanel implements Runnable {
    * TODO: Resets simulation
    */
   public void reset() {
-
   }
 
   /**
@@ -169,6 +130,23 @@ public class SimulationP extends JPanel implements Runnable {
     // Save the original transform
     AffineTransform originalTransform = g2d.getTransform();
 
+    orthoPaint(g2d);
+    // Restore the original transform
+    g2d.setTransform(originalTransform);
+
+    // Paints point at center of universe
+    // g2d.setColor(Color.WHITE);
+    // g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() *
+    // pixelPerMeter);
+    // g2d.fillRect(0, 0, 1, 1);
+  }
+
+  /**
+   * Prints the solar system using a top-down projection
+   *
+   * @param g2d graphics component
+   */
+  public void orthoPaint(Graphics2D g2d) {
     // THE FOLLOWING TRANSFORMATIONS ARE EXECTUED IN THE REVERSE ORDER THAT THEY
     // APPEAR
     // translate -> scale
@@ -181,13 +159,84 @@ public class SimulationP extends JPanel implements Runnable {
 
     // Paint solar system
     solarSystem.paintThis(g2d);
+  }
 
-    // Restore the original transform
-    g2d.setTransform(originalTransform);
+  /**
+   * Prints the solar system using a camera
+   *
+   * @param g2d graphics component
+   */
+  public void cameraPaint(Graphics2D g2d) {
+    camera.setScreenRatio((double)this.getWidth()/this.getHeight());
+    camera.paintThis(g2d);
+  }
 
-    // Paints point at center of universe
-    //g2d.setColor(Color.WHITE);
-    //g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() * pixelPerMeter);
-    //g2d.fillRect(0, 0, 1, 1);
+  /**
+   * Sets up mouse movement listener
+   */
+  public void setupMouseMovListerner() {
+    // Adds listener for mouse drag
+    this.addMouseMotionListener(new MouseMotionListener() {
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        translationM.setX(translationM.getX() + (e.getX() / pixelPerMeter - lastMouseClickPosM.getX()));
+        translationM.setY(translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
+        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
+        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+      }
+    });
+  }
+
+  /**
+   * Sets up mouse click listeners
+   */
+  public void setupMouseListerner() {
+    // Adds listener for mouse click
+    this.addMouseListener(new MouseListener() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
+        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+      }
+
+    });
+  }
+
+  /**
+   * Sets up the mouse wheel listener
+   */
+  public void setupMouseWheelListerner() {
+    this.addMouseWheelListener(new MouseWheelListener() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        // If e.get.. is negative then we have scrollup, which is zoom in
+        // So we need positive value
+        nbZooms += -e.getWheelRotation();
+        double zoomMulti = Math.pow(zoomValue, -e.getWheelRotation());
+        translationM.setX((e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti);
+        translationM.setY((e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
+        pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
+      }
+    });
   }
 }

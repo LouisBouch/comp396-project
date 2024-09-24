@@ -38,4 +38,12 @@ public class SolarSystem implements Paintable {
       body.paintThis(g2d);
     }
   }
+  /**
+   * Getter for the bodies ArrayList
+   *
+   * @return The list of bodies (Each of class Body)
+   */
+  public ArrayList<Body> getBodies() {
+    return bodies;
+  }
 }
