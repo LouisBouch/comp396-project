@@ -42,6 +42,8 @@ public class SimulationP extends JPanel implements Runnable {
   private Camera3D camera;
   private Vector3D lastMouseClickPosM = new Vector3D();
 
+  private boolean orthoView = false;
+
   /**
    * Create the panel.
    */
@@ -49,7 +51,7 @@ public class SimulationP extends JPanel implements Runnable {
     // this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int)
     // (dimensions.getHeight())));
     solarSystem = new SolarSystem();
-    camera = new Camera3D(new Vector3D(-10.96340e8, 0, 0), solarSystem);
+    camera = new Camera3D(new Vector3D(0, 0, -10.96340e8), solarSystem, 90, 1);
 
     // Sets background color
     this.setBackground(Color.BLACK);
@@ -130,7 +132,11 @@ public class SimulationP extends JPanel implements Runnable {
     // Save the original transform
     AffineTransform originalTransform = g2d.getTransform();
 
-    orthoPaint(g2d);
+    // Orthonormal / perspective paint
+    if (orthoView)
+      orthoPaint(g2d);
+    else
+      cameraPaint(g2d);
     // Restore the original transform
     g2d.setTransform(originalTransform);
 
@@ -167,7 +173,8 @@ public class SimulationP extends JPanel implements Runnable {
    * @param g2d graphics component
    */
   public void cameraPaint(Graphics2D g2d) {
-    camera.setScreenRatio((double)this.getWidth()/this.getHeight());
+    camera.setScreenWidth(this.getWidth());
+    camera.setScreenHeight(this.getHeight());
     camera.paintThis(g2d);
   }
 

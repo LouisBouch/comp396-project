@@ -116,10 +116,11 @@ public class Vector3D {
    *
    * @param comp The values of the vector to set
    */
-  public void setComponents(double[] comp) {
+  public Vector3D setComponents(double[] comp) {
     components[0] = comp[0];
     components[1] = comp[1];
     components[2] = comp[2];
+    return this;
   }
 
   /**
@@ -127,10 +128,11 @@ public class Vector3D {
    *
    * @param vec The Vector3D to copy
    */
-  public void setComponents(Vector3D vec) {
+  public Vector3D setComponents(Vector3D vec) {
     components[0] = vec.getX();
     components[1] = vec.getY();
     components[2] = vec.getZ();
+    return this;
   }
 
   /**
@@ -418,6 +420,7 @@ public class Vector3D {
     this.scalarMult(len);
     return this;
   }
+
   /**
    * Rotates a vector with the help of a Quaternion
    *
@@ -464,5 +467,29 @@ public class Vector3D {
     // Give vector its length back
     newV.scalarMult(len);
     return newV;
+  }
+
+  /**
+   * Get the angle of separation between Vector3Ds
+   *
+   * @param v Vector3D used to compute the separation angle
+   *
+   * @return The separation angle in Radians
+   */
+  public double separationAngle(Vector3D v) {
+    if (this.len() == 0 || v.len() == 0) return 0;
+    return Math.acos(this.dot(v) / (this.len() * v.len()));
+  }
+
+  /**
+   * Get the angle of separation between two Vector3D
+   *
+   * @param v1 First Vector3D used to compute the separation angle
+   * @param v2 Second Vector3D used to compute the separation angle
+   *
+   * @return The separation angle in Radians
+   */
+  public double separationAngle(Vector3D v1, Vector3D v2) {
+    return v1.separationAngle(v2);
   }
 }

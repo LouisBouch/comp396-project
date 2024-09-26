@@ -366,4 +366,13 @@ public class Vector3DTest {
     assertEquals(v.getY(), 0.02783876288761145);
     assertEquals(v.getZ(), -0.31308525306012575);
   }
+  // Tests the angle separation method on self
+  @Test
+  public void testSeparationAngleSelf() {
+    // Big vector
+    Vector3D v = new Vector3D(412, 64, -214);
+    Vector3D v2 = new Vector3D(0.64, -24, 37);
+    double angle = v.separationAngle(v2);
+    assertEquals(angle, 2.0315284146478922);
+  }
 }
