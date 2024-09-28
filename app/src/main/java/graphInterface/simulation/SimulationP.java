@@ -1,9 +1,13 @@
 package graphInterface.simulation;
 
+import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.Robot;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -11,12 +15,15 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import environment.Camera3D;
 import environment.SolarSystem;
 import lib.Vector3D;
+import lib.keyBinds;
 
 public class SimulationP extends JPanel implements Runnable {
   private boolean running = false;
@@ -42,16 +49,27 @@ public class SimulationP extends JPanel implements Runnable {
   private Camera3D camera;
   private Vector3D lastMouseClickPosM = new Vector3D();
 
-  private boolean orthoView = false;
+  private boolean orthoView = true;
+
+  // TODO: Testing values, remove or concretize
+  private Robot r;
+  private double totalDist = 0;
+  private int x = 0;
+  private int y = 0;
+  private Vector3D lastMouseClickPosP = new Vector3D();
 
   /**
    * Create the panel.
    */
   public SimulationP() {
-    // this.setPreferredSize(new Dimension((int) (dimensions.getWidth()), (int)
-    // (dimensions.getHeight())));
     solarSystem = new SolarSystem();
     camera = new Camera3D(new Vector3D(0, 0, -10.96340e8), solarSystem, 90, 1);
+
+    try {
+      r = new Robot();
+    } catch (AWTException e) {
+      e.printStackTrace();
+    }
 
     // Sets background color
     this.setBackground(Color.BLACK);
@@ -59,9 +77,11 @@ public class SimulationP extends JPanel implements Runnable {
     // Sets up MouseWheelListener
     setupMouseWheelListerner();
     // Sets up MouseMotionListener
-    setupMouseMovListerner();
+    setupMouseMovListener();
     // Sets up MouseListener
     setupMouseListerner();
+    // Sets up keybindings
+    setupKeyBindings();
   }
 
   /**
@@ -125,6 +145,8 @@ public class SimulationP extends JPanel implements Runnable {
    */
   @Override
   public void paintComponent(Graphics g) {
+    x = (int) this.getLocationOnScreen().getX();
+    y = (int) this.getLocationOnScreen().getY();
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -181,7 +203,7 @@ public class SimulationP extends JPanel implements Runnable {
   /**
    * Sets up mouse movement listener
    */
-  public void setupMouseMovListerner() {
+  public void setupMouseMovListener() {
     // Adds listener for mouse drag
     this.addMouseMotionListener(new MouseMotionListener() {
       @Override
@@ -190,6 +212,12 @@ public class SimulationP extends JPanel implements Runnable {
         translationM.setY(translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
         lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
         lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
+
+        // Only move mouse when far away from initial position?
+        // Cause rn, moving right may not change the pixel pos, but moving left will.
+        // This causes innacuracies when computing total distance travelled.
+        totalDist += (e.getX() - lastMouseClickPosP.getX());
+        System.out.println(totalDist);
       }
 
       @Override
@@ -202,12 +230,15 @@ public class SimulationP extends JPanel implements Runnable {
    * Sets up mouse click listeners
    */
   public void setupMouseListerner() {
+    JComponent panel = this;
     // Adds listener for mouse click
     this.addMouseListener(new MouseListener() {
       @Override
       public void mousePressed(MouseEvent e) {
         lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
         lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
+        lastMouseClickPosP.setX(e.getX());
+        lastMouseClickPosP.setY(e.getY());
       }
 
       @Override
@@ -218,8 +249,15 @@ public class SimulationP extends JPanel implements Runnable {
       public void mouseEntered(MouseEvent e) {
       }
 
+      // Pulls mouse back to the center when it exits the screen
       @Override
       public void mouseExited(MouseEvent e) {
+        lastMouseClickPosM.setX(panel.getWidth() / 2 / pixelPerMeter);
+        lastMouseClickPosM.setY(panel.getHeight() / 2 / pixelPerMeter);
+        lastMouseClickPosP.setX(panel.getWidth() / 2);
+        lastMouseClickPosP.setY(panel.getHeight() / 2);
+        r.mouseMove((int) panel.getLocationOnScreen().getX() + panel.getWidth() / 2,
+            (int) panel.getLocationOnScreen().getY() + panel.getHeight() / 2);
       }
 
       @Override
@@ -243,6 +281,22 @@ public class SimulationP extends JPanel implements Runnable {
         translationM.setX((e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti);
         translationM.setY((e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
         pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
+      }
+    });
+  }
+
+  /**
+   * Sets up the keybindings
+   */
+  public void setupKeyBindings() {
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_W, 0, "Move Forward",
+        evt -> System.out.println("you are moving forward"));
+
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_A, 0, "Move Left", new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        System.out.println("oi");
       }
     });
   }
