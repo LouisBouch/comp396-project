@@ -1,45 +1,74 @@
 package environment;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Graphics2D;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 
 import lib.Paintable;
 import lib.Quaternion;
 import lib.Vector3D;
 
 public class Camera3D implements Paintable {
+  public static final int FORWARDS = 1;
+  public static final int BACKWARDS = -1;
+  public static final int RIGHT = 1;
+  public static final int LEFT = -1;
+  public static final int DOWN = 1;
+  public static final int UP = -1;
 
-  Vector3D positionInSpaceM;
-  Vector3D orientation;
-  Vector3D xAxisDirection;
-  Vector3D yAxisDirection;
+  private Vector3D positionInSpaceM;
+  /**
+   * Converts pixel displacement to degrees
+   */
+  private double sensitivity = 0.1;
+  /**
+   * Number of meters to move by when the camera is displaced
+   */
+  private double stepDistanceM = 10000;
+  /**
+   * Number of times we want to boost the step distance
+   */
+  private double nbBoosts = 0;
+  /**
+   * Multiplier for a single boost to the step distance
+   */
+  private double boostValue = 1.5;
 
-  SolarSystem solarSystem;
+  // These value never change, they represent the non rotated orientation values
+  private final Vector3D orientation;
+  private final Vector3D xAxisDirection;
+  private final Vector3D yAxisDirection;
+  // These are the current orientations after rotation
+  Vector3D curOrientation;
+  Vector3D curXAxis;
+  Vector3D curYAxis;
+
+  private SolarSystem solarSystem;
 
   /**
    * Equal to width/height
    */
-  double screenRatio;
+  private double screenRatio;
   /**
    * Horizontal FOV in degrees
    */
-  double hFOV;
+  private double hFOV;
   /**
    * Vertical FOV in degrees
    */
-  double vFOV;
-  double screenWidthP;
-  double screenHeightP;
+  private double vFOV;
+  private double screenWidthP;
+  private double screenHeightP;
 
-  Quaternion rotQ;
+  private Quaternion rotQ;
 
-  double DEGPERRAD = 180 / Math.PI;
-  double RADPERDEG = 1 / DEGPERRAD;
+  private final double DEGPERRAD = 180 / Math.PI;
+  private final double RADPERDEG = 1 / DEGPERRAD;
 
   // During computation, scale everything down to alleviate numerical errors
-  double scaleDown;
+  private double scaleDown;
 
   /**
    * Creates basic camera looking upwards (z)
@@ -50,9 +79,15 @@ public class Camera3D implements Paintable {
   public Camera3D(Vector3D positionInSpaceM, SolarSystem solarSystem, double hFOV, double screenRatio) {
     this.solarSystem = solarSystem;
     this.positionInSpaceM = positionInSpaceM;
+    // These won't change
     orientation = new Vector3D(0, 0, 1);
     xAxisDirection = new Vector3D(1, 0, 0);
     yAxisDirection = new Vector3D(0, 1, 0);
+    // These represent the current orientations
+    curOrientation = new Vector3D(orientation);
+    curXAxis = new Vector3D(xAxisDirection);
+    curYAxis = new Vector3D(yAxisDirection);
+    // Initialize 0 rotation quaternion
     rotQ = new Quaternion();
     setHFOV(hFOV);
     setScreenRatioW(screenRatio);
@@ -65,6 +100,7 @@ public class Camera3D implements Paintable {
    */
   @Override
   public void paintThis(Graphics2D g2d) {
+    // Setts up the necessary values before computing them
     g2d.setColor(Color.yellow);
     Vector3D bodyPos = new Vector3D();// Position of the body
     Vector3D cameraToBodyVec = new Vector3D();// Vector from camera position to body
@@ -78,7 +114,8 @@ public class Camera3D implements Paintable {
 
     double screenWidthM;// Width of plane intersecting the body
     double screenHeightM;// Height of plane intersecting the body
-    double projectionWidthM;// Projection of cameraToBodyVec (onto plane intersecting with body) width in meters as seen by
+    double projectionWidthM;// Projection of cameraToBodyVec (onto plane intersecting with body) width in
+                            // meters as seen by
     double angularPositionR;// Angle between camera axis and cameraToBodyVec
     double angularDiameterDeg;// Angular diameter of body
     // pinhole camera
@@ -101,19 +138,18 @@ public class Camera3D implements Paintable {
       // Scale everything down by the distance from the body to the camera
       scaleDown = cameraToBodyVec.len();
       cameraToBodyVec.scalarDiv(scaleDown);
-      bodyRad = body.getRadius()/scaleDown;
-
+      bodyRad = body.getRadius() / scaleDown;
 
       // Projections
-      projectionToCenter.setComponents(cameraToBodyVec).project(orientation);
+      projectionToCenter.setComponents(cameraToBodyVec).project(curOrientation);
       projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);
 
-      projectionToX.setComponents(cameraToBodyVec).project(xAxisDirection);
-      projectionToY.setComponents(cameraToBodyVec).project(yAxisDirection);
+      projectionToX.setComponents(cameraToBodyVec).project(curXAxis);
+      projectionToY.setComponents(cameraToBodyVec).project(curYAxis);
 
       // TODO: Only used to get rotation sign, find a way to remove.
-      xDistM = projectionToX.len() * Math.signum(projectionToX.dot(xAxisDirection));
-      yDistM = projectionToY.len() * Math.signum(projectionToY.dot(yAxisDirection));
+      xDistM = projectionToX.len() * Math.signum(projectionToX.dot(curXAxis));
+      yDistM = projectionToY.len() * Math.signum(projectionToY.dot(curYAxis));
 
       // Finding angles
       angularPositionR = projectionToCenter.separationAngle(cameraToBodyVec);
@@ -123,17 +159,18 @@ public class Camera3D implements Paintable {
       angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len()) * DEGPERRAD;
 
       // Relevant positions of projection
-      distToCentOfProj = 0.5 * (Math.tan(angularPositionR + angularDiameterDeg/2.0 * RADPERDEG)
-          + Math.tan(angularPositionR - angularDiameterDeg/2.0 * RADPERDEG))*projectionToCenter.len();
+      distToCentOfProj = 0.5 * (Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG)
+          + Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG)) * projectionToCenter.len();
       distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj;
       distToCentOfProjY = Math.sin(ellipseRotAngleR) * distToCentOfProj;
 
       // Width and height of projected ellipse
-      projectionWidthM = (Math.tan(angularPositionR + angularDiameterDeg/2.0 * RADPERDEG)
-          - Math.tan(angularPositionR - angularDiameterDeg/2.0 * RADPERDEG))*projectionToCenter.len();
+      projectionWidthM = (Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG)
+          - Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG)) * projectionToCenter.len();
       omega = distToCentOfProjY * distToCentOfProjY + distToCentOfProjX * distToCentOfProjX + 1
           - projectionWidthM * projectionWidthM / 4.0;
-      projectionHeightM = 2 * Math.sqrt((-omega + Math.sqrt(omega * omega + projectionWidthM * projectionWidthM)) / 2.0);
+      projectionHeightM = 2
+          * Math.sqrt((-omega + Math.sqrt(omega * omega + projectionWidthM * projectionWidthM)) / 2.0);
 
       // Converts from space to image
       screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * projectionToCenter.len() * 2;
@@ -217,5 +254,84 @@ public class Camera3D implements Paintable {
   public void setScreenWidth(double screenWidthP) {
     this.screenWidthP = screenWidthP;
     updateVFOVAndRatio();
+  }
+
+  /**
+   * Rotates the camera given a mouse motion
+   *
+   * @param pixDis The mouse displacement in pixel to take into account for the
+   *               rotation (+ means right, - means left)
+   * @param roll   If true, will rotate aroudn the acmera direction axis (+ means
+   *               counterclockwise, - means clockwise)
+   */
+  public void rotateCamera(Point pixDis, boolean roll) {
+    // Does roll if roll is true
+    if (roll) {
+      Quaternion r = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity, curOrientation);
+      rotQ.mulQuaternionReverse(r);
+    } else {
+      Quaternion yaw = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity, yAxisDirection);
+      Quaternion pitch = Quaternion.fromAxisAngle(pixDis.getY() * sensitivity, xAxisDirection);
+      rotQ.mulQuaternionReverse(yaw);
+      rotQ.mulQuaternionReverse(pitch);
+    }
+    // Update orientations
+    curOrientation = Vector3D.qatRot(orientation, rotQ);
+    curXAxis = Vector3D.qatRot(xAxisDirection, rotQ);
+    curYAxis = Vector3D.qatRot(yAxisDirection, rotQ);
+  }
+
+  /**
+   * Moves the camera in space
+   *
+   * @param v The displacement of the camera in meters moving along the
+   *          direction
+   *          the camera is pointing towards. (Camera3D.FORWARDS,
+   *          Camera3D.BACKWARDS)
+   */
+  public void moveAlongView(int v) {
+    Vector3D direction = Vector3D.normalize(orientation).scalarMult(v);
+    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+  }
+
+  /**
+   * Strafes left or right
+   *
+   * @param v The displacement of the camera in meters from side to side
+   *          (Camera3D.LEFT, Camera3D.RIGHT)
+   */
+  public void moveSideways(int v) {
+    Vector3D direction = Vector3D.normalize(xAxisDirection).scalarMult(v);
+    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+
+  }
+
+  /**
+   * Moves the camera vertically
+   *
+   * @param v The displacement of the camera in meters in the vertical direction
+   *          (Camera3D.UP, Camera3D.DOWN)
+   */
+  public void moveVertical(int v) {
+    Vector3D direction = Vector3D.normalize(yAxisDirection).scalarMult(v);
+    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+  }
+
+  /**
+   * Adds a number of boosts
+   *
+   * @param v Number of boosts to add
+   */
+  public void addBoost(int v) {
+    nbBoosts += v;
+  }
+
+  /**
+   * Setter for boostValue
+   *
+   * @param boostValue New boost value
+   */
+  public void setBoostValue(double boostValue) {
+    this.boostValue = boostValue;
   }
 }

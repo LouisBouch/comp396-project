@@ -2,11 +2,15 @@ package graphInterface.simulation;
 
 import java.awt.AWTException;
 import java.awt.Color;
-import java.awt.Robot;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -14,10 +18,18 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
 
 import environment.Camera3D;
@@ -26,6 +38,10 @@ import lib.Vector3D;
 import lib.keyBinds;
 
 public class SimulationP extends JPanel implements Runnable {
+  // Set of keys currently being held down
+  private final Set<Integer> heldKeys = new HashSet<>();
+  // Define actions for the held down keys
+  private final Map<Integer, Runnable> heldKeyActions = new HashMap<>();
   private boolean running = false;
   // Time between physics iterations
   private int sleepTime = 20;
@@ -42,35 +58,48 @@ public class SimulationP extends JPanel implements Runnable {
   private double nbZooms = 0;
   // Each level of nbZooms multiplies pixelPerMeter by this value
   private double zoomValue = 1.5;
-  private Vector3D translationM = new Vector3D();
   /**
    * Position of the observer in meters
    */
   private Camera3D camera;
-  private Vector3D lastMouseClickPosM = new Vector3D();
+
+  /**
+   * Cursor position and translation information
+   */
+  private Point2D lastMouseClickPosM = new Point2D.Double();
+  private Point2D translationM = new Point2D.Double();
+  private Point lastMouseClickPosP = new Point(-1, -1);
+  private boolean captured = false;
+  /**
+   * Can be used to move the mouse around
+   */
+  private Robot r;
 
   private boolean orthoView = true;
-
-  // TODO: Testing values, remove or concretize
-  private Robot r;
-  private double totalDist = 0;
-  private int x = 0;
-  private int y = 0;
-  private Vector3D lastMouseClickPosP = new Vector3D();
+  JLabel captureLabel;
 
   /**
    * Create the panel.
    */
   public SimulationP() {
-    solarSystem = new SolarSystem();
-    camera = new Camera3D(new Vector3D(0, 0, -10.96340e8), solarSystem, 90, 1);
+    SpringLayout sLayout = new SpringLayout();
+    this.setLayout(sLayout);
 
+    solarSystem = new SolarSystem();
+    camera = new Camera3D(new Vector3D(5e8, 0, -10.96340e8), solarSystem, 90, 1);
+
+    captureLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
+    sLayout.putConstraint(SpringLayout.WEST, captureLabel, 5, SpringLayout.WEST, this);
+    this.add(captureLabel);
+    capturedLabel();
+
+    // Create robot which will move cursor
     try {
       r = new Robot();
     } catch (AWTException e) {
       e.printStackTrace();
     }
-
     // Sets background color
     this.setBackground(Color.BLACK);
 
@@ -88,6 +117,8 @@ public class SimulationP extends JPanel implements Runnable {
    * Steps the simulation
    */
   public void step() {
+    handleKeys();
+    // TODO: add solarSystem.step()
   }
 
   /**
@@ -145,8 +176,6 @@ public class SimulationP extends JPanel implements Runnable {
    */
   @Override
   public void paintComponent(Graphics g) {
-    x = (int) this.getLocationOnScreen().getX();
-    y = (int) this.getLocationOnScreen().getY();
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -208,20 +237,22 @@ public class SimulationP extends JPanel implements Runnable {
     this.addMouseMotionListener(new MouseMotionListener() {
       @Override
       public void mouseDragged(MouseEvent e) {
-        translationM.setX(translationM.getX() + (e.getX() / pixelPerMeter - lastMouseClickPosM.getX()));
-        translationM.setY(translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
-        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
-        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
-
-        // Only move mouse when far away from initial position?
-        // Cause rn, moving right may not change the pixel pos, but moving left will.
-        // This causes innacuracies when computing total distance travelled.
-        totalDist += (e.getX() - lastMouseClickPosP.getX());
-        System.out.println(totalDist);
+        translationM.setLocation(translationM.getX() + (e.getX() / pixelPerMeter - lastMouseClickPosM.getX()),
+            translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
+        lastMouseClickPosM.setLocation(e.getX() / pixelPerMeter, e.getY() / pixelPerMeter);
       }
 
       @Override
       public void mouseMoved(MouseEvent e) {
+        if (!captured)
+          return;
+        if (!(lastMouseClickPosP.getX() == -1 && lastMouseClickPosP.getY() == -1)) {
+          Point pixDis = new Point(e.getX() - (int) lastMouseClickPosP.getX(),
+              e.getY() - (int) lastMouseClickPosP.getY());
+          Boolean roll = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0;
+          camera.rotateCamera(pixDis, roll);
+        }
+        lastMouseClickPosP.setLocation(e.getX(), e.getY());
       }
     });
   }
@@ -230,15 +261,12 @@ public class SimulationP extends JPanel implements Runnable {
    * Sets up mouse click listeners
    */
   public void setupMouseListerner() {
-    JComponent panel = this;
     // Adds listener for mouse click
     this.addMouseListener(new MouseListener() {
       @Override
       public void mousePressed(MouseEvent e) {
-        lastMouseClickPosM.setX(e.getX() / pixelPerMeter);
-        lastMouseClickPosM.setY(e.getY() / pixelPerMeter);
-        lastMouseClickPosP.setX(e.getX());
-        lastMouseClickPosP.setY(e.getY());
+        lastMouseClickPosM.setLocation(e.getX() / pixelPerMeter, e.getY() / pixelPerMeter);
+        lastMouseClickPosP.setLocation(e.getX(), e.getY());
       }
 
       @Override
@@ -252,16 +280,18 @@ public class SimulationP extends JPanel implements Runnable {
       // Pulls mouse back to the center when it exits the screen
       @Override
       public void mouseExited(MouseEvent e) {
-        lastMouseClickPosM.setX(panel.getWidth() / 2 / pixelPerMeter);
-        lastMouseClickPosM.setY(panel.getHeight() / 2 / pixelPerMeter);
-        lastMouseClickPosP.setX(panel.getWidth() / 2);
-        lastMouseClickPosP.setY(panel.getHeight() / 2);
+        if (!captured)
+          return;
+        JComponent panel = (JComponent) e.getSource();
+        lastMouseClickPosM.setLocation(panel.getWidth() / 2.0 / pixelPerMeter, panel.getHeight() / 2.0 / pixelPerMeter);
+        lastMouseClickPosP.setLocation(panel.getWidth() / 2, panel.getHeight() / 2);
         r.mouseMove((int) panel.getLocationOnScreen().getX() + panel.getWidth() / 2,
             (int) panel.getLocationOnScreen().getY() + panel.getHeight() / 2);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
+        lastMouseClickPosP.setLocation(e.getX(), e.getY());
       }
 
     });
@@ -274,30 +304,113 @@ public class SimulationP extends JPanel implements Runnable {
     this.addMouseWheelListener(new MouseWheelListener() {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
-        // If e.get.. is negative then we have scrollup, which is zoom in
-        // So we need positive value
-        nbZooms += -e.getWheelRotation();
-        double zoomMulti = Math.pow(zoomValue, -e.getWheelRotation());
-        translationM.setX((e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti);
-        translationM.setY((e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
-        pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
+        if (orthoView) {
+          // If e.get.. is negative then we have scrollup, which is zoom in
+          // So we need positive value
+          nbZooms += -e.getWheelRotation();
+          double zoomMulti = Math.pow(zoomValue, -e.getWheelRotation());
+          translationM.setLocation(
+              (e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti,
+              (e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
+          pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
+        } else {
+          // Increases boost
+          camera.addBoost(-e.getWheelRotation());
+        }
       }
     });
   }
 
   /**
-   * Sets up the keybindings
+   * Sets up the keybindings and creates the actions that will be run in the step
+   * loop for pressed donw keys
    */
   public void setupKeyBindings() {
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_W, 0, "Move Forward",
-        evt -> System.out.println("you are moving forward"));
+    // Binding to monitor W
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_W, 0, "Pressed W",
+        evt -> heldKeys.add(KeyEvent.VK_W));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_W, 0, "Released W",
+        evt -> heldKeys.remove(KeyEvent.VK_W));
+    // Binding to monitor S
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_S, 0, "Pressed S",
+        evt -> heldKeys.add(KeyEvent.VK_S));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_S, 0, "Released S",
+        evt -> heldKeys.remove(KeyEvent.VK_S));
+    // Binding to monitor A
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_A, 0, "Pressed A",
+        evt -> heldKeys.add(KeyEvent.VK_A));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_A, 0, "Released A",
+        evt -> heldKeys.remove(KeyEvent.VK_A));
+    // Binding to monitor D
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_D, 0, "Pressed D",
+        evt -> heldKeys.add(KeyEvent.VK_D));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_D, 0, "Released D",
+        evt -> heldKeys.remove(KeyEvent.VK_D));
+    // Binding to monitor CONTROL
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_CONTROL, 0, "Pressed CONTROL",
+        evt -> heldKeys.add(KeyEvent.VK_CONTROL));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_CONTROL, 0, "Released CONTROL",
+        evt -> heldKeys.remove(KeyEvent.VK_CONTROL));
+    // Binding to monitor SPACE
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_SPACE, 0, "Pressed SPACE",
+        evt -> heldKeys.add(KeyEvent.VK_SPACE));
+    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_SPACE, 0, "Released SPACE",
+        evt -> heldKeys.remove(KeyEvent.VK_SPACE));
 
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_A, 0, "Move Left", new AbstractAction() {
-
+    // Toggle mouse capture in simulation
+    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_C, 0, "Toggle mouse capture", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        System.out.println("oi");
+        captured = !captured;
+        if (captured) {
+          BufferedImage invIm = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+          invIm.setRGB(0, 0, 0x00000000);
+          Cursor invCur = Toolkit.getDefaultToolkit().createCustomCursor(invIm, new Point(0, 0), "invisible");
+          ((JComponent) e.getSource()).setCursor(invCur);
+        } else {
+          ((JComponent) e.getSource()).setCursor(Cursor.getDefaultCursor());
+        }
+        capturedLabel();
       }
     });
+
+    // Setup pressed down key actions
+    heldKeyActions.put(KeyEvent.VK_W, () -> camera.moveAlongView(Camera3D.FORWARDS));
+    heldKeyActions.put(KeyEvent.VK_S, () -> camera.moveAlongView(Camera3D.BACKWARDS));
+    heldKeyActions.put(KeyEvent.VK_A, () -> camera.moveSideways(Camera3D.LEFT));
+    heldKeyActions.put(KeyEvent.VK_D, () -> camera.moveSideways(Camera3D.RIGHT));
+    // TODO: add other actions (space and ctrl for up and down)
+
   }
+
+  /**
+   * Does actions depending on which keys are pressed
+   */
+  public void handleKeys() {
+    Runnable action;
+    for (int key : heldKeys) {
+      action = heldKeyActions.get(key);
+      if (action == null)
+        continue;
+      action.run();
+    }
+  }
+
+  /**
+   * Changes the label depending on the capture status of the mouse
+   */
+  public void capturedLabel() {
+    if (captured) {
+      captureLabel.setText("<html>"
+          + "<span style='color:#00FF00; font-size: 18; vertical-align: bottom;'>•</span>"
+          + "<span style='color:#FFFFFF; font-size: 12; vertical-align: middle;'>Press 'c' to release mouse capture</span>"
+          + "</html>");
+    } else {
+      captureLabel.setText("<html>"
+          + "<span style='color:#FF0000; font-size: 18; vertical-align: bottom;'>•</span>"
+          + "<span style='color:#FFFFFF; font-size: 12; vertical-align: middle;'>Press 'c' to capture mouse</span>"
+          + "</html>");
+    }
+  }
+
 }

@@ -122,6 +122,19 @@ public class Vector3D {
     components[2] = comp[2];
     return this;
   }
+  /**
+   * Sets all three value of the Vector3D
+   *
+   * @param x The x value of the vector
+   * @param y The y value of the vector
+   * @param z The z value of the vector
+   */
+  public Vector3D setComponents(int x, int y, int z) {
+    components[0] = x;
+    components[1] = y;
+    components[2] = z;
+    return this;
+  }
 
   /**
    * Copy values of another Vector3D
