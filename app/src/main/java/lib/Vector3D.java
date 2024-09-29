@@ -129,7 +129,7 @@ public class Vector3D {
    * @param y The y value of the vector
    * @param z The z value of the vector
    */
-  public Vector3D setComponents(int x, int y, int z) {
+  public Vector3D setComponents(double x, double y, double z) {
     components[0] = x;
     components[1] = y;
     components[2] = z;
