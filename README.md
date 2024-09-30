@@ -30,4 +30,4 @@ This is an interactive simulation, and as such, the user has complete control ov
 **Future feature 1**
   - Description
 
-This repository is mirrored in McGill's CS GitLab servers!
+This repository is mirrored in McGill's Computer Science GitLab servers!
