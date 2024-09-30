@@ -101,7 +101,6 @@ public class Camera3D implements Paintable {
   @Override
   public void paintThis(Graphics2D g2d) {
     // Setts up the necessary values before computing them
-    g2d.setColor(Color.yellow);
     Vector3D bodyPos = new Vector3D();// Position of the body
     Vector3D cameraToBodyVec = new Vector3D();// Vector from camera position to body
     Vector3D projectionToCenter = new Vector3D();// Projection onto the camera view diretion
@@ -137,6 +136,7 @@ public class Camera3D implements Paintable {
                      // radians
     double yAngPosR;
     for (Body body : solarSystem.getBodies()) {
+      g2d.setColor(body.getColor());
       bodyPos.setComponents(body.getPos());
       cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
 
@@ -259,7 +259,7 @@ public class Camera3D implements Paintable {
   /**
    * Sets the screen width in pixels
    *
-   * @param width The new screen width
+   * @param screenHeightP The new screen width
    */
   public void setScreenHeight(double screenHeightP) {
     this.screenHeightP = screenHeightP;
@@ -269,7 +269,7 @@ public class Camera3D implements Paintable {
   /**
    * Sets the screen width
    *
-   * @param width The new screen width
+   * @param screenWidthP The new screen width
    */
   public void setScreenWidth(double screenWidthP) {
     this.screenWidthP = screenWidthP;

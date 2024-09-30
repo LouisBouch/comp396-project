@@ -75,7 +75,7 @@ public class SimulationP extends JPanel implements Runnable {
    */
   private Robot r;
 
-  private boolean orthoView = false;
+  private boolean orthoView = true;
   JLabel captureLabel;
 
   /**
@@ -118,6 +118,7 @@ public class SimulationP extends JPanel implements Runnable {
    */
   public void step() {
     handleKeys();
+    solarSystem.step();
     // TODO: add solarSystem.step()
   }
 

@@ -10,12 +10,14 @@ import java.awt.*;
  */
 public abstract class Body implements Paintable {
 
-  double radius;
-  double mass;
+  private double radius;
+  private double mass;
 
-  Vector3D position;
+  private Vector3D position;
 
-  Vector3D velocity;
+  private Vector3D velocity;
+
+  private Color color;
 
   public Body(double radius, double mass, Vector3D position, Vector3D velocity) {
     this.radius = radius;
@@ -31,6 +33,12 @@ public abstract class Body implements Paintable {
    */
   public double getRadius() {
     return radius;
+  }
+
+  public Color getColor() {return color;}
+
+  public void setColor(Color color){
+    this.color = color;
   }
 
   /**
@@ -49,6 +57,10 @@ public abstract class Body implements Paintable {
    */
   public Vector3D getPos() {
     return position;
+  }
+
+  public void setPos(Vector3D pos){
+    position = pos;
   }
 
   /**
