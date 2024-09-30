@@ -75,7 +75,7 @@ public class SimulationP extends JPanel implements Runnable {
    */
   private Robot r;
 
-  private boolean orthoView = true;
+  private boolean orthoView = false;
   JLabel captureLabel;
 
   /**
@@ -86,7 +86,7 @@ public class SimulationP extends JPanel implements Runnable {
     this.setLayout(sLayout);
 
     solarSystem = new SolarSystem();
-    camera = new Camera3D(new Vector3D(5e8, 0, -10.96340e8), solarSystem, 90, 1);
+    camera = new Camera3D(new Vector3D(5e8, 5e8, -10.96340e8), solarSystem, 90, 1);
 
     captureLabel = new JLabel();
     sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
@@ -327,38 +327,38 @@ public class SimulationP extends JPanel implements Runnable {
    */
   public void setupKeyBindings() {
     // Binding to monitor W
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_W, 0, "Pressed W",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_W, "Pressed W",
         evt -> heldKeys.add(KeyEvent.VK_W));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_W, 0, "Released W",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_W, "Released W",
         evt -> heldKeys.remove(KeyEvent.VK_W));
     // Binding to monitor S
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_S, 0, "Pressed S",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_S, "Pressed S",
         evt -> heldKeys.add(KeyEvent.VK_S));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_S, 0, "Released S",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_S, "Released S",
         evt -> heldKeys.remove(KeyEvent.VK_S));
     // Binding to monitor A
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_A, 0, "Pressed A",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_A, "Pressed A",
         evt -> heldKeys.add(KeyEvent.VK_A));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_A, 0, "Released A",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_A, "Released A",
         evt -> heldKeys.remove(KeyEvent.VK_A));
     // Binding to monitor D
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_D, 0, "Pressed D",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_D, "Pressed D",
         evt -> heldKeys.add(KeyEvent.VK_D));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_D, 0, "Released D",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_D, "Released D",
         evt -> heldKeys.remove(KeyEvent.VK_D));
     // Binding to monitor CONTROL
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_CONTROL, 0, "Pressed CONTROL",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_CONTROL, "Pressed CONTROL",
         evt -> heldKeys.add(KeyEvent.VK_CONTROL));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_CONTROL, 0, "Released CONTROL",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_CONTROL, "Released CONTROL",
         evt -> heldKeys.remove(KeyEvent.VK_CONTROL));
     // Binding to monitor SPACE
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_SPACE, 0, "Pressed SPACE",
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_SPACE, "Pressed SPACE",
         evt -> heldKeys.add(KeyEvent.VK_SPACE));
-    keyBinds.addKeyBindingReleased(this, KeyEvent.VK_SPACE, 0, "Released SPACE",
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_SPACE, "Released SPACE",
         evt -> heldKeys.remove(KeyEvent.VK_SPACE));
 
     // Toggle mouse capture in simulation
-    keyBinds.addKeyBindingPressed(this, KeyEvent.VK_C, 0, "Toggle mouse capture", new AbstractAction() {
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_C, "Toggle mouse capture", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
         captured = !captured;
@@ -379,6 +379,8 @@ public class SimulationP extends JPanel implements Runnable {
     heldKeyActions.put(KeyEvent.VK_S, () -> camera.moveAlongView(Camera3D.BACKWARDS));
     heldKeyActions.put(KeyEvent.VK_A, () -> camera.moveSideways(Camera3D.LEFT));
     heldKeyActions.put(KeyEvent.VK_D, () -> camera.moveSideways(Camera3D.RIGHT));
+    heldKeyActions.put(KeyEvent.VK_SPACE, () -> camera.moveVertical(Camera3D.UP));
+    heldKeyActions.put(KeyEvent.VK_CONTROL, () -> camera.moveVertical(Camera3D.DOWN));
     // TODO: add other actions (space and ctrl for up and down)
 
   }

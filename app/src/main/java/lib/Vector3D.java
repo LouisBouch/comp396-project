@@ -502,7 +502,7 @@ public class Vector3D {
    *
    * @return The separation angle in Radians
    */
-  public double separationAngle(Vector3D v1, Vector3D v2) {
+  public static double separationAngle(Vector3D v1, Vector3D v2) {
     return v1.separationAngle(v2);
   }
 }

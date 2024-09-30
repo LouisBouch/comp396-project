@@ -26,7 +26,7 @@ public class Camera3D implements Paintable {
   /**
    * Number of meters to move by when the camera is displaced
    */
-  private double stepDistanceM = 10000;
+  private double stepDistanceM = 100000;
   /**
    * Number of times we want to boost the step distance
    */
@@ -131,6 +131,11 @@ public class Camera3D implements Paintable {
     Ellipse2D bodyProjection = new Ellipse2D.Double();
     AffineTransform originalTransform = g2d.getTransform();
     double omega;// Used to compute the minor axis
+
+    // Used to determine if out of bounds or not
+    double xAngPosR; // ANgular position of the body if it was projected on the camera x axis, in
+                     // radians
+    double yAngPosR;
     for (Body body : solarSystem.getBodies()) {
       bodyPos.setComponents(body.getPos());
       cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
@@ -139,6 +144,10 @@ public class Camera3D implements Paintable {
       scaleDown = cameraToBodyVec.len();
       cameraToBodyVec.scalarDiv(scaleDown);
       bodyRad = body.getRadius() / scaleDown;
+
+      // Skip if inside body
+      if (bodyRad > cameraToBodyVec.len())
+        continue;
 
       // Projections
       projectionToCenter.setComponents(cameraToBodyVec).project(curOrientation);
@@ -152,7 +161,7 @@ public class Camera3D implements Paintable {
       yDistM = projectionToY.len() * Math.signum(projectionToY.dot(curYAxis));
 
       // Finding angles
-      angularPositionR = projectionToCenter.separationAngle(cameraToBodyVec);
+      angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
       ellipseRotAngleR = projectionToScreen.separationAngle(projectionToX);
       ellipseRotAngleR *= Math.signum(yDistM * xDistM);// Turns clockwise if in 2nd or 4th quadrant
 
@@ -161,8 +170,17 @@ public class Camera3D implements Paintable {
       // Relevant positions of projection
       distToCentOfProj = 0.5 * (Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG)
           + Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG)) * projectionToCenter.len();
-      distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj;
-      distToCentOfProjY = Math.sin(ellipseRotAngleR) * distToCentOfProj;
+      distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj * Math.signum(xDistM);
+      distToCentOfProjY = Math.sin(Math.abs(ellipseRotAngleR)) * distToCentOfProj * Math.signum(yDistM);
+
+      // Don't show body if outside of hFOV
+      xAngPosR = Vector3D.sub(cameraToBodyVec, projectionToY).separationAngle(curOrientation);
+      if (Math.abs(xAngPosR * DEGPERRAD) - angularDiameterDeg / 2 > hFOV / 2)
+        continue;
+      // Don't show body if outside of vFOV
+      yAngPosR = Vector3D.sub(cameraToBodyVec, projectionToX).separationAngle(curOrientation);
+      if (Math.abs(yAngPosR * DEGPERRAD) - angularDiameterDeg / 2 > vFOV / 2)
+        continue;
 
       // Width and height of projected ellipse
       projectionWidthM = (Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG)
@@ -181,8 +199,10 @@ public class Camera3D implements Paintable {
           screenWidthP * projectionWidthM / screenWidthM,
           screenHeightP * projectionHeightM / screenHeightM);
       // Rotate the ellipse to align it to the center of the screen and draw
+      g2d.translate(bodyProjection.getX()+bodyProjection.getWidth()/2, bodyProjection.getY()+bodyProjection.getHeight()/2);
       g2d.rotate(ellipseRotAngleR);
-      g2d.draw(bodyProjection);
+      g2d.translate(-bodyProjection.getX()-bodyProjection.getWidth()/2, -bodyProjection.getY()-bodyProjection.getHeight()/2);
+      g2d.fill(bodyProjection);
       g2d.setTransform(originalTransform);
     }
   }
@@ -267,11 +287,11 @@ public class Camera3D implements Paintable {
   public void rotateCamera(Point pixDis, boolean roll) {
     // Does roll if roll is true
     if (roll) {
-      Quaternion r = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity, curOrientation);
+      Quaternion r = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity * RADPERDEG, curOrientation);
       rotQ.mulQuaternionReverse(r);
     } else {
-      Quaternion yaw = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity, yAxisDirection);
-      Quaternion pitch = Quaternion.fromAxisAngle(pixDis.getY() * sensitivity, xAxisDirection);
+      Quaternion yaw = Quaternion.fromAxisAngle(pixDis.getX() * sensitivity* RADPERDEG, curYAxis);
+      Quaternion pitch = Quaternion.fromAxisAngle(-pixDis.getY() * sensitivity* RADPERDEG, curXAxis);
       rotQ.mulQuaternionReverse(yaw);
       rotQ.mulQuaternionReverse(pitch);
     }
@@ -279,6 +299,7 @@ public class Camera3D implements Paintable {
     curOrientation = Vector3D.qatRot(orientation, rotQ);
     curXAxis = Vector3D.qatRot(xAxisDirection, rotQ);
     curYAxis = Vector3D.qatRot(yAxisDirection, rotQ);
+    //System.out.println("orientation: " + curOrientation.getX() + " " + curOrientation.getY() + " " + curOrientation.getZ());
   }
 
   /**
@@ -290,8 +311,9 @@ public class Camera3D implements Paintable {
    *          Camera3D.BACKWARDS)
    */
   public void moveAlongView(int v) {
-    Vector3D direction = Vector3D.normalize(orientation).scalarMult(v);
+    Vector3D direction = Vector3D.normalize(curOrientation).scalarMult(v);
     positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+    //System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() + " " + positionInSpaceM.getZ());
   }
 
   /**
@@ -301,9 +323,9 @@ public class Camera3D implements Paintable {
    *          (Camera3D.LEFT, Camera3D.RIGHT)
    */
   public void moveSideways(int v) {
-    Vector3D direction = Vector3D.normalize(xAxisDirection).scalarMult(v);
+    Vector3D direction = Vector3D.normalize(curXAxis).scalarMult(v);
     positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
-
+    //System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() + " " + positionInSpaceM.getZ());
   }
 
   /**
@@ -313,8 +335,9 @@ public class Camera3D implements Paintable {
    *          (Camera3D.UP, Camera3D.DOWN)
    */
   public void moveVertical(int v) {
-    Vector3D direction = Vector3D.normalize(yAxisDirection).scalarMult(v);
+    Vector3D direction = Vector3D.normalize(curYAxis).scalarMult(v);
     positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+    //System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() + " " + positionInSpaceM.getZ());
   }
 
   /**
