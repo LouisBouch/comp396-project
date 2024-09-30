@@ -18,6 +18,7 @@ This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downl
   - Clone repo into a project directory
   - TODO
 
+
 ## Current features
 
 This is an interactive simulation, and as such, the user has complete control over the environment.  
@@ -28,3 +29,5 @@ This is an interactive simulation, and as such, the user has complete control ov
 
 **Future feature 1**
   - Description
+
+This repository is mirrored in McGill's CS GitLab!
