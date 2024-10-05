@@ -75,7 +75,7 @@ public class SimulationP extends JPanel implements Runnable {
    */
   private Robot r;
 
-  private boolean orthoView = true;
+  private boolean orthoView = false;
   JLabel captureLabel;
 
   /**
@@ -86,7 +86,8 @@ public class SimulationP extends JPanel implements Runnable {
     this.setLayout(sLayout);
 
     solarSystem = new SolarSystem();
-    camera = new Camera3D(new Vector3D(5e8, 5e8, -10.96340e8), solarSystem, 90, 1);
+    camera = new Camera3D(new Vector3D(0, 0, -1.5e10), solarSystem, 90, 1);
+    camera.rotateCamera(new Point(500, 0), false);
 
     captureLabel = new JLabel();
     sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
