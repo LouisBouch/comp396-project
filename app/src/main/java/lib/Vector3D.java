@@ -491,7 +491,10 @@ public class Vector3D {
    */
   public double separationAngle(Vector3D v) {
     if (this.len() == 0 || v.len() == 0) return 0;
-    return Math.acos(this.dot(v) / (this.len() * v.len()));
+    double ratio = this.dot(v) / (this.len() * v.len());
+    ratio = ratio > 1 ? 1 : ratio;
+    ratio = ratio < -1 ? -1 : ratio;
+    return Math.acos(ratio);
   }
 
   /**

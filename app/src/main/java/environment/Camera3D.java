@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 
 import lib.Paintable;
 import lib.Quaternion;
@@ -21,7 +20,6 @@ public class Camera3D implements Paintable {
   public static final int UP = -1;
 
   private Vector3D positionInSpaceM;
-  private boolean unstable = false;
   /**
    * Converts pixel displacement to degrees
    */
@@ -111,17 +109,26 @@ public class Camera3D implements Paintable {
     Vector3D projectionToX = new Vector3D();// Projection on x axis as seen by camera
     Vector3D projectionToY = new Vector3D();// Projection on y axis as seen by camera
 
+    double furthestAngleThreshold = 85;// If the furthest point on the ellipse forms an angle with the orientation axis
+                                       // greater than this value, approximate the furthest point as the position of
+                                       // the point at this angle plus the shift of the closest point on the ellipse.
+    double bodyAngleThreshold = 89;// If the body form an angle greater than this value with respect to the
+                                   // orientation axis, approximate the position of the sphere as if it were at
+                                   // this angle and add the shift of the closest point of the ellipse.
     double ellipseRotAngleR;// Rotation of ellipse to align it towards the center of the screen
     double bodyRad;// Radius of the body used
+    double screenDistM;// Distance from tthe camera to the projection plane
 
     double screenWidthM;// Width of plane intersecting the body
     double screenHeightM;// Height of plane intersecting the body
-    double projectionWidthM;// Projection of cameraToBodyVec (onto plane intersecting with body) width in
-                            // meters as seen by
+    double projectionMajorM; // Major axis of the ellipse projected onto the image plane
+    double projectionMinorM;// Minor axis of the ellipse projected onto the image plane
     double angularPositionR;// Angle between camera axis and cameraToBodyVec
     double angularDiameterDeg;// Angular diameter of body
+    double ellEccentricty;// Approximated eccentricity of the Ellipse
     // pinhole camera
-    double projectionHeightM;// Projection height in meters ass seen by pinhole camera
+    double lengthToScreenM; // Length of vector that goes from the camera to the body and is intersected by
+                            // the image plane
 
     double xSign;// Length of projectionToX, negative if in the negative x direction
     double ySign;
@@ -130,257 +137,145 @@ public class Camera3D implements Paintable {
     double closestDist;// Distance from center of screen to closest point on major axis of projection
     double distToCentOfProj;// The distance to the center of the projected sphere starting from the center
                             // of the image (in meters)
-    double distToCentOfProjX;
+    double distToCentOfProjX;// Value is in meters (and scaled down, like all other values in meters)
     double distToCentOfProjY;
     Ellipse2D bodyProjection = new Ellipse2D.Double();
-    Rectangle2D majorAxis = new Rectangle2D.Double();// TODO: for debugging only
     AffineTransform originalTransform = g2d.getTransform();
-    double omega;// Used to compute the minor axis
     // Works, but breaks something somehow TODO: why?
     // ArrayList<Body> orderedBodies = solarSystem.getBodies();
     // orderedBodies.sort((a,b)->{
     // return Double.compare(Vector3D.sub(b.getPos(), positionInSpaceM).len(),
     // Vector3D.sub(a.getPos(), positionInSpaceM).len());
     // });
-    if (unstable) {
-      for (Body body : solarSystem.getBodies()) {
-        g2d.setColor(body.getColor());
-        bodyPos.setComponents(body.getPos());
-        cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
+    for (Body body : solarSystem.getBodies()) {
+      g2d.setColor(body.getColor());
+      bodyPos.setComponents(body.getPos());
+      cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
 
-        // Scale everything down by the distance from the body to the camera
-        scaleDown = cameraToBodyVec.len() / 100;// TODO: changing this value should not change the rendering, and yet it
-                                                // does.
-        cameraToBodyVec.scalarDiv(scaleDown);
-        bodyRad = body.getRadius() / scaleDown;
+      // Scale everything down by the distance from the body to the camera
+      scaleDown = cameraToBodyVec.len();
+      cameraToBodyVec.scalarDiv(scaleDown);
+      bodyRad = body.getRadius() / scaleDown;
 
-        // Skip if inside body
-        if (bodyRad > cameraToBodyVec.len())
-          continue;
+      // Skip if inside body
+      if (bodyRad > cameraToBodyVec.len())
+        continue;
 
-        // Projections
-        projectionToCenter.setComponents(cameraToBodyVec).project(curOrientation);
-        projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);
-
-        projectionToX.setComponents(cameraToBodyVec).project(curXAxis);
-        projectionToY.setComponents(cameraToBodyVec).project(curYAxis);
-
-        // TODO: Only used to get rotation sign, find a way to remove.
-        xSign = projectionToX.len() * Math.signum(projectionToX.dot(curXAxis));
-        ySign = projectionToY.len() * Math.signum(projectionToY.dot(curYAxis));
-
-        // Finding angles
-        angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
-        ellipseRotAngleR = projectionToScreen.separationAngle(projectionToX);
-        ellipseRotAngleR *= Math.signum(ySign * xSign);// Turns clockwise if in 2nd or 4th quadrant
-
-        angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len()) * DEGPERRAD;
-
-        // Relevant distances of projection
-        closestDist = Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-        // If furthest point of body cannot be projected accurately,
-        if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > 85) {
-          double adjustedAngPosR = (85 - angularDiameterDeg / 2.0) / DEGPERRAD;
-          double adjustedProjCenter = cameraToBodyVec.len() * Math.cos((85 - angularDiameterDeg / 2.0) * RADPERDEG);
-          furthestDist = Math.tan(85 * RADPERDEG) * adjustedProjCenter;
-          furthestDist += closestDist
-              - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * adjustedProjCenter;
-        } else {
-          furthestDist = Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-        }
-        distToCentOfProj = 0.5 * (furthestDist + closestDist);
-        distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj * Math.signum(xSign);
-        distToCentOfProjY = Math.sin(Math.abs(ellipseRotAngleR)) * distToCentOfProj * Math.signum(ySign);
-
-        // Width and height of projected ellipse
-        projectionWidthM = (furthestDist - closestDist);
-        omega = distToCentOfProjY * distToCentOfProjY + distToCentOfProjX * distToCentOfProjX + 1
-            - projectionWidthM * projectionWidthM / 4.0;
-        projectionHeightM = 2
-            * Math.sqrt((-omega + Math.sqrt(omega * omega + projectionWidthM * projectionWidthM)) / 2.0);
-
-        // Don't load body if not visible on screen
-        screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * projectionToCenter.len() * 2;
-        screenHeightM = screenWidthM / screenRatio;
-        // System.out.println("width: " + projectionWidthM / screenWidthM);
-        // System.out.println("height: " + projectionHeightM / screenHeightM);
-        // Don't load body if outside of hFOV (ellipse relaxed to biggest sphere
-        // containing it)
-        if (Math.abs(distToCentOfProjX) - projectionWidthM / 2.0 > screenWidthM / 2.0) {
-          continue;
-        }
-        // Don't load body if outside of vFOV (ellipse relaxed to biggest sphere
-        // containing it)
-        if (Math.abs(distToCentOfProjY) - projectionWidthM / 2.0 > screenHeightM / 2.0) {
-          continue;
-        }
-        // Don't load body if behind camera
-        if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
-          continue;
-        }
-        if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD > 90) {
-          System.out.println("BEHIND");
-        }
-        // Converts from space to image
-        bodyProjection.setFrame(
-            screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * projectionWidthM) / screenWidthM),
-            screenHeightP * (0.5 + (distToCentOfProjY - 0.5 * projectionHeightM) / screenHeightM),
-            screenWidthP * projectionWidthM / screenWidthM,
-            screenHeightP * projectionHeightM / screenHeightM);
-        // majorAxis.setFrame(
-        // screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * 10 * projectionWidthM) /
-        // screenWidthM),
-        // screenHeightP * (0.5 + (distToCentOfProjY) / screenHeightM),
-        // screenWidthP * projectionWidthM * 10 / screenWidthM,
-        // 1);
-        // Rotate the ellipse to align it to the center of the screen and draw
-        g2d.translate(bodyProjection.getX() + bodyProjection.getWidth() / 2,
-            bodyProjection.getY() + bodyProjection.getHeight() / 2);
-        g2d.rotate(ellipseRotAngleR);
-        g2d.translate(-bodyProjection.getX() - bodyProjection.getWidth() / 2,
-            -bodyProjection.getY() - bodyProjection.getHeight() / 2);
-
-        g2d.fill(bodyProjection);
-        g2d.setColor(Color.RED);
-        g2d.fill(majorAxis);
-        g2d.setTransform(originalTransform);
+      angularDiameterDeg = 2 * Math.asin(body.getRadius() / (Vector3D.sub(body.getPos(), positionInSpaceM)).len())
+          * DEGPERRAD;
+      // Don't load body if behind camera
+      if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
+        // System.out.println("FULLY BEHIND");
+        continue;
       }
-    } else {
-      for (Body body : solarSystem.getBodies()) {
-        double screenDistM = 10000000.0;
-        g2d.setColor(body.getColor());
-        bodyPos.setComponents(body.getPos());
-        cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
 
-        // Scale everything down by the distance from the body to the camera
-        scaleDown = cameraToBodyVec.len();
-        screenDistM /= scaleDown;
-        cameraToBodyVec.scalarDiv(scaleDown);
-        bodyRad = body.getRadius() / scaleDown;
+      angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
+      // Take screen dist as projection of cameraToBodyVec on the orientation axis
+      screenDistM = Math.cos(angularPositionR) * cameraToBodyVec.len();
 
-        // Skip if inside body
-        if (bodyRad > cameraToBodyVec.len())
-          continue;
-
-        // Projections
-        // projectionToCenter.setComponents(cameraToBodyVec).project(curOrientation);//CHANGED
-        projectionToCenter.setComponents(curOrientation).normalize().scalarMult(screenDistM);// DELETE
-        // projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);//CHANGED
-        double straightToBodyAngleR = projectionToCenter.separationAngle(cameraToBodyVec);// DELETE
-        double lengthToScreen = screenDistM / Math.abs(Math.cos(straightToBodyAngleR));// DELETE
-        cameraToBodyVec.normalize().scalarMult(lengthToScreen);// DELETE
-        projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);// DELETE
-
-        // Screen info
-        screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * projectionToCenter.len() * 2;
-        screenHeightM = screenWidthM / screenRatio;
-
-        projectionToX.setComponents(cameraToBodyVec).project(curXAxis);
-        projectionToY.setComponents(cameraToBodyVec).project(curYAxis);
-
-        xSign = Math.signum(projectionToX.dot(curXAxis));
-        ySign = Math.signum(projectionToY.dot(curYAxis));
-
-        // Finding angles
-        angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
-        ellipseRotAngleR = projectionToScreen.separationAngle(projectionToX);
-        ellipseRotAngleR *= Math.signum(ySign * xSign);// Turns clockwise if in 2nd or 4th quadrant
-
-        // angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len()) *
-        // DEGPERRAD;//CHANGED
-        angularDiameterDeg = 2 * Math.asin(body.getRadius() / (Vector3D.sub(body.getPos(), positionInSpaceM)).len())
-            * DEGPERRAD;// DELETE
-
-        // Relevant distances of projection
-        closestDist = Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-        // If furthest point of body cannot be projected accurately,
-        if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > 85) {
-          double adjustedAngPosR = (85 - angularDiameterDeg / 2.0) / DEGPERRAD;
-          // double adjustedProjCenter = cameraToBodyVec.len() * Math.cos((85 -
-          // angularDiameterDeg / 2.0) * RADPERDEG);//CHANGED
-          // furthestDist = Math.tan(85 * RADPERDEG) * adjustedProjCenter;//CHANGED
-          furthestDist = Math.tan(85 * RADPERDEG) * projectionToCenter.len();// DELETE
-          // furthestDist += closestDist - Math.tan(adjustedAngPosR - angularDiameterDeg /
-          // 2.0 * RADPERDEG) * adjustedProjCenter;//CHANGED
-          furthestDist += closestDist
-              - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();// DELETE
-        } else {
-          furthestDist = Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-        }
-        distToCentOfProj = 0.5 * (furthestDist + closestDist);
-        distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj * Math.signum(xSign);
-        distToCentOfProjY = Math.sin(Math.abs(ellipseRotAngleR)) * distToCentOfProj * Math.signum(ySign);
-
-        // Width and height of projected ellipse
-        projectionWidthM = (furthestDist - closestDist);
-        // This is not working
-        // omega = distToCentOfProjY * distToCentOfProjY + distToCentOfProjX *
-        // distToCentOfProjX + 1
-        // - projectionWidthM * projectionWidthM / 4.0;
-        // projectionHeightM = 2
-        // * Math.sqrt((-omega + Math.sqrt(omega * omega + projectionWidthM *
-        // projectionWidthM)) / 2.0);
-
-        // This is only an approximation, this formula is not physically accurate. I
-        // pulled it out of my ***. It's 4am and I just want to go to bed :(
-        // If you figure out how to get the minor axis length, message me at
-        // louisbouchard@mail.com (yes, @mail.com)
-        double ellEccentricty = Math.abs(distToCentOfProj - projectionToScreen.len()) / projectionWidthM;
-        if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > 85) {
-          double adjustedAngPosR = (85 - angularDiameterDeg / 2.0) / DEGPERRAD;
-           double change = closestDist - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();// DELETE
-           double adjustedProjScreen = projectionToCenter.len()*Math.tan(85*DEGPERRAD);
-          ellEccentricty = Math.abs(distToCentOfProj - change - adjustedProjScreen) / projectionWidthM;
-        }
-        //TODO: fix issue of weird rotation when body is behind camera
-        //Don't change eccentricity after the 85deg threshold
-        projectionHeightM = projectionWidthM * Math.sqrt(1 - ellEccentricty * ellEccentricty);
-
-        // Don't load body if not visible on screen
-        // Don't load body if outside of hFOV (ellipse relaxed to biggest sphere
-        // containing it)
-        if (Math.abs(distToCentOfProjX) - projectionWidthM / 2.0 > screenWidthM / 2.0) {
-          //System.out.println("OUTSIDE HORI");
-          continue;
-        }
-        // Don't load body if outside of vFOV (ellipse relaxed to biggest sphere
-        // containing it)
-        if (Math.abs(distToCentOfProjY) - projectionWidthM / 2.0 > screenHeightM / 2.0) {
-          //System.out.println("OUTSIDE VERTI");
-          continue;
-        }
-        // Don't load body if behind camera
-        if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
-          //System.out.println("FULLY BEHIND");
-          continue;
-        }
-        if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD > 90) {
-          //System.out.println("BEHIND");
-        }
-        // Converts from space to image
-        bodyProjection.setFrame(
-            screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * projectionWidthM) / screenWidthM),
-            screenHeightP * (0.5 + (distToCentOfProjY - 0.5 * projectionHeightM) / screenHeightM),
-            screenWidthP * projectionWidthM / screenWidthM,
-            screenHeightP * projectionHeightM / screenHeightM);
-        // majorAxis.setFrame(
-        // screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * 10 * projectionWidthM) /
-        // screenWidthM),
-        // screenHeightP * (0.5 + (distToCentOfProjY) / screenHeightM),
-        // screenWidthP * projectionWidthM * 10 / screenWidthM,
-        // 1);
-        // Rotate the ellipse to align it to the center of the screen and draw
-        g2d.translate(bodyProjection.getX() + bodyProjection.getWidth() / 2,
-            bodyProjection.getY() + bodyProjection.getHeight() / 2);
-        g2d.rotate(ellipseRotAngleR);
-        g2d.translate(-bodyProjection.getX() - bodyProjection.getWidth() / 2,
-            -bodyProjection.getY() - bodyProjection.getHeight() / 2);
-
-        g2d.fill(bodyProjection);
-        g2d.setColor(Color.RED);
-        g2d.fill(majorAxis);
-        g2d.setTransform(originalTransform);
+      double centerShiftM = 0;
+      // If the body is almost behind the camera, just draw as if it were closer and
+      // then shift
+      if (angularPositionR * DEGPERRAD > bodyAngleThreshold) {
+        screenDistM = Math.cos(bodyAngleThreshold * RADPERDEG) * cameraToBodyVec.len();
+        double closestDistBeforeM = Math.tan(angularPositionR - angularDiameterDeg * RADPERDEG / 2.0) * screenDistM;
+        double closestDistAfterM = Math.tan(bodyAngleThreshold * RADPERDEG - angularDiameterDeg * RADPERDEG / 2.0)
+            * screenDistM;
+        centerShiftM = closestDistBeforeM - closestDistAfterM;
+        // Rotate body back into the 180 degree plane
+        cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angularPositionR - bodyAngleThreshold * RADPERDEG,
+            Vector3D.cross(cameraToBodyVec, curOrientation)));
+        // Update angular position
+        angularPositionR = bodyAngleThreshold * RADPERDEG;
       }
+      lengthToScreenM = screenDistM / Math.abs(Math.cos(angularPositionR));
+      cameraToBodyVec.normalize().scalarMult(lengthToScreenM);
+      projectionToCenter.setComponents(curOrientation).normalize().scalarMult(screenDistM);
+      projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);
+
+      // Screen info
+      screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * projectionToCenter.len() * 2;
+      screenHeightM = screenWidthM / screenRatio;
+
+      projectionToX.setComponents(cameraToBodyVec).project(curXAxis);
+      projectionToY.setComponents(cameraToBodyVec).project(curYAxis);
+
+      xSign = Math.signum(projectionToX.dot(curXAxis));
+      ySign = Math.signum(projectionToY.dot(curYAxis));
+      xSign = xSign == 0 ? 1 : xSign;
+      ySign = ySign == 0 ? 1 : ySign;
+
+      // Finding angles
+      ellipseRotAngleR = projectionToScreen.separationAngle(projectionToX);
+      ellipseRotAngleR *= Math.signum(ySign * xSign);// Turns clockwise if in 2nd or 4th quadrant
+
+      // Relevant distances of projection
+      closestDist = Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
+      // If furthest point of body cannot be projected accurately, (threatens to go
+      // beyond 90 deg)
+      if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > furthestAngleThreshold) {
+        // Angle that allows to barely reach the threshold
+        double adjustedAngPosR = (furthestAngleThreshold - angularDiameterDeg / 2.0) / DEGPERRAD;
+        furthestDist = Math.tan(furthestAngleThreshold * RADPERDEG) * projectionToCenter.len();
+        furthestDist += closestDist
+            - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
+      } else {
+        furthestDist = Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
+      }
+      distToCentOfProj = 0.5 * (furthestDist + closestDist);
+
+      // Width and height of projected ellipse
+      projectionMajorM = (furthestDist - closestDist);
+
+      // This is only an approximation, this formula is not physically accurate. I
+      // pulled it out of my ***. It's 4am and I just want to go to bed :(
+      // If you figure out how to get the minor axis length, message me at
+      // louisbouchard@mail.com (it is indeed @mail.com)
+      // Don't change eccentricity after the furthestAngleThreshold threshold
+      if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > furthestAngleThreshold) {
+        double adjustedAngPosR = (furthestAngleThreshold - angularDiameterDeg / 2.0) / DEGPERRAD;
+        double change = closestDist
+            - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
+        double adjustedProjScreen = projectionToCenter.len() * Math.tan(adjustedAngPosR);
+        ellEccentricty = 2 * Math.abs((distToCentOfProj - change) - adjustedProjScreen) / projectionMajorM;
+      } else {
+        // Eccentricity if no special threshold condition apply
+        ellEccentricty = 2 * Math.abs(distToCentOfProj - projectionToScreen.len()) / projectionMajorM;
+
+      }
+      projectionMinorM = projectionMajorM * Math.sqrt(1 - ellEccentricty * ellEccentricty);
+
+      // Get projections
+      distToCentOfProj += centerShiftM;// Add shift from approximation
+      distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj * Math.signum(xSign);
+      distToCentOfProjY = Math.sin(Math.abs(ellipseRotAngleR)) * distToCentOfProj * Math.signum(ySign);
+
+      // Don't load body if not visible on screen
+      // Don't load body if outside of hFOV (ellipse relaxed to biggest sphere
+      // containing it)
+      if (Math.abs(distToCentOfProjX) - projectionMajorM / 2.0 > screenWidthM / 2.0) {
+        continue;
+      }
+      // Don't load body if outside of vFOV (ellipse relaxed to biggest sphere
+      // containing it)
+      if (Math.abs(distToCentOfProjY) - projectionMajorM / 2.0 > screenHeightM / 2.0) {
+        continue;
+      }
+      // Converts from space to image
+      bodyProjection.setFrame(
+          screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * projectionMajorM) / screenWidthM),
+          screenHeightP * (0.5 + (distToCentOfProjY - 0.5 * projectionMinorM) / screenHeightM),
+          screenWidthP * projectionMajorM / screenWidthM,
+          screenHeightP * projectionMinorM / screenHeightM);
+      // Rotate the ellipse to align it to the center of the screen and draw
+      g2d.translate(bodyProjection.getX() + bodyProjection.getWidth() / 2,
+          bodyProjection.getY() + bodyProjection.getHeight() / 2);
+      g2d.rotate(ellipseRotAngleR);
+      g2d.translate(-bodyProjection.getX() - bodyProjection.getWidth() / 2,
+          -bodyProjection.getY() - bodyProjection.getHeight() / 2);
+
+      g2d.fill(bodyProjection);
+      g2d.setTransform(originalTransform);
     }
   }
 
