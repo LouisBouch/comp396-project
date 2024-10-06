@@ -102,19 +102,16 @@ public class Camera3D implements Paintable {
   @Override
   public void paintThis(Graphics2D g2d) {
     // Setts up the necessary values before computing them
-    Vector3D bodyPos = new Vector3D();// Position of the body
     Vector3D cameraToBodyVec = new Vector3D();// Vector from camera position to body
     Vector3D projectionToCenter = new Vector3D();// Projection onto the camera view diretion
     Vector3D projectionToScreen = new Vector3D();// Projection to plane perpendicular to camera view
     Vector3D projectionToX = new Vector3D();// Projection on x axis as seen by camera
     Vector3D projectionToY = new Vector3D();// Projection on y axis as seen by camera
 
-    double furthestAngleThreshold = 85;// If the furthest point on the ellipse forms an angle with the orientation axis
-                                       // greater than this value, approximate the furthest point as the position of
-                                       // the point at this angle plus the shift of the closest point on the ellipse.
-    double bodyAngleThreshold = 89;// If the body form an angle greater than this value with respect to the
-                                   // orientation axis, approximate the position of the sphere as if it were at
-                                   // this angle and add the shift of the closest point of the ellipse.
+    double furthestAngleThreshold = 88.5;// If the furthest point on the ellipse forms an angle with the orientation
+                                         // axis
+    // greater than this value, approximate the furthest point as the position of
+    // the point at this angle plus the shift of the closest point on the ellipse.
     double ellipseRotAngleR;// Rotation of ellipse to align it towards the center of the screen
     double bodyRad;// Radius of the body used
     double screenDistM;// Distance from tthe camera to the projection plane
@@ -132,6 +129,8 @@ public class Camera3D implements Paintable {
 
     double xSign;// Length of projectionToX, negative if in the negative x direction
     double ySign;
+    double centerShiftM;// When the approximation is in effect, the body needs to be shifted by this
+                        // amount along the projectionToScreen vector.
 
     double furthestDist;// Distance from center of screen to furthest point of projection
     double closestDist;// Distance from center of screen to closest point on major axis of projection
@@ -149,10 +148,10 @@ public class Camera3D implements Paintable {
     // });
     for (Body body : solarSystem.getBodies()) {
       g2d.setColor(body.getColor());
-      bodyPos.setComponents(body.getPos());
-      cameraToBodyVec.setComponents(bodyPos).sub(positionInSpaceM);
+      cameraToBodyVec.setComponents(body.getPos()).sub(positionInSpaceM);
 
       // Scale everything down by the distance from the body to the camera
+      // Increases numerical stability?
       scaleDown = cameraToBodyVec.len();
       cameraToBodyVec.scalarDiv(scaleDown);
       bodyRad = body.getRadius() / scaleDown;
@@ -161,42 +160,51 @@ public class Camera3D implements Paintable {
       if (bodyRad > cameraToBodyVec.len())
         continue;
 
-      angularDiameterDeg = 2 * Math.asin(body.getRadius() / (Vector3D.sub(body.getPos(), positionInSpaceM)).len())
+      angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len())
           * DEGPERRAD;
+      angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
+
       // Don't load body if behind camera
-      if (cameraToBodyVec.separationAngle(curOrientation) * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
-        // System.out.println("FULLY BEHIND");
+      if (angularPositionR * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
         continue;
       }
 
-      angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
       // Take screen dist as projection of cameraToBodyVec on the orientation axis
       screenDistM = Math.cos(angularPositionR) * cameraToBodyVec.len();
 
-      double centerShiftM = 0;
+      centerShiftM = 0;
       // If the body is almost behind the camera, just draw as if it were closer and
       // then shift
-      if (angularPositionR * DEGPERRAD > bodyAngleThreshold) {
-        screenDistM = Math.cos(bodyAngleThreshold * RADPERDEG) * cameraToBodyVec.len();
+      if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > furthestAngleThreshold) {
+        // Angle that makes sure the body does not cross the angle threshold
+        double adjustedAngPosR = (furthestAngleThreshold - angularDiameterDeg / 2.0) / DEGPERRAD;
+        screenDistM = Math.cos(adjustedAngPosR) * cameraToBodyVec.len();
         double closestDistBeforeM = Math.tan(angularPositionR - angularDiameterDeg * RADPERDEG / 2.0) * screenDistM;
-        double closestDistAfterM = Math.tan(bodyAngleThreshold * RADPERDEG - angularDiameterDeg * RADPERDEG / 2.0)
+        double closestDistAfterM = Math.tan(adjustedAngPosR - angularDiameterDeg * RADPERDEG / 2.0)
             * screenDistM;
+
         centerShiftM = closestDistBeforeM - closestDistAfterM;
-        // Rotate body back into the 180 degree plane
-        cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angularPositionR - bodyAngleThreshold * RADPERDEG,
+        // Adjust body to make it look like it is still positioned before the camera
+        // plane
+        cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angularPositionR - adjustedAngPosR,
             Vector3D.cross(cameraToBodyVec, curOrientation)));
-        // Update angular position
-        angularPositionR = bodyAngleThreshold * RADPERDEG;
+        // New angular position that assumes the body is positioned before the camera
+        // plane
+        angularPositionR = adjustedAngPosR;
       }
       lengthToScreenM = screenDistM / Math.abs(Math.cos(angularPositionR));
       cameraToBodyVec.normalize().scalarMult(lengthToScreenM);
       projectionToCenter.setComponents(curOrientation).normalize().scalarMult(screenDistM);
       projectionToScreen.setComponents(cameraToBodyVec).sub(projectionToCenter);
+      // Relevant distances of projection
+      closestDist = Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
+      furthestDist = Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
 
       // Screen info
       screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * projectionToCenter.len() * 2;
       screenHeightM = screenWidthM / screenRatio;
 
+      // Body position info
       projectionToX.setComponents(cameraToBodyVec).project(curXAxis);
       projectionToY.setComponents(cameraToBodyVec).project(curYAxis);
 
@@ -209,19 +217,7 @@ public class Camera3D implements Paintable {
       ellipseRotAngleR = projectionToScreen.separationAngle(projectionToX);
       ellipseRotAngleR *= Math.signum(ySign * xSign);// Turns clockwise if in 2nd or 4th quadrant
 
-      // Relevant distances of projection
-      closestDist = Math.tan(angularPositionR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-      // If furthest point of body cannot be projected accurately, (threatens to go
-      // beyond 90 deg)
-      if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > furthestAngleThreshold) {
-        // Angle that allows to barely reach the threshold
-        double adjustedAngPosR = (furthestAngleThreshold - angularDiameterDeg / 2.0) / DEGPERRAD;
-        furthestDist = Math.tan(furthestAngleThreshold * RADPERDEG) * projectionToCenter.len();
-        furthestDist += closestDist
-            - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-      } else {
-        furthestDist = Math.tan(angularPositionR + angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-      }
+      // If furthest point of body cannot be projected accurately
       distToCentOfProj = 0.5 * (furthestDist + closestDist);
 
       // Width and height of projected ellipse
@@ -231,18 +227,7 @@ public class Camera3D implements Paintable {
       // pulled it out of my ***. It's 4am and I just want to go to bed :(
       // If you figure out how to get the minor axis length, message me at
       // louisbouchard@mail.com (it is indeed @mail.com)
-      // Don't change eccentricity after the furthestAngleThreshold threshold
-      if (angularPositionR * DEGPERRAD + angularDiameterDeg / 2.0 > furthestAngleThreshold) {
-        double adjustedAngPosR = (furthestAngleThreshold - angularDiameterDeg / 2.0) / DEGPERRAD;
-        double change = closestDist
-            - Math.tan(adjustedAngPosR - angularDiameterDeg / 2.0 * RADPERDEG) * projectionToCenter.len();
-        double adjustedProjScreen = projectionToCenter.len() * Math.tan(adjustedAngPosR);
-        ellEccentricty = 2 * Math.abs((distToCentOfProj - change) - adjustedProjScreen) / projectionMajorM;
-      } else {
-        // Eccentricity if no special threshold condition apply
-        ellEccentricty = 2 * Math.abs(distToCentOfProj - projectionToScreen.len()) / projectionMajorM;
-
-      }
+      ellEccentricty = 2 * Math.abs(distToCentOfProj - projectionToScreen.len()) / projectionMajorM;
       projectionMinorM = projectionMajorM * Math.sqrt(1 - ellEccentricty * ellEccentricty);
 
       // Get projections
@@ -250,7 +235,6 @@ public class Camera3D implements Paintable {
       distToCentOfProjX = Math.cos(ellipseRotAngleR) * distToCentOfProj * Math.signum(xSign);
       distToCentOfProjY = Math.sin(Math.abs(ellipseRotAngleR)) * distToCentOfProj * Math.signum(ySign);
 
-      // Don't load body if not visible on screen
       // Don't load body if outside of hFOV (ellipse relaxed to biggest sphere
       // containing it)
       if (Math.abs(distToCentOfProjX) - projectionMajorM / 2.0 > screenWidthM / 2.0) {
