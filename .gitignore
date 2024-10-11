@@ -21,3 +21,10 @@ build
 
 # Ignore .html files
 *.html
+
+# Ignore backups
+*.bck
+*.backup
+*.bk
+*.back
+*.bak

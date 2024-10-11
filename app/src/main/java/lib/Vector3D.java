@@ -122,6 +122,7 @@ public class Vector3D {
     components[2] = comp[2];
     return this;
   }
+
   /**
    * Sets all three value of the Vector3D
    *
@@ -238,6 +239,28 @@ public class Vector3D {
    */
   public static Vector3D add(Vector3D v1, Vector3D v2) {
     return new Vector3D(v1.getX() + v2.getX(), v1.getY() + v2.getY(), v1.getZ() + v2.getZ());
+  }
+  /**
+   * Adds scalar to the current Vector3D
+   * 
+   * @param s Scalar to add to our current Vector3D
+   */
+  public Vector3D ScalarAdd(double s) {
+    components[0] += s;
+    components[1] += s;
+    components[2] += s;
+    return this;
+  }
+
+  /**
+   * Adds two Vector3D together and return new Vector3D that is the sum of both
+   *
+   * @param v Vector3D to add to
+   * @param s Scalar added to the Vector3D
+   * @return Vector3D that is the sum of our vector and scalar
+   */
+  public static Vector3D ScalarAdd(Vector3D v, double s) {
+    return new Vector3D(v.getX() + s, v.getY() + s, v.getZ() + s);
   }
 
   /**
@@ -490,7 +513,8 @@ public class Vector3D {
    * @return The separation angle in Radians
    */
   public double separationAngle(Vector3D v) {
-    if (this.len() == 0 || v.len() == 0) return 0;
+    if (this.len() == 0 || v.len() == 0)
+      return 0;
     double ratio = this.dot(v) / (this.len() * v.len());
     ratio = ratio > 1 ? 1 : ratio;
     ratio = ratio < -1 ? -1 : ratio;
@@ -507,5 +531,31 @@ public class Vector3D {
    */
   public static double separationAngle(Vector3D v1, Vector3D v2) {
     return v1.separationAngle(v2);
+  }
+
+  /**
+   * A tostring method for the Vector3D object
+   *
+   * @return The string representation of the Vector3D
+   */
+  @Override
+  public String toString() {
+    // return "x: " + this.getX() + ", y: " + this.getY() + ", z:" + this.getZ();
+    return "[" + this.getX() + ", " + this.getY() + ", " + this.getZ() + "]";
+  }
+
+  /**
+   * Finds a vector from a point to a line that minimizes the distance
+   *
+   * @param point The position of the point that needs to reach the line
+   * @param linePoint The position of a point on the line
+   * @param lineVector A Vector3D parallel to the line
+   *
+   * @return The Vector3D to follow to reach the line in the least distance
+   */
+  public static Vector3D pointToLine(Vector3D point, Vector3D linePoint, Vector3D lineVector) {
+    Vector3D pointToLinePoint = Vector3D.sub(linePoint, point);
+    Vector3D projOntoLine = Vector3D.project(pointToLinePoint, lineVector);
+    return Vector3D.sub(pointToLinePoint, projOntoLine);
   }
 }
