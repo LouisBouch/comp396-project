@@ -217,6 +217,27 @@ public class Vector3D {
     double scalar = v1.dot(v2) / v2.dot(v2);
     return Vector3D.scalarMult(v2, scalar);
   }
+  /**
+   * Project the self Vector3D on plane perpendicular to v
+   *
+   * @param n The vector normal to the plane
+   */
+  public Vector3D projectOnPlane(Vector3D n) {
+    this.sub(Vector3D.project(this, n));
+    return this;
+  }
+
+  /**
+   * Project a Vector3D onto another
+   *
+   * @param v The vector to project
+   * @param n The vector to project onto
+   *
+   * @return The resulting projected Vector3D
+   */
+  public static Vector3D projectOnPlane(Vector3D v, Vector3D n) {
+    return Vector3D.sub(v, Vector3D.project(v, n));
+  }
 
   /**
    * Adds Vector3D to the current Vector3D

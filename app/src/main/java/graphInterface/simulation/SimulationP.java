@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -44,7 +45,9 @@ public class SimulationP extends JPanel implements Runnable {
   // Set of keys currently being held down
   private final Set<Integer> heldKeys = new HashSet<>();
   // Define actions for the held down keys
-  private final Map<Integer, Runnable> heldKeyActions = Collections.synchronizedMap(new HashMap<>());
+  // private final Map<Integer, Runnable> heldKeyActions =
+  // Collections.synchronizedMap(new HashMap<>());
+  private final Map<Integer, Runnable> heldKeyActions = new ConcurrentHashMap<>();
   private boolean running = false;
   // Time between physics iterations
   private int sleepTime = 20;
@@ -81,6 +84,7 @@ public class SimulationP extends JPanel implements Runnable {
   private boolean orthoView = false;
   JLabel captureLabel;
   JLabel positionInSpaceLabel;
+  JLabel orientationInSpaceLabel;
 
   /**
    * Create the panel.
@@ -104,6 +108,12 @@ public class SimulationP extends JPanel implements Runnable {
     sLayout.putConstraint(SpringLayout.WEST, positionInSpaceLabel, 5, SpringLayout.WEST, this);
     this.add(positionInSpaceLabel);
     updatePosLabel();
+
+    orientationInSpaceLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.NORTH, orientationInSpaceLabel, 5, SpringLayout.SOUTH, positionInSpaceLabel);
+    sLayout.putConstraint(SpringLayout.WEST, orientationInSpaceLabel, 5, SpringLayout.WEST, this);
+    this.add(orientationInSpaceLabel);
+    updateOriLabel();
 
     // Create robot which will move cursor
     try {
@@ -130,7 +140,6 @@ public class SimulationP extends JPanel implements Runnable {
   public void step() {
     handleKeys();
     solarSystem.step();
-    updatePosLabel();
     // TODO: add solarSystem.step()
   }
 
@@ -171,6 +180,8 @@ public class SimulationP extends JPanel implements Runnable {
     while (running) {
       step();
       if (iteration == 0) {
+        SwingUtilities.invokeLater(this::updatePosLabel);
+        SwingUtilities.invokeLater(this::updateOriLabel);
         SwingUtilities.invokeLater(this::repaint);
       }
       iteration = (iteration + 1) % nbItBeforeRepaint;
@@ -346,38 +357,38 @@ public class SimulationP extends JPanel implements Runnable {
    * loop for pressed donw keys
    */
   public void setupKeyBindings() {
-    //synchronized (heldKeys) {
-      // Binding to monitor W
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_W, "Pressed W",
-          evt -> heldKeys.add(KeyEvent.VK_W));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_W, "Released W",
-          evt -> heldKeys.remove(KeyEvent.VK_W));
-      // Binding to monitor S
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_S, "Pressed S",
-          evt -> heldKeys.add(KeyEvent.VK_S));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_S, "Released S",
-          evt -> heldKeys.remove(KeyEvent.VK_S));
-      // Binding to monitor A
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_A, "Pressed A",
-          evt -> heldKeys.add(KeyEvent.VK_A));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_A, "Released A",
-          evt -> heldKeys.remove(KeyEvent.VK_A));
-      // Binding to monitor D
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_D, "Pressed D",
-          evt -> heldKeys.add(KeyEvent.VK_D));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_D, "Released D",
-          evt -> heldKeys.remove(KeyEvent.VK_D));
-      // Binding to monitor CONTROL
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_CONTROL, "Pressed CONTROL",
-          evt -> heldKeys.add(KeyEvent.VK_CONTROL));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_CONTROL, "Released CONTROL",
-          evt -> heldKeys.remove(KeyEvent.VK_CONTROL));
-      // Binding to monitor SPACE
-      keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_SPACE, "Pressed SPACE",
-          evt -> heldKeys.add(KeyEvent.VK_SPACE));
-      keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_SPACE, "Released SPACE",
-          evt -> heldKeys.remove(KeyEvent.VK_SPACE));
-    //}
+    // synchronized (heldKeys) {
+    // Binding to monitor W
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_W, "Pressed W",
+        evt -> heldKeys.add(KeyEvent.VK_W));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_W, "Released W",
+        evt -> heldKeys.remove(KeyEvent.VK_W));
+    // Binding to monitor S
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_S, "Pressed S",
+        evt -> heldKeys.add(KeyEvent.VK_S));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_S, "Released S",
+        evt -> heldKeys.remove(KeyEvent.VK_S));
+    // Binding to monitor A
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_A, "Pressed A",
+        evt -> heldKeys.add(KeyEvent.VK_A));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_A, "Released A",
+        evt -> heldKeys.remove(KeyEvent.VK_A));
+    // Binding to monitor D
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_D, "Pressed D",
+        evt -> heldKeys.add(KeyEvent.VK_D));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_D, "Released D",
+        evt -> heldKeys.remove(KeyEvent.VK_D));
+    // Binding to monitor CONTROL
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_CONTROL, "Pressed CONTROL",
+        evt -> heldKeys.add(KeyEvent.VK_CONTROL));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_CONTROL, "Released CONTROL",
+        evt -> heldKeys.remove(KeyEvent.VK_CONTROL));
+    // Binding to monitor SPACE
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_SPACE, "Pressed SPACE",
+        evt -> heldKeys.add(KeyEvent.VK_SPACE));
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_SPACE, "Released SPACE",
+        evt -> heldKeys.remove(KeyEvent.VK_SPACE));
+    // }
     // Toggle mouse capture in simulation
     keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_C, "Toggle mouse capture", new AbstractAction() {
       @Override
@@ -409,14 +420,14 @@ public class SimulationP extends JPanel implements Runnable {
    */
   public void handleKeys() {
     Runnable action;
-    //synchronized (heldKeys) {
-      for (int key : heldKeys) {
-        action = heldKeyActions.get(key);
-        if (action == null)
-          continue;
-        action.run();
-      }
-    //}
+    // synchronized (heldKeys) {
+    for (int key : heldKeys) {
+      action = heldKeyActions.get(key);
+      if (action == null)
+        continue;
+      action.run();
+    }
+    // }
   }
 
   /**
@@ -448,11 +459,26 @@ public class SimulationP extends JPanel implements Runnable {
     int scaleX = sigFigs - bdX.precision() + bdX.scale();
     int scaleY = sigFigs - bdY.precision() + bdY.scale();
     int scaleZ = sigFigs - bdZ.precision() + bdZ.scale();
-    bdX = bdX.setScale(scaleX, RoundingMode.HALF_UP);
-    bdY = bdY.setScale(scaleY, RoundingMode.HALF_UP);
-    bdZ = bdZ.setScale(scaleZ, RoundingMode.HALF_UP);
-    positionInSpaceLabel.setText("<html>" +
-        "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" + "Position in space: ["
+     bdX = bdX.setScale(scaleX, RoundingMode.HALF_UP);
+     bdY = bdY.setScale(scaleY, RoundingMode.HALF_UP);
+     bdZ = bdZ.setScale(scaleZ, RoundingMode.HALF_UP);
+     positionInSpaceLabel.setText("<html>" +
+     "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" +
+     "Position in space: ["
+     + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
+  }
+
+  public void updateOriLabel() {
+    Vector3D orientationCam = camera.getCurOrientation();
+    BigDecimal bdX = new BigDecimal(orientationCam.getX());
+    BigDecimal bdY = new BigDecimal(orientationCam.getY());
+    BigDecimal bdZ = new BigDecimal(orientationCam.getZ());
+    int nbDec = 3;
+    bdX = bdX.setScale(nbDec, RoundingMode.HALF_UP);
+    bdY = bdY.setScale(nbDec, RoundingMode.HALF_UP);
+    bdZ = bdZ.setScale(nbDec, RoundingMode.HALF_UP);
+    orientationInSpaceLabel.setText("<html>" +
+        "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" + "Camera orientation: ["
         + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
   }
 

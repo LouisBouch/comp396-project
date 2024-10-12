@@ -6,8 +6,12 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.awt.geom.Line2D;
+
+import javax.imageio.ImageIO;
 
 import lib.Paintable;
 import lib.Quaternion;
@@ -21,7 +25,7 @@ public class Camera3D implements Paintable {
   public static final int DOWN = 1;
   public static final int UP = -1;
 
-  private int mode = 1;
+  private int mode = 4;
   private ArrayList<Vector3D> stars;
   private ArrayList<Integer> starWidths;
   private Vector3D positionInSpaceM;
@@ -104,7 +108,7 @@ public class Camera3D implements Paintable {
    * Creates stars at random positions
    */
   private void populateGalaxy(int nbStars) {
-    int maxSize = 4;
+    int maxSize = 3;
     int minSize = 1;
     stars = new ArrayList<Vector3D>(nbStars);
     starWidths = new ArrayList<>(nbStars);
@@ -117,6 +121,50 @@ public class Camera3D implements Paintable {
       star.normalize();
       starWidths.add((int) width);
       stars.add(star);
+    }
+  }
+
+  /**
+   * Paints the stars in the background
+   *
+   * @param g2d The graphics component
+   */
+  private void paintStars(Graphics2D g2d) {
+    for (int i = 0; i < stars.size(); i++) {
+      Vector3D star = new Vector3D(stars.get(i));
+      double screenDistM = 1;
+      double screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM * 2;
+      double pixelPerMeter = screenWidthP / screenWidthM;
+      // Get angles projected onto X and Y axis and check if the dots are out of
+      // bounds
+      double separationAngleXD = Vector3D.sub(star, Vector3D.project(star, curYAxis))
+          .separationAngle(curOrientation) * DEGPERRAD;
+      double separationAngleYD = Vector3D.sub(star, Vector3D.project(star, curXAxis))
+          .separationAngle(curOrientation) * DEGPERRAD;
+      if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
+        continue;
+      }
+
+      double starWidhtP = starWidths.get(i);
+      Point2D screenMidP = new Point2D.Double(screenWidthP / 2.0, screenHeightP / 2.0);
+      // Obtain the quadrant of the star
+      Point2D signs = new Point2D.Double(Math.signum(star.dot(curXAxis)), Math.signum(star.dot(curYAxis)));
+
+      // Obtain the distance from the center in meters
+      Point2D distFromCenterM = new Point2D.Double(
+          Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
+          Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
+
+      // Convert the distance in meters to a distance in pixels
+      // This can be done because the pinhole camera does not distort images
+      Point2D posP = new Point2D.Double(
+          screenMidP.getX() + distFromCenterM.getX() * pixelPerMeter * signs.getX(),
+          screenMidP.getY() + distFromCenterM.getY() * pixelPerMeter * signs.getY());
+
+      Ellipse2D el = new Ellipse2D.Double(posP.getX() - starWidhtP / 2.0, posP.getY() - starWidhtP / 2.0, starWidhtP,
+          starWidhtP);
+      g2d.setColor(Color.white);
+      g2d.fill(el);
     }
   }
 
@@ -136,47 +184,7 @@ public class Camera3D implements Paintable {
     // Vector3D.sub(a.getPos(), positionInSpaceM).len());
     // });
     // Paint the stars
-    for (int i = 0; i < stars.size(); i++) {
-      Vector3D star = new Vector3D(stars.get(i));
-      double screenDistM = 1;
-      double screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM * 2;
-      double screenHeightM = screenWidthM / screenRatio;
-
-      // Get angles projected onto X and Y axis and check if the dots are out of
-      // bounds
-      double separationAngleXD = Vector3D.sub(star, Vector3D.project(star, curYAxis))
-          .separationAngle(curOrientation) * DEGPERRAD;
-      double separationAngleYD = Vector3D.sub(star, Vector3D.project(star, curXAxis))
-          .separationAngle(curOrientation) * DEGPERRAD;
-      if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
-        continue;
-      }
-      // Length require to touch the screen in the direction of the star
-      double intersectLength = screenDistM / Math.abs(Math.cos(star.separationAngle(curOrientation)));
-      star.normalize().scalarMult(intersectLength);
-
-      // Projection to image plane
-      Vector3D projToScreen = Vector3D.sub(star, Vector3D.project(star, curOrientation));
-      double projLen = projToScreen.len();
-      double angleWithXAxisR = projToScreen.separationAngle(curXAxis);
-
-      // Get X and Y position of star on the image plane and add and offset to make
-      // sure it starts from the center of the screen
-      Point2D posM = new Point2D.Double(
-          projLen * Math.abs(Math.cos(angleWithXAxisR)) * Math.signum(projToScreen.dot(curXAxis)),
-          projLen * Math.abs(Math.sin(angleWithXAxisR)) * Math.signum(projToScreen.dot(curYAxis)));
-      posM.setLocation(posM.getX() + screenWidthM / 2.0, posM.getY() + screenHeightM / 2.0);
-      double pixPerM = screenWidthP / screenWidthM;
-      double starWidhtP = starWidths.get(i);
-
-      // Ellipse object to be painted
-      Ellipse2D el = new Ellipse2D.Double(pixPerM * posM.getX() - starWidhtP / 2.0,
-          pixPerM * posM.getY() - starWidhtP / 2.0,
-          starWidhtP, starWidhtP);
-      g2d.setColor(Color.white);
-      g2d.fill(el);
-
-    }
+    paintStars(g2d);
     // Paint each body
     for (Body body : solarSystem.getBodies()) {
       // Method using no approximation
@@ -201,12 +209,158 @@ public class Camera3D implements Paintable {
       if (mode == 3) {
         subjectiveView(g2d, body, contourDots, innerDots);
       }
+      // Tried to apply texure
+      if (mode == 4) {
+        BufferedImage texture = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        try {
+          texture = ImageIO.read(getClass().getResource("/earth.jpg"));
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        // System.out.println("red " + (texture.getRGB(0, 100) >> 16 & 0xFF));
+        // System.out.println("green " + (texture.getRGB(0, 100) >> 8 & 0xFF));
+        // System.out.println("blue " + (texture.getRGB(0, 100) & 0xFF));
+        textureView(g2d, body, contourDots, innerDots, texture);
+      }
       g2d.setTransform(originalTransform);
 
       double end = System.nanoTime();
       double timeSpent = (end - start) / 1000000.0;
       // System.out.println("Time spent: " + timeSpent);
     }
+  }
+
+  /**
+   * Takes a vector going from the camera to somehwere in space and return the
+   * position at the end of the vector as it would appear on screen
+   *
+   * @param edge Vector3D going from the camera to some point in space
+   *
+   * @return The position in pixel of the point as seen by the camera
+   */
+  private Point2D.Double spaceToScreen(Vector3D edge) {
+    double screenDistM = edge.len();
+    if (screenDistM == 0) {
+      return null;
+    }
+    double screenWidthM = 2 * Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM;
+    double pixelPerMeter = screenWidthP / screenWidthM;
+    // Separation angle in the vertical and horizontal direciton
+    double separationAngleXD = Vector3D.projectOnPlane(edge, curYAxis).separationAngle(curOrientation) * DEGPERRAD;
+    double separationAngleYD = Vector3D.projectOnPlane(edge, curXAxis).separationAngle(curOrientation) * DEGPERRAD;
+    // Don't draw if point is out of bounds
+    if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
+      return null;
+    }
+
+    Point2D screenMidP = new Point2D.Double(screenWidthP / 2.0, screenHeightP / 2.0);
+    Point2D signs = new Point2D.Double(Math.signum(edge.dot(curXAxis)), Math.signum(edge.dot(curYAxis)));
+
+    // Obtain the distance from the center of image plane in meters
+    Point2D screenProjM = new Point2D.Double(
+        Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
+        Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
+    // Convert the distance to pixels on the screen
+    Point2D.Double posP = new Point2D.Double(
+        screenMidP.getX() + screenProjM.getX() * pixelPerMeter * signs.getX(),
+        screenMidP.getY() + screenProjM.getY() * pixelPerMeter * signs.getY());
+    return posP;
+  }
+
+  /**
+   * Takes a vector going from the camera to somehwere in space and return the UV
+   * position for a sphere
+   *
+   * @param edge Vector3D going from the camera to some point in space
+   *
+   * @return The UV position on the sphere
+   */
+  private Point2D.Double spaceToUVSphere(Vector3D edge) {
+    return new Point2D.Double();
+  }
+
+  /**
+   * Projects sphere on plane with textures
+   */
+  private void textureView(Graphics2D g2d, Body body, int contourDots, int innerDots, BufferedImage texture) {
+    int imageWidth = texture.getWidth();
+    int imageHeight = texture.getHeight();
+
+    // Texture related elements
+    BufferedImage texProj = new BufferedImage((int) screenWidthP, (int) screenHeightP, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2t = texProj.createGraphics();
+    WritableRaster raster = texProj.getRaster();
+    int[] pixelColor = new int[] { 0, 0, 255, 255 };
+
+    // Circle to iterate over
+    Point imCenter = new Point(600, 500);
+    int xc = (int) imCenter.getX();
+    int yc = (int) imCenter.getY();
+    double radImage = 450;
+
+    double start = System.nanoTime();
+    // Fill in the circle
+    for (int h = (int) -radImage; h <= 0; h++) {
+      for (int w = (int) -radImage; w <= 0; w++) {
+        // Check if point is in circle
+        if (!(h * h + w * w <= radImage * radImage))
+          continue;
+        // Draw two horizontal lines in the circle
+        for (int x = w; x <= -w; x++) {
+          raster.setPixel(x + xc, h + yc, pixelColor);
+          raster.setPixel(x + xc, -h + yc, pixelColor);
+        }
+        break;
+      }
+    }
+    //// Fill in the circle (optimized... or is it?)
+    //// bresenhams-circle-algorithm
+    // int x = 0;
+    // int y = (int) radImage;
+    //// drawCircleSeg(xc, yc, x, y, raster, pixelColor);
+    // int d = 3 - 2 * (int) radImage;
+    // while (y >= x) {
+    // // d = 2*(x+1)*(x+1)+y*y+(y-1)*(y-1)-2*(int)(radImage*radImage);
+    // drawHLine(-y + xc, x + yc, y + xc, raster, pixelColor);
+    // drawHLine(-y + xc, -x + yc, y + xc, raster, pixelColor);
+    // if (d <= 0) {
+    // d = d + (4 * x) + 6;
+    // } else {
+    // drawHLine(-x + xc, y + yc, x + xc, raster, pixelColor);
+    // drawHLine(-x + xc, -y + yc, x + xc, raster, pixelColor);
+    // d = d + 4 * (x - y) + 10;
+    // y--;
+    // }
+    // x++;
+    // // drawCircleSeg(xc, yc, x, y, raster, pixelColor);
+    // }
+    double end = System.nanoTime();
+    double timeSpent = (end - start) / 1000000.0;
+    System.out.println(timeSpent);
+    g2d.drawImage(texProj, 0, 0, (int) screenWidthP, (int) screenHeightP, null);
+  }
+
+  /**
+   * Draw a line
+   */
+  private void drawHLine(int x, int y, int xe, WritableRaster raster, int[] pixelColor) {
+    for (int i = x; i <= xe; i++) {
+      raster.setPixel(i, y, pixelColor);
+    }
+  }
+
+  /*
+   * Fill 4 points on the circle as given by the Bresenhams circle algorithm
+   */
+  private void drawCircleSeg(int xc, int yc, int x, int y, WritableRaster raster, int[] pixelColor) {
+    raster.setPixel((x + xc), (y + yc), pixelColor);// uur
+    raster.setPixel((-x + xc), (y + yc), pixelColor);// uul
+    raster.setPixel((x + xc), (-y + yc), pixelColor);// ddr
+    raster.setPixel((-x + xc), (-y + yc), pixelColor);// ddl
+    raster.setPixel((y + xc), (x + yc), pixelColor);// ur
+    raster.setPixel((-y + xc), (x + yc), pixelColor);// ul
+    raster.setPixel((y + xc), (-x + yc), pixelColor);// dr
+    raster.setPixel((-y + xc), (-x + yc), pixelColor);// dl
   }
 
   /**
@@ -595,7 +749,6 @@ public class Camera3D implements Paintable {
    * Shows body as if transparent if points on its surface
    */
   private void objectiveView(Graphics2D g2d, Body body, int contourDots, int innerDots) {
-
     Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
 
     // Scale everything down by the distance from the body to the camera
@@ -620,7 +773,6 @@ public class Camera3D implements Paintable {
     // Take screen dist as projection of cameraToBodyVec on the orientation axis
     double screenDistM = cameraToBodyVec.len();
     double screenWidthM = 2 * Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM;
-    double screenHeightM = screenWidthM / screenRatio;
 
     for (int c = 0; c < contourDots; c++) {
       for (int i = 0; i <= innerDots; i++) {
@@ -635,46 +787,29 @@ public class Camera3D implements Paintable {
         Quaternion quat = Quaternion.fromAxisAngle(180 / ((double) innerDots) * i * RADPERDEG,
             rotAxis);
 
+        // Vector going from the center of the sphere onto the surface
         Vector3D centerToSurfM = new Vector3D(orientation).normalize().scalarMult(-bodyRad).qatRot(quat);
 
-        // Gets final position and project onto image plane
+        // Vector representing the position of the surface point
         Vector3D surfP = Vector3D.add(centerToSurfM, bodyPosInSpaceM);
+
+        // Vector going from the camera to the surface point
         Vector3D edge = new Vector3D(surfP).sub(posInSpaceM);
-        double separationAngleXD = Vector3D.sub(edge, Vector3D.project(edge, curYAxis))
-            .separationAngle(curOrientation) * DEGPERRAD;
-        double separationAngleYD = Vector3D.sub(edge, Vector3D.project(edge, curXAxis))
-            .separationAngle(curOrientation) * DEGPERRAD;
-        if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
+        Point2D posP = spaceToScreen(edge);
+        if (posP == null) {
           continue;
         }
 
-        // Distance from camera to surface point on screen
-        double lengthToScreenM = screenDistM / Math.abs(Math.cos(edge.separationAngle(curOrientation)));
-        edge.normalize().scalarMult(lengthToScreenM);
-
-        Vector3D projToScreenNew = Vector3D.sub(edge, Vector3D.project(edge, curOrientation));
-        double projDistM = projToScreenNew.len();
-        double angleWithXAxisD = projToScreenNew.separationAngle(curXAxis) * DEGPERRAD;
-
-        Point2D screenProj2DM = new Point2D.Double(Math.abs(Math.cos(angleWithXAxisD * RADPERDEG)) * projDistM,
-            Math.abs(Math.sin(angleWithXAxisD * RADPERDEG)) * projDistM);
-        Point2D endP = new Point2D.Double(
-            screenWidthP
-                * (0.5 + (screenProj2DM.getX() * Math.signum(projToScreenNew.dot(curXAxis))) / screenWidthM),
-            screenHeightP
-                * (0.5
-                    + (screenProj2DM.getY() * Math.signum(projToScreenNew.dot(curYAxis))) / screenHeightM));
+        // Draw corresponding point as an ellipse
+        Ellipse2D el = new Ellipse2D.Double(posP.getX() - 2, posP.getY() - 2, 4, 4);
         // Colors
         Vector3D RGBValue = new Vector3D(Math.abs(surfP.getX() - bodyPosInSpaceM.getX()),
             Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
             Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
             .scalarDiv(bodyRad).scalarMult(255);
+
         g2d.setColor(new Color((int) RGBValue.getX(), (int) RGBValue.getY(), (int) RGBValue.getZ()));
-        // g2d.draw(new Line2D.Double(startP, endP));
-        g2d.fill(new Ellipse2D.Double(endP.getX() - 2, endP.getY() - 2, 4, 4));
-        // System.out.println("Dist to body: " + Vector3D.pointToLine(cameraToBodyVec,
-        // new Vector3D(), edge).len() + ", Radius: " + bodyRad);
-        // System.out.println();
+        g2d.fill(el);
       }
     }
   }
@@ -713,6 +848,15 @@ public class Camera3D implements Paintable {
    */
   public Vector3D getPositionInSpaceM() {
     return new Vector3D(positionInSpaceM);
+  }
+
+  /**
+   * Obtain a copy of the vector containing information about spacial orientation
+   *
+   * @return The orientation of the camera
+   */
+  public Vector3D getCurOrientation() {
+    return new Vector3D(curOrientation);
   }
 
   /**
