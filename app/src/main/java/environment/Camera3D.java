@@ -7,11 +7,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
-import java.io.IOException;
 import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
 
 import lib.Paintable;
 import lib.Quaternion;
@@ -211,16 +210,7 @@ public class Camera3D implements Paintable {
       }
       // Tried to apply texure
       if (mode == 4) {
-        BufferedImage texture = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-        try {
-          texture = ImageIO.read(getClass().getResource("/earth.jpg"));
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        // System.out.println("red " + (texture.getRGB(0, 100) >> 16 & 0xFF));
-        // System.out.println("green " + (texture.getRGB(0, 100) >> 8 & 0xFF));
-        // System.out.println("blue " + (texture.getRGB(0, 100) & 0xFF));
-        textureView(g2d, body, contourDots, innerDots, texture);
+        textureView(g2d, body, contourDots, innerDots);
       }
       g2d.setTransform(originalTransform);
 
@@ -268,99 +258,178 @@ public class Camera3D implements Paintable {
   }
 
   /**
+   * Takes a point on the screen an convert it to an outgoing edge in space
+   *
+   * @param x x position on screen (pixel)
+   * @param y y position on screen (pixel)
+   *
+   * @return An outgoing edge from the camerae equivalent to the screen position
+   */
+  private Vector3D screenToSpace(int x, int y) {
+    return null;
+  }
+
+  /**
    * Takes a vector going from the camera to somehwere in space and return the UV
-   * position for a sphere
+   * position of the intersection of the body and the edge ray. Return null if
+   * there is no intersection.
    *
    * @param edge Vector3D going from the camera to some point in space
    *
    * @return The UV position on the sphere
    */
-  private Point2D.Double spaceToUVSphere(Vector3D edge) {
-    return new Point2D.Double();
+  private Point2D.Double spaceToUVSphere(Vector3D edge, Body body) {
+    return new Point2D.Double(0.5, 0.4);
   }
 
   /**
    * Projects sphere on plane with textures
    */
-  private void textureView(Graphics2D g2d, Body body, int contourDots, int innerDots, BufferedImage texture) {
-    int imageWidth = texture.getWidth();
-    int imageHeight = texture.getHeight();
-
-    // Texture related elements
-    BufferedImage texProj = new BufferedImage((int) screenWidthP, (int) screenHeightP, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2t = texProj.createGraphics();
-    WritableRaster raster = texProj.getRaster();
-    int[] pixelColor = new int[] { 0, 0, 255, 255 };
-
+  private void textureView(Graphics2D g2d, Body body, int contourDots, int innerDots) {
     // Circle to iterate over
-    Point imCenter = new Point(600, 500);
+    int rp = 450;
+    Point imCenter = new Point(rp, rp);
     int xc = (int) imCenter.getX();
     int yc = (int) imCenter.getY();
-    double radImage = 450;
 
-    double start = System.nanoTime();
-    // Fill in the circle
-    for (int h = (int) -radImage; h <= 0; h++) {
-      for (int w = (int) -radImage; w <= 0; w++) {
-        // Check if point is in circle
-        if (!(h * h + w * w <= radImage * radImage))
-          continue;
-        // Draw two horizontal lines in the circle
-        for (int x = w; x <= -w; x++) {
-          raster.setPixel(x + xc, h + yc, pixelColor);
-          raster.setPixel(x + xc, -h + yc, pixelColor);
-        }
-        break;
+    // Texture related elements
+    BufferedImage texProj = new BufferedImage((int) rp * 2 + 1, (int) rp * 2 + 1, BufferedImage.TYPE_3BYTE_BGR);
+    Graphics2D g2t = texProj.createGraphics();
+    WritableRaster raster = texProj.getRaster();
+
+    // Fill in the circle (optimized... or is it?)
+    // bresenhams-circle-algorithm modified to fill in the circle
+
+    // Fill first octant horizontally + symmetry
+    int x = 0;
+    int y = (int) rp;
+    int d = 3 - 2 * (int) rp;
+    while (y >= x) {
+      if (d <= 0) {
+        d = d + (4 * x) + 6;
+      } else {
+        drawTLine(-x, y, x, raster, imCenter, rp, body);
+        drawTLine(-x, -y, x, raster, imCenter, rp, body);
+        d = d + 4 * (x - y) + 10;
+        y--;
       }
+      x++;
     }
-    //// Fill in the circle (optimized... or is it?)
-    //// bresenhams-circle-algorithm
-    // int x = 0;
-    // int y = (int) radImage;
-    //// drawCircleSeg(xc, yc, x, y, raster, pixelColor);
-    // int d = 3 - 2 * (int) radImage;
-    // while (y >= x) {
-    // // d = 2*(x+1)*(x+1)+y*y+(y-1)*(y-1)-2*(int)(radImage*radImage);
-    // drawHLine(-y + xc, x + yc, y + xc, raster, pixelColor);
-    // drawHLine(-y + xc, -x + yc, y + xc, raster, pixelColor);
-    // if (d <= 0) {
-    // d = d + (4 * x) + 6;
-    // } else {
-    // drawHLine(-x + xc, y + yc, x + xc, raster, pixelColor);
-    // drawHLine(-x + xc, -y + yc, x + xc, raster, pixelColor);
-    // d = d + 4 * (x - y) + 10;
-    // y--;
+    // Fill second octant horizontally + symmetry
+    x = (int) rp;
+    y = 0;
+    d = 3 - 2 * (int) rp;
+    while (y < x) {
+      drawTLine(-x, y, x, raster, imCenter, rp, body);
+      if (y != 0)
+        drawTLine(-x, -y, x, raster, imCenter, rp, body);
+      if (d <= 0) {
+        d = d + (4 * y) + 6;
+      } else {
+        d = d + 4 * (y - x) + 10;
+        x--;
+      }
+      y++;
+    }
+    g2d.drawImage(texProj, xc - rp, yc - rp, texProj.getWidth(), texProj.getHeight(), null);
+    // WritableRaster texRaster = body.getTexture().getRaster();
+    // int texWidth = texRaster.getWidth();
+    // int texHeight = texRaster.getHeight();
+    // byte[] pixTex = ((DataBufferByte) texRaster.getDataBuffer()).getData();
+    // int bands = texRaster.getNumBands();
+    // for (int i = 0; i < raster.getHeight(); i++) {
+    // for (int o = 0; o < raster.getWidth(); o++) {
+    // int ri = (int)(i / (double)raster.getHeight() *texHeight);
+    // int ro = (int)(o / (double)raster.getWidth() *texWidth);
+    // int index = (ri*texWidth+ro)*bands;
+    // raster.setPixel(o, i, new int[] { pixTex[index+2], pixTex[index+1],
+    // pixTex[index+0], 255 });
     // }
-    // x++;
-    // // drawCircleSeg(xc, yc, x, y, raster, pixelColor);
     // }
-    double end = System.nanoTime();
-    double timeSpent = (end - start) / 1000000.0;
-    System.out.println(timeSpent);
-    g2d.drawImage(texProj, 0, 0, (int) screenWidthP, (int) screenHeightP, null);
+    // g2d.drawImage(texProj, 0, 0, texProj.getWidth(), texProj.getHeight(), null);
+  }
+
+  // for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+  // if (entry.getValue() > 1) {
+  // System.out.println(entry.getKey() + " " + entry.getValue());
+  // }
+  // }
+  // map.clear();
+  // System.out.println();
+  // private HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+  // if (map.get(y) == null) {
+  // map.put(y, 1);
+  // } else {
+  // map.put(y, 1 + map.get(y));
+  // }
+
+  /**
+   * Draw a line on the BufferedImage
+   */
+  private void drawHLine(int x, int y, int xe, WritableRaster raster, int[] pixelColor) {
+    int[] pixels = ((DataBufferInt) raster.getDataBuffer()).getData();
+    int pixelValue = (pixelColor[3] << 24) | (pixelColor[0] << 16) | (pixelColor[1] << 8) | pixelColor[2];// ARGB
+    int width = raster.getWidth();
+    for (int i = x; i <= xe; i++) {
+      pixels[y * width + i] = pixelValue;
+    }
   }
 
   /**
-   * Draw a line
+   * Draw a textured line on the imageBuffer where the sphere intersects with the
+   * screen
+   *
+   * @param x        Starting x position of the line to be drawn (pixels)
+   * @param y        y position of the line to be drawn (pixels)
+   * @param x        Final x position of the line to be drawn (pixels)
+   * @param imRaster Pixel raster for the imageBuffer that will be drawn
+   * @param imCenter Center of the circle and imageBuffer
+   * @param rp       Radius of circle within imageBuffer (pixel)
+   * @param body     Body which will be painted on the imageBuffer
    */
-  private void drawHLine(int x, int y, int xe, WritableRaster raster, int[] pixelColor) {
-    for (int i = x; i <= xe; i++) {
-      raster.setPixel(i, y, pixelColor);
+  private void drawTLine(int x, int y, int xe, WritableRaster imRaster, Point imCenter, int rp, Body body) {
+    int xc = (int) imCenter.getX();
+    int yc = (int) imCenter.getY();
+    int absY = y + yc;
+    int absX = x + xc;
+    int absXe = xe + xc;
+    // Ensure the line is not drawn fully outside of the screen
+    if (absY < 0 || absY > screenHeightP || absXe < 0 || absX > screenWidthP) {
+      return;
     }
-  }
+    // Adjust bounds to not draw pixels outside of screen
+    if (absX < 0) {
+      x = -xc;
+    }
+    if (absXe > screenWidthP) {
+      xe = (int) screenWidthP - xc;
+    }
+    // Get image pixels from image buffer
+    byte[] pixIm = ((DataBufferByte) imRaster.getDataBuffer()).getData();
+    int imWidth = imRaster.getWidth();
 
-  /*
-   * Fill 4 points on the circle as given by the Bresenhams circle algorithm
-   */
-  private void drawCircleSeg(int xc, int yc, int x, int y, WritableRaster raster, int[] pixelColor) {
-    raster.setPixel((x + xc), (y + yc), pixelColor);// uur
-    raster.setPixel((-x + xc), (y + yc), pixelColor);// uul
-    raster.setPixel((x + xc), (-y + yc), pixelColor);// ddr
-    raster.setPixel((-x + xc), (-y + yc), pixelColor);// ddl
-    raster.setPixel((y + xc), (x + yc), pixelColor);// ur
-    raster.setPixel((-y + xc), (x + yc), pixelColor);// ul
-    raster.setPixel((y + xc), (-x + yc), pixelColor);// dr
-    raster.setPixel((-y + xc), (-x + yc), pixelColor);// dl
+    // Get texture info
+    WritableRaster texRaster = body.getTexture().getRaster();
+    int texWidth = texRaster.getWidth();
+    int texHeight = texRaster.getHeight();
+    byte[] pixTex = ((DataBufferByte) texRaster.getDataBuffer()).getData();
+    // nb of colors per pixel
+    int bands = 3;
+
+    for (int i = x; i <= xe; i++) {
+      // Check if sphere is in the path of the pixel
+      // TODO: implement raycast to sphere and return UV pos if intersects
+      Point2D UV = spaceToUVSphere(screenToSpace(x + xc, y + yc), body);
+      // (we will have false-false-...-false-true-true-...-true-false-break)
+      // This is because after missing the sphere the second time, it will never hit
+      // the sphere again, so we break
+      int indexTex = (int) (texWidth * UV.getY() * texHeight + UV.getX() * texWidth) * bands;
+      int indexIm = ((y + rp) * imWidth + i + rp) * bands;
+      // Apply texture color, stored as BGR
+      pixIm[indexIm] = pixTex[indexTex];
+      pixIm[indexIm + 1] = pixTex[indexTex + 1];
+      pixIm[indexIm + 2] = pixTex[indexTex + 2];
+    }
   }
 
   /**
@@ -769,10 +838,6 @@ public class Camera3D implements Paintable {
     if (angularPositionR * DEGPERRAD - angularDiameterDeg / 2.0 > 90) {
       return;
     }
-
-    // Take screen dist as projection of cameraToBodyVec on the orientation axis
-    double screenDistM = cameraToBodyVec.len();
-    double screenWidthM = 2 * Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM;
 
     for (int c = 0; c < contourDots; c++) {
       for (int i = 0; i <= innerDots; i++) {

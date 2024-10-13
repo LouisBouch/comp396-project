@@ -1,9 +1,14 @@
 package environment;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import lib.Paintable;
 import lib.Vector3D;
-
-import java.awt.*;
 
 /**
  * Body
@@ -12,6 +17,7 @@ public abstract class Body implements Paintable {
 
   private double radius;
   private double mass;
+  private BufferedImage texture;
 
   private Vector3D position;
 
@@ -35,9 +41,11 @@ public abstract class Body implements Paintable {
     return radius;
   }
 
-  public Color getColor() {return color;}
+  public Color getColor() {
+    return color;
+  }
 
-  public void setColor(Color color){
+  public void setColor(Color color) {
     this.color = color;
   }
 
@@ -59,7 +67,7 @@ public abstract class Body implements Paintable {
     return position;
   }
 
-  public void setPos(Vector3D pos){
+  public void setPos(Vector3D pos) {
     position = pos;
   }
 
@@ -97,6 +105,40 @@ public abstract class Body implements Paintable {
    */
   public double getZ() {
     return position.getZ();
+  }
+
+  /**
+   * Obtains the texture of the body
+   *
+   * @return Texture map of body
+   */
+  public BufferedImage getTexture() {
+    return texture;
+  }
+
+  /**
+   * Sets the texture of the body
+   *
+   * @param t The new texture
+   */
+  public void setTexture(BufferedImage t) {
+    texture = t;
+  }
+
+  public BufferedImage textureFromFile(String resName) {
+    // Get texture
+    try {
+      BufferedImage texture = ImageIO.read(getClass().getResource("/" + resName));
+      // BufferedImage textureARGB = new
+      // BufferedImage(texture.getWidth(),texture.getHeight(),
+      // BufferedImage.TYPE_INT_ARGB);
+      // //Convert to transparent image
+      // textureARGB.getGraphics().drawImage(texture, 0, 0, null);
+      return texture;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   /**
