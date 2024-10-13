@@ -192,10 +192,6 @@ public class Camera3D implements Paintable {
       double start = System.nanoTime();
       // Shows bodies with respect to a prticular mode
 
-      // Least computationally expensive mode
-      if (mode == 0) {
-        approximationView(g2d, body);
-      }
       // Nicest mode for now
       if (mode == 1) {
         objectiveView(g2d, body, contourDots, innerDots);
@@ -210,7 +206,11 @@ public class Camera3D implements Paintable {
       }
       // Tried to apply texure
       if (mode == 4) {
-        textureView(g2d, body, contourDots, innerDots);
+        textureView(g2d, body);
+      }
+      // Least computationally expensive mode
+      if (mode == 0) {
+        approximationView(g2d, body);
       }
       g2d.setTransform(originalTransform);
 
@@ -238,8 +238,8 @@ public class Camera3D implements Paintable {
     // Separation angle in the vertical and horizontal direciton
     double separationAngleXD = Vector3D.projectOnPlane(edge, curYAxis).separationAngle(curOrientation) * DEGPERRAD;
     double separationAngleYD = Vector3D.projectOnPlane(edge, curXAxis).separationAngle(curOrientation) * DEGPERRAD;
-    // Don't draw if point is out of bounds
-    if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
+    // Don't draw if point is out of bounds (with a bit of leniency)
+    if (separationAngleYD > vFOV / 1.9 || separationAngleXD > hFOV / 1.9) {
       return null;
     }
 
@@ -266,12 +266,17 @@ public class Camera3D implements Paintable {
    * @return An outgoing edge from the camerae equivalent to the screen position
    */
   private Vector3D screenToSpace(int x, int y) {
-    return null;
+    double screenDist = 0.5 * screenWidthP / Math.tan(hFOV / 2.0 * RADPERDEG);
+    Vector3D hor = new Vector3D(curXAxis).normalize().scalarMult(x - screenWidthP / 2.0);
+    Vector3D vert = new Vector3D(curYAxis).normalize().scalarMult(y - screenHeightP / 2.0);
+    Vector3D front = new Vector3D(curOrientation).normalize().scalarMult(screenDist);
+    return front.add(hor).add(vert).normalize();
   }
 
   /**
-   * Takes a vector going from the camera to somehwere in space and return the UV
-   * position of the intersection of the body and the edge ray. Return null if
+   * Takes an edge Vector3D going from the camera to somehwere in space and return
+   * the UV
+   * position of the intersection of the edge ray and body. Return null if
    * there is no intersection.
    *
    * @param edge Vector3D going from the camera to some point in space
@@ -283,19 +288,124 @@ public class Camera3D implements Paintable {
   }
 
   /**
+   * Get approximated value for the position and radius of projected sphere
+   * TODO: optimize by making sphere fit the actual projection more neatly
+   * @param body The sphere projection to approximate
+   *
+   * @return Return the approximated radius, position in x and position in y
+   *         (pixel)
+   */
+  private double[] getApproximateCenterAndRad(Body body) {
+    // Finding circle that contains the projection (very bad approximation for now,
+    // make it better)
+
+    // Scale everything down by the distance from the body to the camera
+    // Increases numerical stability?
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    scaleDown = cameraToBodyVec.len();
+    cameraToBodyVec.scalarDiv(scaleDown);
+    double bodyRad = body.getRadius() / scaleDown;
+
+    // Skip if inside body
+    if (bodyRad > cameraToBodyVec.len())
+      return null;
+
+    double angDiamDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len()) * DEGPERRAD;
+    double angPosR = curOrientation.separationAngle(cameraToBodyVec);
+
+    // Don't load body if behind camera
+    if (angPosR * DEGPERRAD - angDiamDeg / 2.0 > 90) {
+      return null;
+    }
+
+    // Vector pointing at the point closest to the center of the screen
+    Vector3D closestPoint = Vector3D.qatRot(cameraToBodyVec, Quaternion.fromAxisAngle(angDiamDeg / 2.0 * RADPERDEG,
+        Vector3D.cross(cameraToBodyVec, curOrientation)));
+    // Separation angle in the vertical and horizontal direciton
+    double separationAngleXD = Vector3D.projectOnPlane(closestPoint, curYAxis).separationAngle(curOrientation)
+        * DEGPERRAD;
+    double separationAngleYD = Vector3D.projectOnPlane(closestPoint, curXAxis).separationAngle(curOrientation)
+        * DEGPERRAD;
+    // Don't draw if point is out of bounds (with a bit of leniency)
+    if (separationAngleYD > vFOV / 1.9 || separationAngleXD > hFOV / 1.9) {
+      return null;
+    }
+
+    // Take random value for dist to screen
+    double screenDistM = cameraToBodyVec.len();
+    double screenWidthM = 2 * Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM;
+    double pixelPerMeter = screenWidthP / screenWidthM;
+
+    double centerShiftM = 0;
+    // If the body is almost behind the camera, just draw as if it were closer and
+    // then shift at the end
+    double largestAngleD = 88;
+    if (angPosR * DEGPERRAD + angDiamDeg / 2.0 > largestAngleD) {
+      // Angle that makes sure the body does not cross the angle threshold
+      double adjustedAngPosR = (largestAngleD - angDiamDeg / 2.0) / DEGPERRAD;
+      double closestDistBeforeM = Math.tan(angPosR - angDiamDeg * RADPERDEG / 2.0) * screenDistM;
+      double closestDistAfterM = Math.tan(adjustedAngPosR - angDiamDeg * RADPERDEG / 2.0)
+          * screenDistM;
+
+      centerShiftM = closestDistBeforeM - closestDistAfterM;
+      // Adjust body to make it look like it is still positioned before the camera
+      // plane
+      cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angPosR - adjustedAngPosR,
+          Vector3D.cross(cameraToBodyVec, curOrientation)));
+      // New angular position that assumes the body is positioned before the camera
+      // plane
+      angPosR = adjustedAngPosR;
+    }
+    double lengthToScreenM = screenDistM / Math.abs(Math.cos(angPosR));
+    cameraToBodyVec.normalize().scalarMult(lengthToScreenM);
+    Vector3D projectionToScreen = new Vector3D(cameraToBodyVec).projectOnPlane(curOrientation);
+    double xAngleR = projectionToScreen.separationAngle(curXAxis);
+    // Relevant distances of projection
+    double closestDist = Math.tan(angPosR - angDiamDeg / 2.0 * RADPERDEG) * screenDistM;
+    double furthestDist = Math.tan(angPosR + angDiamDeg / 2.0 * RADPERDEG) * screenDistM;
+
+    double xSign = Math.signum(cameraToBodyVec.dot(curXAxis));
+    double ySign = Math.signum(cameraToBodyVec.dot(curYAxis));
+    xSign = xSign == 0 ? 1 : xSign;
+    ySign = ySign == 0 ? 1 : ySign;
+
+    // If furthest point of body cannot be projected accurately
+    double distToCentOfProj = 0.5 * (furthestDist + closestDist);
+
+    // Width and height of projected ellipse
+    double radM = (furthestDist - closestDist) / 2.0;
+
+    // Get projections
+    distToCentOfProj += centerShiftM;// Add shift from approximation
+    return new double[] { radM * pixelPerMeter,
+        xSign * distToCentOfProj * Math.abs(Math.cos(xAngleR)) * pixelPerMeter,
+        ySign * distToCentOfProj * Math.abs(Math.sin(xAngleR)) * pixelPerMeter };
+  }
+
+  /**
    * Projects sphere on plane with textures
    */
-  private void textureView(Graphics2D g2d, Body body, int contourDots, int innerDots) {
+  private void textureView(Graphics2D g2d, Body body) {
+    // Get approximated value for radius and position of projection
+    // Use this to better approximate ray paths
+    double[] approx = getApproximateCenterAndRad(body);
+    if (approx == null) {
+      return;
+    }
+
+    double approxRad = approx[0];
+    double approxCenterX = approx[1];
+    double approxCenterY = approx[2];
     // Circle to iterate over
-    int rp = 450;
-    Point imCenter = new Point(rp, rp);
+    int rp = (int) Math.ceil(approxRad);
+    Point2D imCenter = new Point.Double(approxCenterX + screenWidthP / 2.0, approxCenterY + screenHeightP / 2.0);
     int xc = (int) imCenter.getX();
     int yc = (int) imCenter.getY();
 
     // Texture related elements
-    BufferedImage texProj = new BufferedImage((int) rp * 2 + 1, (int) rp * 2 + 1, BufferedImage.TYPE_3BYTE_BGR);
-    Graphics2D g2t = texProj.createGraphics();
-    WritableRaster raster = texProj.getRaster();
+    BufferedImage image = new BufferedImage((int) rp * 2 + 1, (int) rp * 2 + 1, BufferedImage.TYPE_INT_ARGB);
+    // Graphics2D g2t = texProj.createGraphics();
+    WritableRaster raster = image.getRaster();
 
     // Fill in the circle (optimized... or is it?)
     // bresenhams-circle-algorithm modified to fill in the circle
@@ -331,48 +441,7 @@ public class Camera3D implements Paintable {
       }
       y++;
     }
-    g2d.drawImage(texProj, xc - rp, yc - rp, texProj.getWidth(), texProj.getHeight(), null);
-    // WritableRaster texRaster = body.getTexture().getRaster();
-    // int texWidth = texRaster.getWidth();
-    // int texHeight = texRaster.getHeight();
-    // byte[] pixTex = ((DataBufferByte) texRaster.getDataBuffer()).getData();
-    // int bands = texRaster.getNumBands();
-    // for (int i = 0; i < raster.getHeight(); i++) {
-    // for (int o = 0; o < raster.getWidth(); o++) {
-    // int ri = (int)(i / (double)raster.getHeight() *texHeight);
-    // int ro = (int)(o / (double)raster.getWidth() *texWidth);
-    // int index = (ri*texWidth+ro)*bands;
-    // raster.setPixel(o, i, new int[] { pixTex[index+2], pixTex[index+1],
-    // pixTex[index+0], 255 });
-    // }
-    // }
-    // g2d.drawImage(texProj, 0, 0, texProj.getWidth(), texProj.getHeight(), null);
-  }
-
-  // for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-  // if (entry.getValue() > 1) {
-  // System.out.println(entry.getKey() + " " + entry.getValue());
-  // }
-  // }
-  // map.clear();
-  // System.out.println();
-  // private HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-  // if (map.get(y) == null) {
-  // map.put(y, 1);
-  // } else {
-  // map.put(y, 1 + map.get(y));
-  // }
-
-  /**
-   * Draw a line on the BufferedImage
-   */
-  private void drawHLine(int x, int y, int xe, WritableRaster raster, int[] pixelColor) {
-    int[] pixels = ((DataBufferInt) raster.getDataBuffer()).getData();
-    int pixelValue = (pixelColor[3] << 24) | (pixelColor[0] << 16) | (pixelColor[1] << 8) | pixelColor[2];// ARGB
-    int width = raster.getWidth();
-    for (int i = x; i <= xe; i++) {
-      pixels[y * width + i] = pixelValue;
-    }
+    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth(), image.getHeight(), null);
   }
 
   /**
@@ -387,7 +456,7 @@ public class Camera3D implements Paintable {
    * @param rp       Radius of circle within imageBuffer (pixel)
    * @param body     Body which will be painted on the imageBuffer
    */
-  private void drawTLine(int x, int y, int xe, WritableRaster imRaster, Point imCenter, int rp, Body body) {
+  private void drawTLine(int x, int y, int xe, WritableRaster imRaster, Point2D imCenter, int rp, Body body) {
     int xc = (int) imCenter.getX();
     int yc = (int) imCenter.getY();
     int absY = y + yc;
@@ -405,7 +474,7 @@ public class Camera3D implements Paintable {
       xe = (int) screenWidthP - xc;
     }
     // Get image pixels from image buffer
-    byte[] pixIm = ((DataBufferByte) imRaster.getDataBuffer()).getData();
+    int[] pixIm = ((DataBufferInt) imRaster.getDataBuffer()).getData();
     int imWidth = imRaster.getWidth();
 
     // Get texture info
@@ -419,16 +488,17 @@ public class Camera3D implements Paintable {
     for (int i = x; i <= xe; i++) {
       // Check if sphere is in the path of the pixel
       // TODO: implement raycast to sphere and return UV pos if intersects
-      Point2D UV = spaceToUVSphere(screenToSpace(x + xc, y + yc), body);
+      Point2D UV = spaceToUVSphere(screenToSpace(i + xc, y + yc), body);
       // (we will have false-false-...-false-true-true-...-true-false-break)
       // This is because after missing the sphere the second time, it will never hit
       // the sphere again, so we break
-      int indexTex = (int) (texWidth * UV.getY() * texHeight + UV.getX() * texWidth) * bands;
-      int indexIm = ((y + rp) * imWidth + i + rp) * bands;
+      int indexTex = (int) Math.round((texWidth * UV.getY() * texHeight + UV.getX() * texWidth) * bands);
+      int indexIm = ((y + rp) * imWidth + i + rp);
       // Apply texture color, stored as BGR
-      pixIm[indexIm] = pixTex[indexTex];
-      pixIm[indexIm + 1] = pixTex[indexTex + 1];
-      pixIm[indexIm + 2] = pixTex[indexTex + 2];
+      pixIm[indexIm] = (0xFF << 24) |
+          (pixTex[indexTex] & 0xFF) |
+          ((pixTex[indexTex + 1] & 0xFF) << 8) |
+          ((pixTex[indexTex + 2] & 0xFF) << 16);
     }
   }
 
