@@ -19,6 +19,9 @@ public abstract class Body implements Paintable {
   private double mass;
   private BufferedImage texture;
 
+  private Vector3D north;
+  private Vector3D equator;
+
   private Vector3D position;
 
   private Vector3D velocity;
@@ -30,6 +33,8 @@ public abstract class Body implements Paintable {
     this.mass = mass;
     this.position = position;
     this.velocity = velocity;
+    this.north = new Vector3D(0, 0, 1);
+    this.equator = new Vector3D(1, 0, 0);
   }
 
   /**
@@ -107,6 +112,38 @@ public abstract class Body implements Paintable {
     return position.getZ();
   }
 
+  /**
+   * Obtain the vector pointing north
+   *
+   * @return The VectorPointing in the north direction
+   */
+  public Vector3D getNorth() {
+    return north;
+  }
+  /**
+   * Obtain the vector pointing at the equator
+   *
+   * @return The Vector pointing towrads the equator
+   */
+  public Vector3D getEquator() {
+    return equator;
+  }
+  /**
+   * Obtain the vector pointing north
+   *
+   * @param north The VectorPointing in the north direction
+   */
+  public void setNorth(Vector3D north) {
+    this.north = north;
+  }
+  /**
+   * Obtain the vector pointing at the equator
+   *
+   * @param equator The Vector pointing towrads the equator
+   */
+  public void setEquator(Vector3D equator) {
+    this.equator = equator;
+  }
   /**
    * Obtains the texture of the body
    *

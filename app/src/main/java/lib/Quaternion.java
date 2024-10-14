@@ -23,6 +23,15 @@ public class Quaternion {
     this.scalar = scalar;
     this.imaginaryVec = imaginaryVec;
   }
+  /**
+   * Constructor for initializing a quaternion
+   *
+   * @param q Quaternion to copy
+   */
+  public Quaternion(Quaternion q) {
+    this.scalar = q.getScalar();
+    this.imaginaryVec = q.getImaginaryVector();
+  }
 
   /**
    * Creates a Quaternion from an angle and an axis of rotation

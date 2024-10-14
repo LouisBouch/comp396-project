@@ -28,6 +28,8 @@ public class Camera3D implements Paintable {
   private ArrayList<Vector3D> stars;
   private ArrayList<Integer> starWidths;
   private Vector3D positionInSpaceM;
+  // Size of pixel blocks in the image. 1 = full quality
+  private int pixBlockSize;
   /**
    * Converts pixel displacement to degrees
    */
@@ -86,7 +88,8 @@ public class Camera3D implements Paintable {
    * @param solarSystem      The solar system in which the camera belongs
    */
   public Camera3D(Vector3D positionInSpaceM, SolarSystem solarSystem, double hFOV, double screenRatio) {
-    populateGalaxy(80);
+    populateGalaxy(100);
+    pixBlockSize = 3;
     this.solarSystem = solarSystem;
     this.positionInSpaceM = positionInSpaceM;
     // These won't change
@@ -101,6 +104,34 @@ public class Camera3D implements Paintable {
     rotQ = new Quaternion();
     setHFOV(hFOV);
     setScreenRatioW(screenRatio);
+  }
+
+  /**
+   * Clone a Camera3D
+   *
+   * @param cam Camera3D to clone
+   *
+   * @return cloned camera
+   */
+  public Camera3D(Camera3D cam) {
+    stars = cam.stars;
+    pixBlockSize = cam.pixBlockSize;
+    solarSystem = cam.solarSystem;
+    positionInSpaceM = new Vector3D(cam.getPositionInSpaceM());
+    // These won't change
+    orientation = new Vector3D(0, 0, 1);
+    xAxisDirection = new Vector3D(1, 0, 0);
+    yAxisDirection = new Vector3D(0, 1, 0);
+    // These represent the current orientations
+    curOrientation = new Vector3D(cam.curOrientation);
+    curXAxis = new Vector3D(cam.curXAxis);
+    curYAxis = new Vector3D(cam.curYAxis);
+    // Initialize copy orientation
+    rotQ = new Quaternion(cam.getRotQ());
+    setHFOV(cam.getHFOV());
+    setScreenWidth(cam.screenWidthP);
+    setScreenRatioW(cam.getScreenRatio());
+
   }
 
   /**
@@ -204,13 +235,21 @@ public class Camera3D implements Paintable {
       if (mode == 3) {
         subjectiveView(g2d, body, contourDots, innerDots);
       }
-      // Tried to apply texure
+      // Tried to apply texure (WORKING AAAAAAAAAAAAAAAAAAAAAAAAAAAAAa)
       if (mode == 4) {
-        textureView(g2d, body);
+        // Copy camera to make sure the change in position while rendering does not
+        // affect the final picture
+        Camera3D cam = new Camera3D(this);
+        cam.textureView(g2d, body);
       }
       // Least computationally expensive mode
       if (mode == 0) {
         approximationView(g2d, body);
+      }
+      // Testing mode
+      if (mode == 5) {
+        Point2D uv = spaceToUVSphere(curOrientation, body);
+        System.out.println(uv);
       }
       g2d.setTransform(originalTransform);
 
@@ -281,15 +320,41 @@ public class Camera3D implements Paintable {
    *
    * @param edge Vector3D going from the camera to some point in space
    *
-   * @return The UV position on the sphere
+   * @return The UV position on the sphere (values range from 0 to 1)
    */
   private Point2D.Double spaceToUVSphere(Vector3D edge, Body body) {
-    return new Point2D.Double(0.5, 0.4);
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    double r = body.getRadius();
+    double sepAngleR = edge.separationAngle(cameraToBodyVec);
+    double l = cameraToBodyVec.len();
+    double projL = Math.cos(sepAngleR) * l;
+    // Define ray as r(t) = positionInSpaceM + t*edge.normalize()
+    double radicand = projL * projL - (l * l - r * r);
+    if (radicand < 0) {
+      return null;
+    }
+    double t = projL - Math.sqrt(radicand);
+    // Position of the point on the surface of the sphere
+    Vector3D posSurface = Vector3D.add(positionInSpaceM, Vector3D.normalize(edge).scalarMult(t));
+    Vector3D centerToSurf = Vector3D.sub(posSurface, body.getPos());
+
+    // Get longitude and latitude
+    Vector3D north = body.getNorth();
+    Vector3D equator = body.getEquator();
+    double latitude = centerToSurf.separationAngle(north);
+    double longitude = Vector3D.projectOnPlane(centerToSurf, north).separationAngle(equator);
+    if (Vector3D.cross(north, equator).dot(centerToSurf) < 0) {
+      longitude = -longitude + Math.PI * 2;
+    }
+
+    // Find UV coord from surface point
+    return new Point2D.Double(longitude / (2 * Math.PI), latitude / Math.PI);
   }
 
   /**
    * Get approximated value for the position and radius of projected sphere
    * TODO: optimize by making sphere fit the actual projection more neatly
+   * 
    * @param body The sphere projection to approximate
    *
    * @return Return the approximated radius, position in x and position in y
@@ -326,9 +391,13 @@ public class Camera3D implements Paintable {
         * DEGPERRAD;
     double separationAngleYD = Vector3D.projectOnPlane(closestPoint, curXAxis).separationAngle(curOrientation)
         * DEGPERRAD;
-    // Don't draw if point is out of bounds (with a bit of leniency)
+    // Don't draw if closest point is out of bounds (with a bit of leniency)
     if (separationAngleYD > vFOV / 1.9 || separationAngleXD > hFOV / 1.9) {
-      return null;
+      // The closest point can be out of bounds while the rest of the sphre is in view.
+      // In this case, we don't want to quit
+      if (angPosR * DEGPERRAD - angDiamDeg / 2.0 > 0) {
+        return null;
+      }
     }
 
     // Take random value for dist to screen
@@ -403,7 +472,9 @@ public class Camera3D implements Paintable {
     int yc = (int) imCenter.getY();
 
     // Texture related elements
-    BufferedImage image = new BufferedImage((int) rp * 2 + 1, (int) rp * 2 + 1, BufferedImage.TYPE_INT_ARGB);
+    // Expand final picture by pixBlockSize, so divide its initial size by it
+    BufferedImage image = new BufferedImage((rp * 2) / pixBlockSize + 1, (rp * 2) / pixBlockSize + 1,
+        BufferedImage.TYPE_INT_ARGB);
     // Graphics2D g2t = texProj.createGraphics();
     WritableRaster raster = image.getRaster();
 
@@ -412,17 +483,25 @@ public class Camera3D implements Paintable {
 
     // Fill first octant horizontally + symmetry
     int x = 0;
-    int y = (int) rp;
-    int d = 3 - 2 * (int) rp;
+    int y = (int) rp/pixBlockSize;
+    int d = 3 - 2 * (int) rp/pixBlockSize;
+    //int y = (int) rp;
+    //int d = 3 - 2 * (int) rp;
+    // For the first octant of the circle, iterate as if it were a smaller circle.
+    // This prevents an issue where a line isn't drawn in the bottom half of hte circle
     while (y >= x) {
       if (d <= 0) {
         d = d + (4 * x) + 6;
       } else {
-        drawTLine(-x, y, x, raster, imCenter, rp, body);
-        drawTLine(-x, -y, x, raster, imCenter, rp, body);
+        //drawTLine(-x, y, x, raster, imCenter, rp, body);
+        //drawTLine(-x, -y, x, raster, imCenter, rp, body);
+        drawTLine(-x*pixBlockSize, y*pixBlockSize, x*pixBlockSize, raster, imCenter, rp, body);
+        drawTLine(-x*pixBlockSize, -y*pixBlockSize, x*pixBlockSize, raster, imCenter, rp, body);
         d = d + 4 * (x - y) + 10;
+        //y -= pixBlockSize;
         y--;
       }
+      //x += pixBlockSize;
       x++;
     }
     // Fill second octant horizontally + symmetry
@@ -437,11 +516,11 @@ public class Camera3D implements Paintable {
         d = d + (4 * y) + 6;
       } else {
         d = d + 4 * (y - x) + 10;
-        x--;
+        x -= pixBlockSize;
       }
-      y++;
+      y += pixBlockSize;
     }
-    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth(), image.getHeight(), null);
+    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth() * pixBlockSize, image.getHeight() * pixBlockSize, null);
   }
 
   /**
@@ -485,16 +564,27 @@ public class Camera3D implements Paintable {
     // nb of colors per pixel
     int bands = 3;
 
-    for (int i = x; i <= xe; i++) {
+    for (int i = x; i <= xe; i += pixBlockSize) {
       // Check if sphere is in the path of the pixel
-      // TODO: implement raycast to sphere and return UV pos if intersects
       Point2D UV = spaceToUVSphere(screenToSpace(i + xc, y + yc), body);
+      if (UV == null) {
+        continue;
+      }
+      // Makes sure value is less than 1, else we have an out of bounds
+      if (UV.getX() == 1) {
+        UV.setLocation((texWidth - 1) / (double) texWidth, UV.getY());
+      }
+      if (UV.getY() == 1) {
+        UV.setLocation(UV.getX(), (texHeight - 1) / (double) texHeight);
+      }
       // (we will have false-false-...-false-true-true-...-true-false-break)
       // This is because after missing the sphere the second time, it will never hit
-      // the sphere again, so we break
-      int indexTex = (int) Math.round((texWidth * UV.getY() * texHeight + UV.getX() * texWidth) * bands);
-      int indexIm = ((y + rp) * imWidth + i + rp);
-      // Apply texture color, stored as BGR
+      // the sphere again, so we break TODO: implement this check
+      int indexTex = ((int) (UV.getY() * texHeight) * texWidth + (int) (UV.getX() * texWidth)) * bands;
+      int indexIm = (y + rp) / pixBlockSize * imWidth + (i + rp) / pixBlockSize;
+      // Apply texture color, stored as ARGB
+      // Apply color in a square if pixBlockSize > 1 TODO: start from center of square
+      // instead of top left (is it even possible?)
       pixIm[indexIm] = (0xFF << 24) |
           (pixTex[indexTex] & 0xFF) |
           ((pixTex[indexTex + 1] & 0xFF) << 8) |
@@ -1120,5 +1210,23 @@ public class Camera3D implements Paintable {
    */
   public void setBoostValue(double boostValue) {
     this.boostValue = boostValue;
+  }
+
+  /**
+   * Getter for the screenRatio
+   *
+   * @return The screen ratio
+   */
+  public double getScreenRatio() {
+    return screenRatio;
+  }
+
+  /**
+   * Getter for the rotation quatternion
+   *
+   * @return The quaternion
+   */
+  public Quaternion getRotQ() {
+    return rotQ;
   }
 }
