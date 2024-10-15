@@ -30,6 +30,11 @@ public class Camera3D implements Paintable {
   private Vector3D positionInSpaceM;
   // Size of pixel blocks in the image. 1 = full quality
   private int pixBlockSize;
+  private int curPixBlockSize;
+  // Maximum number of pixel in the image before curPixBlockSize starts to
+  // increase
+  // This is to reduce the image size when closer to the body
+  private int maxImSize;
   /**
    * Converts pixel displacement to degrees
    */
@@ -89,7 +94,8 @@ public class Camera3D implements Paintable {
    */
   public Camera3D(Vector3D positionInSpaceM, SolarSystem solarSystem, double hFOV, double screenRatio) {
     populateGalaxy(100);
-    pixBlockSize = 3;
+    pixBlockSize = 1;
+    maxImSize = 275;
     this.solarSystem = solarSystem;
     this.positionInSpaceM = positionInSpaceM;
     // These won't change
@@ -116,6 +122,8 @@ public class Camera3D implements Paintable {
   public Camera3D(Camera3D cam) {
     stars = cam.stars;
     pixBlockSize = cam.pixBlockSize;
+    curPixBlockSize = cam.curPixBlockSize;
+    maxImSize = cam.maxImSize;
     solarSystem = cam.solarSystem;
     positionInSpaceM = new Vector3D(cam.getPositionInSpaceM());
     // These won't change
@@ -136,6 +144,8 @@ public class Camera3D implements Paintable {
 
   /**
    * Creates stars at random positions
+   *
+   * @param nbStars Number of stars in the background
    */
   private void populateGalaxy(int nbStars) {
     int maxSize = 3;
@@ -162,37 +172,15 @@ public class Camera3D implements Paintable {
   private void paintStars(Graphics2D g2d) {
     for (int i = 0; i < stars.size(); i++) {
       Vector3D star = new Vector3D(stars.get(i));
-      double screenDistM = 1;
-      double screenWidthM = Math.tan(hFOV / 2.0 * RADPERDEG) * screenDistM * 2;
-      double pixelPerMeter = screenWidthP / screenWidthM;
-      // Get angles projected onto X and Y axis and check if the dots are out of
-      // bounds
-      double separationAngleXD = Vector3D.sub(star, Vector3D.project(star, curYAxis))
-          .separationAngle(curOrientation) * DEGPERRAD;
-      double separationAngleYD = Vector3D.sub(star, Vector3D.project(star, curXAxis))
-          .separationAngle(curOrientation) * DEGPERRAD;
-      if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
+      // Get pos on screen
+      Point2D posP = spaceToScreen(star);
+      // Don't draw if no screen position
+      if (posP == null) {
         continue;
       }
-
       double starWidhtP = starWidths.get(i);
-      Point2D screenMidP = new Point2D.Double(screenWidthP / 2.0, screenHeightP / 2.0);
-      // Obtain the quadrant of the star
-      Point2D signs = new Point2D.Double(Math.signum(star.dot(curXAxis)), Math.signum(star.dot(curYAxis)));
-
-      // Obtain the distance from the center in meters
-      Point2D distFromCenterM = new Point2D.Double(
-          Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
-          Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
-
-      // Convert the distance in meters to a distance in pixels
-      // This can be done because the pinhole camera does not distort images
-      Point2D posP = new Point2D.Double(
-          screenMidP.getX() + distFromCenterM.getX() * pixelPerMeter * signs.getX(),
-          screenMidP.getY() + distFromCenterM.getY() * pixelPerMeter * signs.getY());
-
-      Ellipse2D el = new Ellipse2D.Double(posP.getX() - starWidhtP / 2.0, posP.getY() - starWidhtP / 2.0, starWidhtP,
-          starWidhtP);
+      Ellipse2D el = new Ellipse2D.Double(
+          posP.getX() - starWidhtP / 2.0, posP.getY() - starWidhtP / 2.0, starWidhtP, starWidhtP);
       g2d.setColor(Color.white);
       g2d.fill(el);
     }
@@ -223,11 +211,11 @@ public class Camera3D implements Paintable {
       double start = System.nanoTime();
       // Shows bodies with respect to a prticular mode
 
-      // Nicest mode for now
+      // Points on surface
       if (mode == 1) {
         objectiveView(g2d, body, contourDots, innerDots);
       }
-      // Will be useful for the UV map texture
+      // Will be useful for the UV map texture 
       if (mode == 2) {
         objectiveViewEqualDist(g2d, body, contourDots, innerDots);
       }
@@ -235,21 +223,16 @@ public class Camera3D implements Paintable {
       if (mode == 3) {
         subjectiveView(g2d, body, contourDots, innerDots);
       }
-      // Tried to apply texure (WORKING AAAAAAAAAAAAAAAAAAAAAAAAAAAAAa)
+      // Texture mode
       if (mode == 4) {
         // Copy camera to make sure the change in position while rendering does not
         // affect the final picture
         Camera3D cam = new Camera3D(this);
         cam.textureView(g2d, body);
       }
-      // Least computationally expensive mode
+      // Least computationally expensive mode. Shows approximation to sphere projection
       if (mode == 0) {
         approximationView(g2d, body);
-      }
-      // Testing mode
-      if (mode == 5) {
-        Point2D uv = spaceToUVSphere(curOrientation, body);
-        System.out.println(uv);
       }
       g2d.setTransform(originalTransform);
 
@@ -283,13 +266,15 @@ public class Camera3D implements Paintable {
     }
 
     Point2D screenMidP = new Point2D.Double(screenWidthP / 2.0, screenHeightP / 2.0);
+    // Gets quadrant of the point on screen
     Point2D signs = new Point2D.Double(Math.signum(edge.dot(curXAxis)), Math.signum(edge.dot(curYAxis)));
 
     // Obtain the distance from the center of image plane in meters
     Point2D screenProjM = new Point2D.Double(
         Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
         Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
-    // Convert the distance to pixels on the screen
+    // Convert the distance in meters to a distance in pixels
+    // This can be done because the pinhole camera does not distort images
     Point2D.Double posP = new Point2D.Double(
         screenMidP.getX() + screenProjM.getX() * pixelPerMeter * signs.getX(),
         screenMidP.getY() + screenProjM.getY() * pixelPerMeter * signs.getY());
@@ -334,6 +319,10 @@ public class Camera3D implements Paintable {
       return null;
     }
     double t = projL - Math.sqrt(radicand);
+    // If intersection is behind
+    if (t < 0) {
+      return null;
+    }
     // Position of the point on the surface of the sphere
     Vector3D posSurface = Vector3D.add(positionInSpaceM, Vector3D.normalize(edge).scalarMult(t));
     Vector3D centerToSurf = Vector3D.sub(posSurface, body.getPos());
@@ -353,7 +342,6 @@ public class Camera3D implements Paintable {
 
   /**
    * Get approximated value for the position and radius of projected sphere
-   * TODO: optimize by making sphere fit the actual projection more neatly
    * 
    * @param body The sphere projection to approximate
    *
@@ -361,8 +349,7 @@ public class Camera3D implements Paintable {
    *         (pixel)
    */
   private double[] getApproximateCenterAndRad(Body body) {
-    // Finding circle that contains the projection (very bad approximation for now,
-    // make it better)
+    // Finding circle that contains the projection
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
@@ -371,8 +358,8 @@ public class Camera3D implements Paintable {
     cameraToBodyVec.scalarDiv(scaleDown);
     double bodyRad = body.getRadius() / scaleDown;
 
-    // Skip if inside body
-    if (bodyRad > cameraToBodyVec.len())
+    // Skip if inside body or too close to it
+    if (bodyRad * 1.1 > cameraToBodyVec.len())
       return null;
 
     double angDiamDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len()) * DEGPERRAD;
@@ -393,7 +380,8 @@ public class Camera3D implements Paintable {
         * DEGPERRAD;
     // Don't draw if closest point is out of bounds (with a bit of leniency)
     if (separationAngleYD > vFOV / 1.9 || separationAngleXD > hFOV / 1.9) {
-      // The closest point can be out of bounds while the rest of the sphre is in view.
+      // The closest point can be out of bounds while the rest of the sphre is in
+      // view.
       // In this case, we don't want to quit
       if (angPosR * DEGPERRAD - angDiamDeg / 2.0 > 0) {
         return null;
@@ -408,7 +396,7 @@ public class Camera3D implements Paintable {
     double centerShiftM = 0;
     // If the body is almost behind the camera, just draw as if it were closer and
     // then shift at the end
-    double largestAngleD = 88;
+    double largestAngleD = 70;
     if (angPosR * DEGPERRAD + angDiamDeg / 2.0 > largestAngleD) {
       // Angle that makes sure the body does not cross the angle threshold
       double adjustedAngPosR = (largestAngleD - angDiamDeg / 2.0) / DEGPERRAD;
@@ -438,7 +426,7 @@ public class Camera3D implements Paintable {
     xSign = xSign == 0 ? 1 : xSign;
     ySign = ySign == 0 ? 1 : ySign;
 
-    // If furthest point of body cannot be projected accurately
+    // Distance to center of the projection on screen
     double distToCentOfProj = 0.5 * (furthestDist + closestDist);
 
     // Width and height of projected ellipse
@@ -446,9 +434,10 @@ public class Camera3D implements Paintable {
 
     // Get projections
     distToCentOfProj += centerShiftM;// Add shift from approximation
-    return new double[] { radM * pixelPerMeter,
+    double[] app = new double[] { radM * pixelPerMeter,
         xSign * distToCentOfProj * Math.abs(Math.cos(xAngleR)) * pixelPerMeter,
         ySign * distToCentOfProj * Math.abs(Math.sin(xAngleR)) * pixelPerMeter };
+    return app;
   }
 
   /**
@@ -471,9 +460,23 @@ public class Camera3D implements Paintable {
     int xc = (int) imCenter.getX();
     int yc = (int) imCenter.getY();
 
+    // Decide pixBlockSize based on approximation radius
+    int diam = (rp * 2) / pixBlockSize + 1;
+    if (diam <= 0) {
+      return;
+    }
+    // Doubles the curPixBlockSize when the imagesize >= maxImSize. Then triples at
+    // maxImSize*base, quadruples at maxImSize*base² and so on...
+    double base = 2.3;
+    int ratioLog = (int) Math.ceil(Math.log(diam / (double) maxImSize) / Math.log(base)) + 1;
+    if (maxImSize > 0 && ratioLog > 1) {
+      curPixBlockSize = ratioLog * pixBlockSize;
+    } else {
+      curPixBlockSize = pixBlockSize;
+    }
     // Texture related elements
     // Expand final picture by pixBlockSize, so divide its initial size by it
-    BufferedImage image = new BufferedImage((rp * 2) / pixBlockSize + 1, (rp * 2) / pixBlockSize + 1,
+    BufferedImage image = new BufferedImage((rp * 2) / curPixBlockSize + 1, (rp * 2) / curPixBlockSize + 1,
         BufferedImage.TYPE_INT_ARGB);
     // Graphics2D g2t = texProj.createGraphics();
     WritableRaster raster = image.getRaster();
@@ -481,46 +484,64 @@ public class Camera3D implements Paintable {
     // Fill in the circle (optimized... or is it?)
     // bresenhams-circle-algorithm modified to fill in the circle
 
+    // Reduced radius
+    int rr = rp / curPixBlockSize;
+
     // Fill first octant horizontally + symmetry
-    int x = 0;
-    int y = (int) rp/pixBlockSize;
-    int d = 3 - 2 * (int) rp/pixBlockSize;
-    //int y = (int) rp;
-    //int d = 3 - 2 * (int) rp;
-    // For the first octant of the circle, iterate as if it were a smaller circle.
-    // This prevents an issue where a line isn't drawn in the bottom half of hte circle
+    int y = rr;
+    // Make sure the y component does not start out of bounds
+    // (not necessary, remove if bugged)
+    if (yc > screenHeightP / 2.0 && yc - rp < 0) {
+      y = yc / curPixBlockSize;
+    } else if (yc < screenHeightP / 2.0 && yc + rp > screenHeightP) {
+      y = ((int) screenHeightP - yc) / curPixBlockSize;
+    }
+    int x = (int) Math.sqrt(rr * rr - y * y);
+    int d = 2 * (x + 1) * (x + 1) + y * y + (y - 1) * (y - 1) - 2 * (rr * rr);
+    // Iterate as if it were a smaller circle, cause we're iterating over the image
+    // circle, which is smaller.
     while (y >= x) {
       if (d <= 0) {
         d = d + (4 * x) + 6;
       } else {
-        //drawTLine(-x, y, x, raster, imCenter, rp, body);
-        //drawTLine(-x, -y, x, raster, imCenter, rp, body);
-        drawTLine(-x*pixBlockSize, y*pixBlockSize, x*pixBlockSize, raster, imCenter, rp, body);
-        drawTLine(-x*pixBlockSize, -y*pixBlockSize, x*pixBlockSize, raster, imCenter, rp, body);
+        // TODO: separate getting uv texture and drawing
+        drawTLine(-x * curPixBlockSize, y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
+        drawTLine(-x * curPixBlockSize, -y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
         d = d + 4 * (x - y) + 10;
-        //y -= pixBlockSize;
         y--;
       }
-      //x += pixBlockSize;
       x++;
     }
     // Fill second octant horizontally + symmetry
-    x = (int) rp;
     y = 0;
-    d = 3 - 2 * (int) rp;
+    // Make sure the y component does not start out of bounds
+    // (not necessary, remove if bugged)
+    if (yc > screenHeightP) {
+      y = (yc - (int) screenHeightP) / curPixBlockSize;
+    } else if (yc < 0) {
+      y = -yc / curPixBlockSize;
+    }
+    x = (int) Math.sqrt(rr * rr - y * y);
+    d = 2 * (y + 1) * (y + 1) + x * x + (x - 1) * (x - 1) - 2 * (rr * rr);
     while (y < x) {
-      drawTLine(-x, y, x, raster, imCenter, rp, body);
+      drawTLine(-x * curPixBlockSize, y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
       if (y != 0)
-        drawTLine(-x, -y, x, raster, imCenter, rp, body);
+        drawTLine(-x * curPixBlockSize, -y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
       if (d <= 0) {
         d = d + (4 * y) + 6;
       } else {
         d = d + 4 * (y - x) + 10;
-        x -= pixBlockSize;
+        x--;
       }
-      y += pixBlockSize;
+      y++;
     }
-    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth() * pixBlockSize, image.getHeight() * pixBlockSize, null);
+    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth() * curPixBlockSize, image.getHeight() * curPixBlockSize,
+        null);
+    // Shows where the rays are being sent
+    // g2d.setColor(new Color(255, 0, 0, 100));
+    // g2d.fill(new Ellipse2D.Double(screenWidthP / 2 + approxCenterX - approxRad,
+    // screenHeightP / 2 + approxCenterY - approxRad, 2 * approxRad, 2 *
+    // approxRad));
   }
 
   /**
@@ -564,7 +585,7 @@ public class Camera3D implements Paintable {
     // nb of colors per pixel
     int bands = 3;
 
-    for (int i = x; i <= xe; i += pixBlockSize) {
+    for (int i = x; i <= xe; i += curPixBlockSize) {
       // Check if sphere is in the path of the pixel
       Point2D UV = spaceToUVSphere(screenToSpace(i + xc, y + yc), body);
       if (UV == null) {
@@ -581,7 +602,7 @@ public class Camera3D implements Paintable {
       // This is because after missing the sphere the second time, it will never hit
       // the sphere again, so we break TODO: implement this check
       int indexTex = ((int) (UV.getY() * texHeight) * texWidth + (int) (UV.getX() * texWidth)) * bands;
-      int indexIm = (y + rp) / pixBlockSize * imWidth + (i + rp) / pixBlockSize;
+      int indexIm = (y + rp) / curPixBlockSize * imWidth + (i + rp) / curPixBlockSize;
       // Apply texture color, stored as ARGB
       // Apply color in a square if pixBlockSize > 1 TODO: start from center of square
       // instead of top left (is it even possible?)
