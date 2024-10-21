@@ -31,6 +31,10 @@ public abstract class Body implements Paintable {
 
 
   public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture) {
+    // Sets default texture if not specified
+    if (texture == null) {
+      texture = Texture.Moon;
+    }
     this.radius = radius;
     this.mass = mass;
     this.position = position;
