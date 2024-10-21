@@ -17,9 +17,9 @@ import lib.Vector3D;
 public class Star extends Body {
 
   public Star(double radius, double mass, Vector3D position, Vector3D velocity) {
-    super(radius, mass, position, velocity);
+    super(radius, mass, position, velocity, Texture.Sun);
     setColor(Color.yellow);
-    this.setTexture(textureFromFile("earth.jpg"));
+    //this.setTexture(textureFromFile("Sun.jpg"));
   }
 
   @Override

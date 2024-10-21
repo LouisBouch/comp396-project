@@ -578,7 +578,7 @@ public class Camera3D implements Paintable {
     int imWidth = imRaster.getWidth();
 
     // Get texture info
-    WritableRaster texRaster = body.getTexture().getRaster();
+    WritableRaster texRaster = body.getUVMap().getRaster();
     int texWidth = texRaster.getWidth();
     int texHeight = texRaster.getHeight();
     byte[] pixTex = ((DataBufferByte) texRaster.getDataBuffer()).getData();
@@ -604,8 +604,6 @@ public class Camera3D implements Paintable {
       int indexTex = ((int) (UV.getY() * texHeight) * texWidth + (int) (UV.getX() * texWidth)) * bands;
       int indexIm = (y + rp) / curPixBlockSize * imWidth + (i + rp) / curPixBlockSize;
       // Apply texture color, stored as ARGB
-      // Apply color in a square if pixBlockSize > 1 TODO: start from center of square
-      // instead of top left (is it even possible?)
       pixIm[indexIm] = (0xFF << 24) |
           (pixTex[indexTex] & 0xFF) |
           ((pixTex[indexTex + 1] & 0xFF) << 8) |

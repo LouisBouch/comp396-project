@@ -17,7 +17,6 @@ public abstract class Body implements Paintable {
 
   private double radius;
   private double mass;
-  private BufferedImage texture;
 
   private Vector3D north;
   private Vector3D equator;
@@ -28,13 +27,17 @@ public abstract class Body implements Paintable {
 
   private Color color;
 
-  public Body(double radius, double mass, Vector3D position, Vector3D velocity) {
+  private Texture texture;
+
+
+  public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture) {
     this.radius = radius;
     this.mass = mass;
     this.position = position;
     this.velocity = velocity;
     this.north = new Vector3D(0, 0, 1);
     this.equator = new Vector3D(1, 0, 0);
+    this.texture = texture;
   }
 
   /**
@@ -120,6 +123,7 @@ public abstract class Body implements Paintable {
   public Vector3D getNorth() {
     return north;
   }
+
   /**
    * Obtain the vector pointing at the equator
    *
@@ -128,6 +132,7 @@ public abstract class Body implements Paintable {
   public Vector3D getEquator() {
     return equator;
   }
+
   /**
    * Obtain the vector pointing north
    *
@@ -136,6 +141,7 @@ public abstract class Body implements Paintable {
   public void setNorth(Vector3D north) {
     this.north = north;
   }
+
   /**
    * Obtain the vector pointing at the equator
    *
@@ -144,13 +150,14 @@ public abstract class Body implements Paintable {
   public void setEquator(Vector3D equator) {
     this.equator = equator;
   }
+
   /**
    * Obtains the texture of the body
    *
-   * @return Texture map of body
+   * @return Texture of body (As a UV map)
    */
-  public BufferedImage getTexture() {
-    return texture;
+  public BufferedImage getUVMap() {
+    return texture.getUVMap();
   }
 
   /**
@@ -158,24 +165,8 @@ public abstract class Body implements Paintable {
    *
    * @param t The new texture
    */
-  public void setTexture(BufferedImage t) {
+  public void setTexture(Texture t) {
     texture = t;
-  }
-
-  public BufferedImage textureFromFile(String resName) {
-    // Get texture
-    try {
-      BufferedImage texture = ImageIO.read(getClass().getResource("/" + resName));
-      // BufferedImage textureARGB = new
-      // BufferedImage(texture.getWidth(),texture.getHeight(),
-      // BufferedImage.TYPE_INT_ARGB);
-      // //Convert to transparent image
-      // textureARGB.getGraphics().drawImage(texture, 0, 0, null);
-      return texture;
-    } catch (IOException e) {
-      e.printStackTrace();
-      return null;
-    }
   }
 
   /**
