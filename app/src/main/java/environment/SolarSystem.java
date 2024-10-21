@@ -64,6 +64,10 @@ public class SolarSystem implements Paintable {
     }
   }
 
+  // TODO: Make solarSystem.reset()
+  public void reset(){
+  }
+
 
   /**
    * VERY PRELIM DEMO

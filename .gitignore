@@ -28,3 +28,7 @@ build
 *.bk
 *.back
 *.bak
+
+# Ignore resource outputs
+bin/*
+out/*

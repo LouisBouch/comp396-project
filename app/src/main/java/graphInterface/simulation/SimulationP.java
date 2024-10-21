@@ -140,7 +140,6 @@ public class SimulationP extends JPanel implements Runnable {
   public void step() {
     handleKeys();
     solarSystem.step();
-    // TODO: add solarSystem.step()
   }
 
   /**
@@ -166,6 +165,14 @@ public class SimulationP extends JPanel implements Runnable {
    * TODO: Resets simulation
    */
   public void reset() {
+    stop();
+    solarSystem.reset();
+    camera.reset();
+    resume();
+  }
+
+  public void resume(){
+    running = true;
   }
 
   /**
@@ -405,6 +412,9 @@ public class SimulationP extends JPanel implements Runnable {
         capturedLabel();
       }
     });
+
+    keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_R, "Released R",
+            evt -> reset());
 
     // Setup pressed down key actions
     heldKeyActions.put(KeyEvent.VK_W, () -> camera.moveAlongView(Camera3D.FORWARDS));
