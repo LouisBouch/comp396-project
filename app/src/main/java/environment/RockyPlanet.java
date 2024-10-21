@@ -14,6 +14,19 @@ public class RockyPlanet extends Body {
     super(radius, mass, position, velocity, texture);
     setColor(Color.blue);
   }
+  /**
+   * Copy constructor
+   */
+  public RockyPlanet(RockyPlanet planet) {
+    super(planet);
+    setColor(Color.blue);
+  }
+  /**
+   * Creates a copy of the planet
+   */
+  public RockyPlanet copy() {
+    return new RockyPlanet(this);
+  }
 
   @Override
   public void paintThis(Graphics2D g2d) {

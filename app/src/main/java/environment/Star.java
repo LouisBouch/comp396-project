@@ -21,6 +21,19 @@ public class Star extends Body {
     setColor(Color.yellow);
     //this.setTexture(textureFromFile("Sun.jpg"));
   }
+  /**
+   * Copy constructor
+   */
+  public Star(Star star) {
+    super(star);
+    setColor(Color.yellow);
+  }
+  /**
+   * Creates a copy of the star
+   */
+  public Star copy() {
+    return new Star(this);
+  }
 
   @Override
   public void paintThis(Graphics2D g2d) {

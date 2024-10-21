@@ -14,6 +14,19 @@ public class Asteroid extends Body {
     super(radius, mass, position, velocity, texture);
     setColor(Color.gray);
   }
+  /**
+   * Copy constructor
+   */
+  public Asteroid(Asteroid planet) {
+    super(planet);
+    setColor(Color.gray);
+  }
+  /**
+   * Creates a copy of the Asteroid
+   */
+  public Asteroid copy() {
+    return new Asteroid(this);
+  }
 
   @Override
   public void paintThis(Graphics2D g2d) {

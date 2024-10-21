@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import lib.Paintable;
 import lib.Quaternion;
 import lib.Vector3D;
+import environment.Body;
 
 public class Camera3D implements Paintable {
   public static final int FORWARDS = 1;
@@ -231,7 +232,9 @@ public class Camera3D implements Paintable {
         // Copy camera to make sure the change in position while rendering does not
         // affect the final picture
         Camera3D cam = new Camera3D(this);
-        cam.textureView(g2d, body);
+        // Also copy body to prevent the same issue but with the body movement
+        Body bodyCopy = body.copy();
+        cam.textureView(g2d, bodyCopy);
       }
       // Least computationally expensive mode. Shows approximation to sphere projection
       if (mode == 0) {

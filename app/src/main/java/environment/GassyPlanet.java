@@ -14,6 +14,19 @@ public class GassyPlanet extends Body {
     super(radius, mass, position, velocity, texture);
     setColor(Color.red);
   }
+  /**
+   * Copy constructor
+   */
+  public GassyPlanet(GassyPlanet planet) {
+    super(planet);
+    setColor(Color.red);
+  }
+  /**
+   * Creates a copy of the planet
+   */
+  public GassyPlanet copy() {
+    return new GassyPlanet(this);
+  }
 
   @Override
   public void paintThis(Graphics2D g2d) {

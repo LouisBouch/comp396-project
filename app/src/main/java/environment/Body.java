@@ -29,7 +29,9 @@ public abstract class Body implements Paintable {
 
   private Texture texture;
 
-
+  /**
+   * Create new body
+   */
   public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture) {
     // Sets default texture if not specified
     if (texture == null) {
@@ -43,6 +45,24 @@ public abstract class Body implements Paintable {
     this.equator = new Vector3D(1, 0, 0);
     this.texture = texture;
   }
+
+  /**
+   * Copy body
+   */
+  public Body(Body body) {
+    radius = body.radius;
+    mass = body.mass;
+    position = new Vector3D(body.position);
+    velocity = new Vector3D(body.velocity);
+    north = new Vector3D(body.north);
+    equator = new Vector3D(body.equator);
+    texture = body.texture;
+  }
+
+  /**
+   * Copy method to allow us to make copies of any body
+   */
+  public abstract Body copy();
 
   /**
    * Obtains radius of Body
