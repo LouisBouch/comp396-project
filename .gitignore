@@ -30,5 +30,6 @@ build
 *.bak
 
 # Ignore resource outputs
-bin/*
+bin
+out
 out/*
