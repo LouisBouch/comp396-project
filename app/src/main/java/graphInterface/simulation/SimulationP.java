@@ -3,6 +3,7 @@ package graphInterface.simulation;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -10,6 +11,7 @@ import java.awt.RenderingHints;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -22,15 +24,17 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
@@ -38,6 +42,10 @@ import javax.swing.SwingUtilities;
 
 import environment.Camera3D;
 import environment.SolarSystem;
+import graphInterface.settings.CarouselRow;
+import graphInterface.settings.LabelRow;
+import graphInterface.settings.SettingsManager;
+import graphInterface.settings.SliderRow;
 import lib.Vector3D;
 import lib.keyBinds;
 
@@ -85,35 +93,20 @@ public class SimulationP extends JPanel implements Runnable {
   JLabel captureLabel;
   JLabel positionInSpaceLabel;
   JLabel orientationInSpaceLabel;
+  JButton settingsButton;
+  SettingsManager settings;
 
   /**
    * Create the panel.
    */
   public SimulationP() {
-    SpringLayout sLayout = new SpringLayout();
-    this.setLayout(sLayout);
 
     solarSystem = new SolarSystem();
     camera = new Camera3D(new Vector3D(0, 0, -1.5e10), solarSystem, 90, 1);
     // camera.rotateCamera(new Point(500, 0), false);
 
-    captureLabel = new JLabel();
-    sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
-    sLayout.putConstraint(SpringLayout.WEST, captureLabel, 5, SpringLayout.WEST, this);
-    this.add(captureLabel);
-    capturedLabel();
-
-    positionInSpaceLabel = new JLabel();
-    sLayout.putConstraint(SpringLayout.NORTH, positionInSpaceLabel, 5, SpringLayout.NORTH, this);
-    sLayout.putConstraint(SpringLayout.WEST, positionInSpaceLabel, 5, SpringLayout.WEST, this);
-    this.add(positionInSpaceLabel);
-    updatePosLabel();
-
-    orientationInSpaceLabel = new JLabel();
-    sLayout.putConstraint(SpringLayout.NORTH, orientationInSpaceLabel, 5, SpringLayout.SOUTH, positionInSpaceLabel);
-    sLayout.putConstraint(SpringLayout.WEST, orientationInSpaceLabel, 5, SpringLayout.WEST, this);
-    this.add(orientationInSpaceLabel);
-    updateOriLabel();
+    // Create labels and buttons that will be hosted by the SimulationP panel
+    makeJComponents();
 
     // Create robot which will move cursor
     try {
@@ -132,6 +125,90 @@ public class SimulationP extends JPanel implements Runnable {
     setupMouseListerner();
     // Sets up keybindings
     setupKeyBindings();
+  }
+
+  /**
+   * Create and setup the JComponents
+   */
+  public void makeJComponents() {
+    SpringLayout sLayout = new SpringLayout();
+    this.setLayout(sLayout);
+
+    // Label that says whether the mouse is captured or not
+    captureLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
+    sLayout.putConstraint(SpringLayout.WEST, captureLabel, 5, SpringLayout.WEST, this);
+    this.add(captureLabel);
+    capturedLabel();
+
+    // Label that contains the position in space of the camera
+    positionInSpaceLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.NORTH, positionInSpaceLabel, 5, SpringLayout.NORTH, this);
+    sLayout.putConstraint(SpringLayout.WEST, positionInSpaceLabel, 5, SpringLayout.WEST, this);
+    this.add(positionInSpaceLabel);
+    updatePosLabel();
+
+    // Label that contains the orientation in space of the camera
+    orientationInSpaceLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.NORTH, orientationInSpaceLabel, 5, SpringLayout.SOUTH, positionInSpaceLabel);
+    sLayout.putConstraint(SpringLayout.WEST, orientationInSpaceLabel, 5, SpringLayout.WEST, this);
+    this.add(orientationInSpaceLabel);
+    updateOriLabel();
+
+    // Button used to access settings options for the simulation
+    settingsButton = new JButton();
+    sLayout.putConstraint(SpringLayout.NORTH, settingsButton, 0, SpringLayout.NORTH, this);
+    sLayout.putConstraint(SpringLayout.EAST, settingsButton, -0, SpringLayout.EAST, this);
+    settingsButton.setOpaque(false);
+    settingsButton.setContentAreaFilled(false);
+    settingsButton.setBorderPainted(false);
+    settingsButton.setText("<html>" +
+        "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" +
+        "⚙" +
+        "</span>" + "</html>");
+    settingsButton.setFocusable(false);
+    settingsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    this.add(settingsButton);
+
+    // Settings window
+    JPanel thisP = this;
+    // Opens settings window
+    settingsButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // This is the window frame
+        JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(thisP);
+        // Initialize settings if not done already
+        if (settings == null) {
+          // The frame where the settings belong
+          settings = new SettingsManager(
+              ownerFrame, null, new Dimension(500, 750), "Settings");
+          // Add the different settings
+
+          // The camera setting section
+          settings.addSetting(new LabelRow("Camera Settings"));
+          // Sensitivity setting
+          // TODO: Implement sensitivity setting
+          settings.addSetting(new SliderRow("Sensitivity:", 1, 10, 5, (v) -> {
+            System.out.println(v);
+          }));
+          // Quality setting
+          // This list contains the possible quality values for the texture
+          ArrayList<Map.Entry<String, Double>> s = new ArrayList<>();
+          int defaultQuality = camera.getMaxImSize();
+          s.add(new AbstractMap.SimpleEntry<>("Very Low", defaultQuality / 3.0));
+          s.add(new AbstractMap.SimpleEntry<>("Low", defaultQuality / 1.5));
+          s.add(new AbstractMap.SimpleEntry<>("Medium", (double) defaultQuality));
+          s.add(new AbstractMap.SimpleEntry<>("High", defaultQuality * 1.5));
+          s.add(new AbstractMap.SimpleEntry<>("Very High", defaultQuality * 3.0));
+          s.add(new AbstractMap.SimpleEntry<>("Just don't", Double.MAX_VALUE));
+          settings.addSetting(new CarouselRow("Texture Quality:", s, 2, (v) -> {
+            camera.setMaxImSize(v.intValue());
+          }));
+        }
+        settings.setVisible(true);
+      }
+    });
   }
 
   /**
@@ -171,7 +248,7 @@ public class SimulationP extends JPanel implements Runnable {
     resume();
   }
 
-  public void resume(){
+  public void resume() {
     running = true;
   }
 
@@ -282,9 +359,7 @@ public class SimulationP extends JPanel implements Runnable {
 
       @Override
       public void mouseMoved(MouseEvent e) {
-        if (!captured)
-          return;
-        if (!(lastMouseClickPosP.getX() == -1 && lastMouseClickPosP.getY() == -1)) {
+        if (captured && !(lastMouseClickPosP.getX() == -1 && lastMouseClickPosP.getY() == -1)) {
           Point pixDis = new Point(e.getX() - (int) lastMouseClickPosP.getX(),
               e.getY() - (int) lastMouseClickPosP.getY());
           Boolean roll = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0;
@@ -414,7 +489,7 @@ public class SimulationP extends JPanel implements Runnable {
     });
 
     keyBinds.addKeyBindingReleasedNoMod(this, KeyEvent.VK_R, "Released R",
-            evt -> reset());
+        evt -> reset());
 
     // Setup pressed down key actions
     heldKeyActions.put(KeyEvent.VK_W, () -> camera.moveAlongView(Camera3D.FORWARDS));
@@ -458,10 +533,10 @@ public class SimulationP extends JPanel implements Runnable {
   }
 
   /**
-   * Shows the position of the camera in space
+   * Shows the current position of the camera in space
    */
   public void updatePosLabel() {
-    Vector3D positionInSpaceCamM = camera.getPositionInSpaceM();
+    Vector3D positionInSpaceCamM = camera.getCurPosM();
     BigDecimal bdX = new BigDecimal(positionInSpaceCamM.getX());
     BigDecimal bdY = new BigDecimal(positionInSpaceCamM.getY());
     BigDecimal bdZ = new BigDecimal(positionInSpaceCamM.getZ());
@@ -469,15 +544,18 @@ public class SimulationP extends JPanel implements Runnable {
     int scaleX = sigFigs - bdX.precision() + bdX.scale();
     int scaleY = sigFigs - bdY.precision() + bdY.scale();
     int scaleZ = sigFigs - bdZ.precision() + bdZ.scale();
-     bdX = bdX.setScale(scaleX, RoundingMode.HALF_UP);
-     bdY = bdY.setScale(scaleY, RoundingMode.HALF_UP);
-     bdZ = bdZ.setScale(scaleZ, RoundingMode.HALF_UP);
-     positionInSpaceLabel.setText("<html>" +
-     "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" +
-     "Position in space: ["
-     + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
+    bdX = bdX.setScale(scaleX, RoundingMode.HALF_UP);
+    bdY = bdY.setScale(scaleY, RoundingMode.HALF_UP);
+    bdZ = bdZ.setScale(scaleZ, RoundingMode.HALF_UP);
+    positionInSpaceLabel.setText("<html>" +
+        "<span style='color:#FFFFFF; font-size: 16; vertical-align: bottom;'>" +
+        "Position in space: ["
+        + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
   }
 
+  /**
+   * Show the current orientation of the camera in space
+   */
   public void updateOriLabel() {
     Vector3D orientationCam = camera.getCurOrientation();
     BigDecimal bdX = new BigDecimal(orientationCam.getX());
@@ -488,7 +566,7 @@ public class SimulationP extends JPanel implements Runnable {
     bdY = bdY.setScale(nbDec, RoundingMode.HALF_UP);
     bdZ = bdZ.setScale(nbDec, RoundingMode.HALF_UP);
     orientationInSpaceLabel.setText("<html>" +
-        "<span style='color:#FFFFFF; font-size: 18; vertical-align: bottom;'>" + "Camera orientation: ["
+        "<span style='color:#FFFFFF; font-size: 16; vertical-align: bottom;'>" + "Camera orientation: ["
         + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
   }
 

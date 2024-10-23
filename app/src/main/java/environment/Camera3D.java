@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import lib.Paintable;
 import lib.Quaternion;
 import lib.Vector3D;
-import environment.Body;
 
 public class Camera3D implements Paintable {
   public static final int FORWARDS = 1;
@@ -26,18 +25,17 @@ public class Camera3D implements Paintable {
   public static final int UP = -1;
 
   private int mode = 4;
+
+  // Backgrounds universe
   private ArrayList<Vector3D> stars;
   private ArrayList<Integer> starWidths;
-  private Vector3D positionInSpaceM;
 
-  private Vector3D initialPositionM;
-  // Size of pixel blocks in the image. 1 = full quality
-  private int pixBlockSize;
-  private int curPixBlockSize;
-  // Maximum number of pixel in the image before curPixBlockSize starts to
-  // increase
-  // This is to reduce the image size when closer to the body
-  private int maxImSize;
+  /**
+   * Maximum number of pixel in the image before curPixBlockSize starts to
+   * increase. This introduces dynamic resolution. Closer to the body -> Less
+   * resolution
+   */
+  private int maxImSize = 275;
   /**
    * Converts pixel displacement to degrees
    */
@@ -56,14 +54,18 @@ public class Camera3D implements Paintable {
   private double boostValue = 1.5;
 
   // These value never change, they represent the non rotated orientation values
-  private final Vector3D orientation;
-  private final Vector3D xAxisDirection;
-  private final Vector3D yAxisDirection;
-  // These are the current orientations after rotation
-  Vector3D curOrientation;
-  Vector3D curXAxis;
-  Vector3D curYAxis;
+  // and initial camera position
+  private final Vector3D iniPosM;
+  private final Vector3D iniOrientation = new Vector3D(0, 0, 1);
+  private final Vector3D iniXAxis = new Vector3D(1, 0, 0);
+  private final Vector3D iniYAxis = new Vector3D(0, 1, 0);
+  // These are the current properties of the camera
+  private Vector3D curPosM;
+  private Vector3D curOrientation;
+  private Vector3D curXAxis;
+  private Vector3D curYAxis;
 
+  // Solar system in which the camear lives
   private SolarSystem solarSystem;
 
   /**
@@ -81,13 +83,14 @@ public class Camera3D implements Paintable {
   private double screenWidthP;
   private double screenHeightP;
 
+  /**
+   * Holds the value of the camera rotation
+   */
   private Quaternion rotQ;
 
+  // Useful constant
   private final double DEGPERRAD = 180 / Math.PI;
   private final double RADPERDEG = 1 / DEGPERRAD;
-
-  // During computation, scale everything down to alleviate numerical errors
-  private double scaleDown;
 
   /**
    * Creates basic camera looking upwards (z)
@@ -97,19 +100,13 @@ public class Camera3D implements Paintable {
    */
   public Camera3D(Vector3D positionInSpaceM, SolarSystem solarSystem, double hFOV, double screenRatio) {
     populateGalaxy(100);
-    pixBlockSize = 1;
-    maxImSize = 275;
     this.solarSystem = solarSystem;
-    this.positionInSpaceM = positionInSpaceM;
-    this.initialPositionM = new Vector3D(positionInSpaceM);
-    // These won't change
-    orientation = new Vector3D(0, 0, 1);
-    xAxisDirection = new Vector3D(1, 0, 0);
-    yAxisDirection = new Vector3D(0, 1, 0);
+    this.curPosM = positionInSpaceM;
+    this.iniPosM = new Vector3D(positionInSpaceM);
     // These represent the current orientations
-    curOrientation = new Vector3D(orientation);
-    curXAxis = new Vector3D(xAxisDirection);
-    curYAxis = new Vector3D(yAxisDirection);
+    curOrientation = new Vector3D(iniOrientation);
+    curXAxis = new Vector3D(iniXAxis);
+    curYAxis = new Vector3D(iniYAxis);
     // Initialize 0 rotation quaternion
     rotQ = new Quaternion();
     setHFOV(hFOV);
@@ -123,27 +120,24 @@ public class Camera3D implements Paintable {
    * @return cloned camera
    */
   public Camera3D(Camera3D cam) {
+    // Keep same background and solarSystem
     stars = cam.stars;
-    pixBlockSize = cam.pixBlockSize;
-    curPixBlockSize = cam.curPixBlockSize;
-    maxImSize = cam.maxImSize;
     solarSystem = cam.solarSystem;
-    initialPositionM = cam.initialPositionM;
-    positionInSpaceM = new Vector3D(cam.getPositionInSpaceM());
-    // These won't change
-    orientation = new Vector3D(0, 0, 1);
-    xAxisDirection = new Vector3D(1, 0, 0);
-    yAxisDirection = new Vector3D(0, 1, 0);
+    maxImSize = cam.maxImSize;
+
+    iniPosM = cam.iniPosM;
+    curPosM = new Vector3D(cam.getCurPosM());
+
     // These represent the current orientations
     curOrientation = new Vector3D(cam.curOrientation);
     curXAxis = new Vector3D(cam.curXAxis);
     curYAxis = new Vector3D(cam.curYAxis);
+
     // Initialize copy orientation
     rotQ = new Quaternion(cam.getRotQ());
     setHFOV(cam.getHFOV());
     setScreenWidth(cam.screenWidthP);
     setScreenRatioW(cam.getScreenRatio());
-
   }
 
   /**
@@ -184,7 +178,7 @@ public class Camera3D implements Paintable {
       }
       double starWidhtP = starWidths.get(i);
       Ellipse2D el = new Ellipse2D.Double(
-              posP.getX() - starWidhtP / 2.0, posP.getY() - starWidhtP / 2.0, starWidhtP, starWidhtP);
+          posP.getX() - starWidhtP / 2.0, posP.getY() - starWidhtP / 2.0, starWidhtP, starWidhtP);
       g2d.setColor(Color.white);
       g2d.fill(el);
     }
@@ -199,16 +193,17 @@ public class Camera3D implements Paintable {
   public void paintThis(Graphics2D g2d) {
     // Setts up the necessary values before computing them
     AffineTransform originalTransform = g2d.getTransform();
-    // Works, but breaks something somehow TODO: why?
-    // ArrayList<Body> orderedBodies = solarSystem.getBodies();
-    // orderedBodies.sort((a,b)->{
-    // return Double.compare(Vector3D.sub(b.getPos(), positionInSpaceM).len(),
-    // Vector3D.sub(a.getPos(), positionInSpaceM).len());
-    // });
+    ArrayList<Body> orderedBodies = new ArrayList<>(solarSystem.getBodies());
+    // Sort the bodies by distance to camera
+    orderedBodies.sort((a, b) -> {
+      return Double.compare(
+          Vector3D.sub(b.getPos(), curPosM).len(),
+          Vector3D.sub(a.getPos(), curPosM).len());
+    });
     // Paint the stars
     paintStars(g2d);
     // Paint each body
-    for (Body body : solarSystem.getBodies()) {
+    for (Body body : orderedBodies) {
       // Method using no approximation
       int contourDots = 60;
       int innerDots = 15;
@@ -219,7 +214,7 @@ public class Camera3D implements Paintable {
       if (mode == 1) {
         objectiveView(g2d, body, contourDots, innerDots);
       }
-      // Will be useful for the UV map texture 
+      // Will be useful for the UV map texture
       if (mode == 2) {
         objectiveViewEqualDist(g2d, body, contourDots, innerDots);
       }
@@ -236,7 +231,8 @@ public class Camera3D implements Paintable {
         Body bodyCopy = body.copy();
         cam.textureView(g2d, bodyCopy);
       }
-      // Least computationally expensive mode. Shows approximation to sphere projection
+      // Least computationally expensive mode. Shows approximation to sphere
+      // projection
       if (mode == 0) {
         approximationView(g2d, body);
       }
@@ -276,13 +272,13 @@ public class Camera3D implements Paintable {
 
     // Obtain the distance from the center of image plane in meters
     Point2D screenProjM = new Point2D.Double(
-            Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
-            Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
+        Math.tan(separationAngleXD * RADPERDEG) * screenDistM,
+        Math.tan(separationAngleYD * RADPERDEG) * screenDistM);
     // Convert the distance in meters to a distance in pixels
     // This can be done because the pinhole camera does not distort images
     Point2D.Double posP = new Point2D.Double(
-            screenMidP.getX() + screenProjM.getX() * pixelPerMeter * signs.getX(),
-            screenMidP.getY() + screenProjM.getY() * pixelPerMeter * signs.getY());
+        screenMidP.getX() + screenProjM.getX() * pixelPerMeter * signs.getX(),
+        screenMidP.getY() + screenProjM.getY() * pixelPerMeter * signs.getY());
     return posP;
   }
 
@@ -311,7 +307,7 @@ public class Camera3D implements Paintable {
    * @return The UV position on the sphere (values range from 0 to 1)
    */
   private Point2D.Double spaceToUVSphere(Vector3D edge, Body body) {
-    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), curPosM);
     double r = body.getRadius();
     double sepAngleR = edge.separationAngle(cameraToBodyVec);
     double l = cameraToBodyVec.len();
@@ -327,7 +323,7 @@ public class Camera3D implements Paintable {
       return null;
     }
     // Position of the point on the surface of the sphere
-    Vector3D posSurface = Vector3D.add(positionInSpaceM, Vector3D.normalize(edge).scalarMult(t));
+    Vector3D posSurface = Vector3D.add(curPosM, Vector3D.normalize(edge).scalarMult(t));
     Vector3D centerToSurf = Vector3D.sub(posSurface, body.getPos());
 
     // Get longitude and latitude
@@ -348,15 +344,15 @@ public class Camera3D implements Paintable {
    *
    * @param body The sphere projection to approximate
    * @return Return the approximated radius, position in x and position in y
-   * (pixel)
+   *         (pixel)
    */
   private double[] getApproximateCenterAndRad(Body body) {
     // Finding circle that contains the projection
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), curPosM);
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
-    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
-    scaleDown = cameraToBodyVec.len();
+    double scaleDown = cameraToBodyVec.len();
     cameraToBodyVec.scalarDiv(scaleDown);
     double bodyRad = body.getRadius() / scaleDown;
 
@@ -374,12 +370,12 @@ public class Camera3D implements Paintable {
 
     // Vector pointing at the point closest to the center of the screen
     Vector3D closestPoint = Vector3D.qatRot(cameraToBodyVec, Quaternion.fromAxisAngle(angDiamDeg / 2.0 * RADPERDEG,
-            Vector3D.cross(cameraToBodyVec, curOrientation)));
+        Vector3D.cross(cameraToBodyVec, curOrientation)));
     // Separation angle in the vertical and horizontal direciton
     double separationAngleXD = Vector3D.projectOnPlane(closestPoint, curYAxis).separationAngle(curOrientation)
-            * DEGPERRAD;
+        * DEGPERRAD;
     double separationAngleYD = Vector3D.projectOnPlane(closestPoint, curXAxis).separationAngle(curOrientation)
-            * DEGPERRAD;
+        * DEGPERRAD;
     // Don't draw if closest point is out of bounds (with a bit of leniency)
     if (separationAngleYD > vFOV / 1.9 || separationAngleXD > hFOV / 1.9) {
       // The closest point can be out of bounds while the rest of the sphre is in
@@ -404,13 +400,13 @@ public class Camera3D implements Paintable {
       double adjustedAngPosR = (largestAngleD - angDiamDeg / 2.0) / DEGPERRAD;
       double closestDistBeforeM = Math.tan(angPosR - angDiamDeg * RADPERDEG / 2.0) * screenDistM;
       double closestDistAfterM = Math.tan(adjustedAngPosR - angDiamDeg * RADPERDEG / 2.0)
-              * screenDistM;
+          * screenDistM;
 
       centerShiftM = closestDistBeforeM - closestDistAfterM;
       // Adjust body to make it look like it is still positioned before the camera
       // plane
       cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angPosR - adjustedAngPosR,
-              Vector3D.cross(cameraToBodyVec, curOrientation)));
+          Vector3D.cross(cameraToBodyVec, curOrientation)));
       // New angular position that assumes the body is positioned before the camera
       // plane
       angPosR = adjustedAngPosR;
@@ -436,9 +432,9 @@ public class Camera3D implements Paintable {
 
     // Get projections
     distToCentOfProj += centerShiftM;// Add shift from approximation
-    double[] app = new double[]{radM * pixelPerMeter,
-            xSign * distToCentOfProj * Math.abs(Math.cos(xAngleR)) * pixelPerMeter,
-            ySign * distToCentOfProj * Math.abs(Math.sin(xAngleR)) * pixelPerMeter};
+    double[] app = new double[] { radM * pixelPerMeter,
+        xSign * distToCentOfProj * Math.abs(Math.cos(xAngleR)) * pixelPerMeter,
+        ySign * distToCentOfProj * Math.abs(Math.sin(xAngleR)) * pixelPerMeter };
     return app;
   }
 
@@ -463,7 +459,8 @@ public class Camera3D implements Paintable {
     int yc = (int) imCenter.getY();
 
     // Decide pixBlockSize based on approximation radius
-    int diam = (rp * 2) / pixBlockSize + 1;
+    int pixBlock = 1;
+    int diam = (rp * 2) / pixBlock + 1;
     if (diam <= 0) {
       return;
     }
@@ -471,15 +468,15 @@ public class Camera3D implements Paintable {
     // maxImSize*base, quadruples at maxImSize*base² and so on...
     double base = 2.3;
     int ratioLog = (int) Math.ceil(Math.log(diam / (double) maxImSize) / Math.log(base)) + 1;
+    // Size of pixel blocks in the image. 1 = full quality
+    int curPixBlock = pixBlock;
     if (maxImSize > 0 && ratioLog > 1) {
-      curPixBlockSize = ratioLog * pixBlockSize;
-    } else {
-      curPixBlockSize = pixBlockSize;
+      curPixBlock = ratioLog * pixBlock;
     }
     // Texture related elements
     // Expand final picture by pixBlockSize, so divide its initial size by it
-    BufferedImage image = new BufferedImage((rp * 2) / curPixBlockSize + 1, (rp * 2) / curPixBlockSize + 1,
-            BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image = new BufferedImage((rp * 2) / curPixBlock + 1, (rp * 2) / curPixBlock + 1,
+        BufferedImage.TYPE_INT_ARGB);
     // Graphics2D g2t = texProj.createGraphics();
     WritableRaster raster = image.getRaster();
 
@@ -487,16 +484,16 @@ public class Camera3D implements Paintable {
     // bresenhams-circle-algorithm modified to fill in the circle
 
     // Reduced radius
-    int rr = rp / curPixBlockSize;
+    int rr = rp / curPixBlock;
 
     // Fill first octant horizontally + symmetry
     int y = rr;
     // Make sure the y component does not start out of bounds
     // (not necessary, remove if bugged)
     if (yc > screenHeightP / 2.0 && yc - rp < 0) {
-      y = yc / curPixBlockSize;
+      y = yc / curPixBlock;
     } else if (yc < screenHeightP / 2.0 && yc + rp > screenHeightP) {
-      y = ((int) screenHeightP - yc) / curPixBlockSize;
+      y = ((int) screenHeightP - yc) / curPixBlock;
     }
     int x = (int) Math.sqrt(rr * rr - y * y);
     int d = 2 * (x + 1) * (x + 1) + y * y + (y - 1) * (y - 1) - 2 * (rr * rr);
@@ -507,8 +504,8 @@ public class Camera3D implements Paintable {
         d = d + (4 * x) + 6;
       } else {
         // TODO: separate getting uv texture and drawing
-        drawTLine(-x * curPixBlockSize, y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
-        drawTLine(-x * curPixBlockSize, -y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
+        drawTLine(-x * curPixBlock, y * curPixBlock, x * curPixBlock, raster, imCenter, rp, body, curPixBlock);
+        drawTLine(-x * curPixBlock, -y * curPixBlock, x * curPixBlock, raster, imCenter, rp, body, curPixBlock);
         d = d + 4 * (x - y) + 10;
         y--;
       }
@@ -519,16 +516,16 @@ public class Camera3D implements Paintable {
     // Make sure the y component does not start out of bounds
     // (not necessary, remove if bugged)
     if (yc > screenHeightP) {
-      y = (yc - (int) screenHeightP) / curPixBlockSize;
+      y = (yc - (int) screenHeightP) / curPixBlock;
     } else if (yc < 0) {
-      y = -yc / curPixBlockSize;
+      y = -yc / curPixBlock;
     }
     x = (int) Math.sqrt(rr * rr - y * y);
     d = 2 * (y + 1) * (y + 1) + x * x + (x - 1) * (x - 1) - 2 * (rr * rr);
     while (y < x) {
-      drawTLine(-x * curPixBlockSize, y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
+      drawTLine(-x * curPixBlock, y * curPixBlock, x * curPixBlock, raster, imCenter, rp, body, curPixBlock);
       if (y != 0)
-        drawTLine(-x * curPixBlockSize, -y * curPixBlockSize, x * curPixBlockSize, raster, imCenter, rp, body);
+        drawTLine(-x * curPixBlock, -y * curPixBlock, x * curPixBlock, raster, imCenter, rp, body, curPixBlock);
       if (d <= 0) {
         d = d + (4 * y) + 6;
       } else {
@@ -537,8 +534,8 @@ public class Camera3D implements Paintable {
       }
       y++;
     }
-    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth() * curPixBlockSize, image.getHeight() * curPixBlockSize,
-            null);
+    g2d.drawImage(image, xc - rp, yc - rp, image.getWidth() * curPixBlock, image.getHeight() * curPixBlock,
+        null);
     // Shows where the rays are being sent
     // g2d.setColor(new Color(255, 0, 0, 100));
     // g2d.fill(new Ellipse2D.Double(screenWidthP / 2 + approxCenterX - approxRad,
@@ -558,7 +555,8 @@ public class Camera3D implements Paintable {
    * @param rp       Radius of circle within imageBuffer (pixel)
    * @param body     Body which will be painted on the imageBuffer
    */
-  private void drawTLine(int x, int y, int xe, WritableRaster imRaster, Point2D imCenter, int rp, Body body) {
+  private void drawTLine(int x, int y, int xe, WritableRaster imRaster, Point2D imCenter, int rp, Body body,
+      int curPixBlockSize) {
     int xc = (int) imCenter.getX();
     int yc = (int) imCenter.getY();
     int absY = y + yc;
@@ -607,9 +605,9 @@ public class Camera3D implements Paintable {
       int indexIm = (y + rp) / curPixBlockSize * imWidth + (i + rp) / curPixBlockSize;
       // Apply texture color, stored as ARGB
       pixIm[indexIm] = (0xFF << 24) |
-              (pixTex[indexTex] & 0xFF) |
-              ((pixTex[indexTex + 1] & 0xFF) << 8) |
-              ((pixTex[indexTex + 2] & 0xFF) << 16);
+          (pixTex[indexTex] & 0xFF) |
+          ((pixTex[indexTex + 1] & 0xFF) << 8) |
+          ((pixTex[indexTex + 2] & 0xFF) << 16);
     }
   }
 
@@ -656,11 +654,12 @@ public class Camera3D implements Paintable {
     double distToCentOfProjY;
     Ellipse2D bodyProjection = new Ellipse2D.Double();
     g2d.setColor(body.getColor());
-    cameraToBodyVec.setComponents(body.getPos()).sub(positionInSpaceM);
+    cameraToBodyVec.setComponents(body.getPos()).sub(curPosM);
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
-    scaleDown = cameraToBodyVec.len();
+    // During computation, scale everything down to alleviate numerical errors
+    double scaleDown = cameraToBodyVec.len();
     cameraToBodyVec.scalarDiv(scaleDown);
     bodyRad = body.getRadius() / scaleDown;
 
@@ -669,7 +668,7 @@ public class Camera3D implements Paintable {
       return;
 
     angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len())
-            * DEGPERRAD;
+        * DEGPERRAD;
     angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
 
     // Don't load body if behind camera
@@ -689,13 +688,13 @@ public class Camera3D implements Paintable {
       screenDistM = Math.cos(adjustedAngPosR) * cameraToBodyVec.len();
       double closestDistBeforeM = Math.tan(angularPositionR - angularDiameterDeg * RADPERDEG / 2.0) * screenDistM;
       double closestDistAfterM = Math.tan(adjustedAngPosR - angularDiameterDeg * RADPERDEG / 2.0)
-              * screenDistM;
+          * screenDistM;
 
       centerShiftM = closestDistBeforeM - closestDistAfterM;
       // Adjust body to make it look like it is still positioned before the camera
       // plane
       cameraToBodyVec.qatRot(Quaternion.fromAxisAngle(angularPositionR - adjustedAngPosR,
-              Vector3D.cross(cameraToBodyVec, curOrientation)));
+          Vector3D.cross(cameraToBodyVec, curOrientation)));
       // New angular position that assumes the body is positioned before the camera
       // plane
       angularPositionR = adjustedAngPosR;
@@ -760,16 +759,16 @@ public class Camera3D implements Paintable {
     }
     // Converts from space to image
     bodyProjection.setFrame(
-            screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * projectionMajorM) / screenWidthM),
-            screenHeightP * (0.5 + (distToCentOfProjY - 0.5 * projectionMinorM) / screenHeightM),
-            screenWidthP * projectionMajorM / screenWidthM,
-            screenHeightP * projectionMinorM / screenHeightM);
+        screenWidthP * (0.5 + (distToCentOfProjX - 0.5 * projectionMajorM) / screenWidthM),
+        screenHeightP * (0.5 + (distToCentOfProjY - 0.5 * projectionMinorM) / screenHeightM),
+        screenWidthP * projectionMajorM / screenWidthM,
+        screenHeightP * projectionMinorM / screenHeightM);
     // Rotate the ellipse to align it to the center of the screen and draw
     g2d.translate(bodyProjection.getX() + bodyProjection.getWidth() / 2,
-            bodyProjection.getY() + bodyProjection.getHeight() / 2);
+        bodyProjection.getY() + bodyProjection.getHeight() / 2);
     g2d.rotate(ellipseRotAngleR);
     g2d.translate(-bodyProjection.getX() - bodyProjection.getWidth() / 2,
-            -bodyProjection.getY() - bodyProjection.getHeight() / 2);
+        -bodyProjection.getY() - bodyProjection.getHeight() / 2);
 
     g2d.fill(bodyProjection);
   }
@@ -778,7 +777,7 @@ public class Camera3D implements Paintable {
    * Shows only part of the body visible by the camera
    */
   private void subjectiveView(Graphics2D g2d, Body body, int contourDots, int innerDots) {
-    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), curPosM);
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
@@ -791,7 +790,7 @@ public class Camera3D implements Paintable {
       return;
 
     double angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len())
-            * DEGPERRAD;
+        * DEGPERRAD;
     double angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
 
     // Don't load body if behind camera
@@ -805,14 +804,14 @@ public class Camera3D implements Paintable {
     double screenHeightM = screenWidthM / screenRatio;
     for (int c = 0; c < contourDots; c++) {
       for (int i = 0; i <= innerDots; i++) {
-        Vector3D posInSpaceM = new Vector3D(positionInSpaceM).scalarDiv(scaleDown);
+        Vector3D posInSpaceM = new Vector3D(curPosM).scalarDiv(scaleDown);
         Vector3D bodyPosInSpaceM = new Vector3D(posInSpaceM).add(cameraToBodyVec);
 
         // Uncomment this to only show visible part of sphere (subjective view)
         Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c *
-                RADPERDEG, cameraToBodyVec);
+            RADPERDEG, cameraToBodyVec);
         Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(curXAxis, midQuat),
-                cameraToBodyVec);
+            cameraToBodyVec);
         // Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c *
         // RADPERDEG, orientation);
         // Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(xAxisDirection, midQuat),
@@ -822,8 +821,8 @@ public class Camera3D implements Paintable {
         }
         // Uncomment this to only show visible part of sphere (subjective view)
         Quaternion quat = Quaternion.fromAxisAngle((90 - angularDiameterDeg / 2.0) /
-                        innerDots * i * RADPERDEG,
-                rotAxis);
+            innerDots * i * RADPERDEG,
+            rotAxis);
         Vector3D centerToSurfM = new Vector3D(cameraToBodyVec).normalize().scalarMult(-bodyRad).qatRot(quat);
 
         // Uncomment this one INSTEAD to get objective view
@@ -846,9 +845,9 @@ public class Camera3D implements Paintable {
         Vector3D surfP = Vector3D.add(centerToSurfM, bodyPosInSpaceM);
         Vector3D edge = new Vector3D(surfP).sub(posInSpaceM);
         double separationAngleXD = Vector3D.sub(edge, Vector3D.project(edge, curYAxis))
-                .separationAngle(curOrientation) * DEGPERRAD;
+            .separationAngle(curOrientation) * DEGPERRAD;
         double separationAngleYD = Vector3D.sub(edge, Vector3D.project(edge, curXAxis))
-                .separationAngle(curOrientation) * DEGPERRAD;
+            .separationAngle(curOrientation) * DEGPERRAD;
         if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
           continue;
         }
@@ -862,18 +861,18 @@ public class Camera3D implements Paintable {
         double angleWithXAxisD = projToScreenNew.separationAngle(curXAxis) * DEGPERRAD;
 
         Point2D screenProj2DM = new Point2D.Double(Math.abs(Math.cos(angleWithXAxisD * RADPERDEG)) * projDistM,
-                Math.abs(Math.sin(angleWithXAxisD * RADPERDEG)) * projDistM);
+            Math.abs(Math.sin(angleWithXAxisD * RADPERDEG)) * projDistM);
         Point2D endP = new Point2D.Double(
-                screenWidthP
-                        * (0.5 + (screenProj2DM.getX() * Math.signum(projToScreenNew.dot(curXAxis))) / screenWidthM),
-                screenHeightP
-                        * (0.5
-                        + (screenProj2DM.getY() * Math.signum(projToScreenNew.dot(curYAxis))) / screenHeightM));
+            screenWidthP
+                * (0.5 + (screenProj2DM.getX() * Math.signum(projToScreenNew.dot(curXAxis))) / screenWidthM),
+            screenHeightP
+                * (0.5
+                    + (screenProj2DM.getY() * Math.signum(projToScreenNew.dot(curYAxis))) / screenHeightM));
         // Colors
         Vector3D RGBValue = new Vector3D(Math.abs(surfP.getX() - bodyPosInSpaceM.getX()),
-                Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
-                Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
-                .scalarDiv(bodyRad).scalarMult(255);
+            Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
+            Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
+            .scalarDiv(bodyRad).scalarMult(255);
         g2d.setColor(new Color((int) RGBValue.getX(), (int) RGBValue.getY(), (int) RGBValue.getZ()));
         // g2d.draw(new Line2D.Double(startP, endP));
         g2d.fill(new Ellipse2D.Double(endP.getX() - 2, endP.getY() - 2, 4, 4));
@@ -889,7 +888,7 @@ public class Camera3D implements Paintable {
    * from the origin
    */
   private void objectiveViewEqualDist(Graphics2D g2d, Body body, int contourDots, int innerDots) {
-    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), curPosM);
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
@@ -902,7 +901,7 @@ public class Camera3D implements Paintable {
       return;
 
     double angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len())
-            * DEGPERRAD;
+        * DEGPERRAD;
     double angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
 
     // Don't load body if behind camera
@@ -916,7 +915,7 @@ public class Camera3D implements Paintable {
     double screenHeightM = screenWidthM / screenRatio;
     for (int c = 0; c < contourDots; c++) {
       for (int i = 0; i <= innerDots; i++) {
-        Vector3D posInSpaceM = new Vector3D(positionInSpaceM).scalarDiv(scaleDown);
+        Vector3D posInSpaceM = new Vector3D(curPosM).scalarDiv(scaleDown);
         Vector3D bodyPosInSpaceM = new Vector3D(posInSpaceM).add(cameraToBodyVec);
 
         // Uncomment this to only show visible part of sphere (subjective view)
@@ -924,8 +923,8 @@ public class Camera3D implements Paintable {
         // RADPERDEG, cameraToBodyVec);
         // Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(curXAxis, midQuat),
         // cameraToBodyVec);
-        Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c * RADPERDEG, orientation);
-        Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(xAxisDirection, midQuat), orientation);
+        Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c * RADPERDEG, iniOrientation);
+        Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(iniXAxis, midQuat), iniOrientation);
         if (rotAxis.len() == 0) {
           rotAxis.setComponents(curYAxis);
         }
@@ -948,8 +947,8 @@ public class Camera3D implements Paintable {
         double cr = Math.cos(angR);
         double k = cr * l - Math.sqrt(l * l * (cr * cr - 1) + bodyRad * bodyRad);
         Quaternion quat = Quaternion.fromAxisAngle(Math.asin(Math.sin(angR) * k /
-                bodyRad), rotAxis);
-        Vector3D centerToSurfM = new Vector3D(orientation).normalize().scalarMult(-bodyRad).qatRot(quat);
+            bodyRad), rotAxis);
+        Vector3D centerToSurfM = new Vector3D(iniOrientation).normalize().scalarMult(-bodyRad).qatRot(quat);
 
         // Vector3D centerToSurfM = subjectiveView(g2d);
 
@@ -957,9 +956,9 @@ public class Camera3D implements Paintable {
         Vector3D surfP = Vector3D.add(centerToSurfM, bodyPosInSpaceM);
         Vector3D edge = new Vector3D(surfP).sub(posInSpaceM);
         double separationAngleXD = Vector3D.sub(edge, Vector3D.project(edge, curYAxis))
-                .separationAngle(curOrientation) * DEGPERRAD;
+            .separationAngle(curOrientation) * DEGPERRAD;
         double separationAngleYD = Vector3D.sub(edge, Vector3D.project(edge, curXAxis))
-                .separationAngle(curOrientation) * DEGPERRAD;
+            .separationAngle(curOrientation) * DEGPERRAD;
         if (separationAngleYD > vFOV / 2.0 || separationAngleXD > hFOV / 2.0) {
           continue;
         }
@@ -973,18 +972,18 @@ public class Camera3D implements Paintable {
         double angleWithXAxisD = projToScreenNew.separationAngle(curXAxis) * DEGPERRAD;
 
         Point2D screenProj2DM = new Point2D.Double(Math.abs(Math.cos(angleWithXAxisD * RADPERDEG)) * projDistM,
-                Math.abs(Math.sin(angleWithXAxisD * RADPERDEG)) * projDistM);
+            Math.abs(Math.sin(angleWithXAxisD * RADPERDEG)) * projDistM);
         Point2D endP = new Point2D.Double(
-                screenWidthP
-                        * (0.5 + (screenProj2DM.getX() * Math.signum(projToScreenNew.dot(curXAxis))) / screenWidthM),
-                screenHeightP
-                        * (0.5
-                        + (screenProj2DM.getY() * Math.signum(projToScreenNew.dot(curYAxis))) / screenHeightM));
+            screenWidthP
+                * (0.5 + (screenProj2DM.getX() * Math.signum(projToScreenNew.dot(curXAxis))) / screenWidthM),
+            screenHeightP
+                * (0.5
+                    + (screenProj2DM.getY() * Math.signum(projToScreenNew.dot(curYAxis))) / screenHeightM));
         // Colors
         Vector3D RGBValue = new Vector3D(Math.abs(surfP.getX() - bodyPosInSpaceM.getX()),
-                Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
-                Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
-                .scalarDiv(bodyRad).scalarMult(255);
+            Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
+            Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
+            .scalarDiv(bodyRad).scalarMult(255);
         g2d.setColor(new Color((int) RGBValue.getX(), (int) RGBValue.getY(), (int) RGBValue.getZ()));
         // g2d.draw(new Line2D.Double(startP, endP));
         g2d.fill(new Ellipse2D.Double(endP.getX() - 2, endP.getY() - 2, 4, 4));
@@ -999,7 +998,7 @@ public class Camera3D implements Paintable {
    * Shows body as if transparent if points on its surface
    */
   private void objectiveView(Graphics2D g2d, Body body, int contourDots, int innerDots) {
-    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), positionInSpaceM);
+    Vector3D cameraToBodyVec = Vector3D.sub(body.getPos(), curPosM);
 
     // Scale everything down by the distance from the body to the camera
     // Increases numerical stability?
@@ -1012,7 +1011,7 @@ public class Camera3D implements Paintable {
       return;
 
     double angularDiameterDeg = 2 * Math.asin(bodyRad / cameraToBodyVec.len())
-            * DEGPERRAD;
+        * DEGPERRAD;
     double angularPositionR = curOrientation.separationAngle(cameraToBodyVec);
 
     // Don't load body if behind camera
@@ -1022,19 +1021,19 @@ public class Camera3D implements Paintable {
 
     for (int c = 0; c < contourDots; c++) {
       for (int i = 0; i <= innerDots; i++) {
-        Vector3D posInSpaceM = new Vector3D(positionInSpaceM).scalarDiv(scaleDown);
+        Vector3D posInSpaceM = new Vector3D(curPosM).scalarDiv(scaleDown);
         Vector3D bodyPosInSpaceM = new Vector3D(posInSpaceM).add(cameraToBodyVec);
 
-        Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c * RADPERDEG, orientation);
-        Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(xAxisDirection, midQuat), orientation);
+        Quaternion midQuat = Quaternion.fromAxisAngle(360.0 / contourDots * c * RADPERDEG, iniOrientation);
+        Vector3D rotAxis = Vector3D.cross(Vector3D.qatRot(iniXAxis, midQuat), iniOrientation);
         if (rotAxis.len() == 0) {
           rotAxis.setComponents(curYAxis);
         }
         Quaternion quat = Quaternion.fromAxisAngle(180 / ((double) innerDots) * i * RADPERDEG,
-                rotAxis);
+            rotAxis);
 
         // Vector going from the center of the sphere onto the surface
-        Vector3D centerToSurfM = new Vector3D(orientation).normalize().scalarMult(-bodyRad).qatRot(quat);
+        Vector3D centerToSurfM = new Vector3D(iniOrientation).normalize().scalarMult(-bodyRad).qatRot(quat);
 
         // Vector representing the position of the surface point
         Vector3D surfP = Vector3D.add(centerToSurfM, bodyPosInSpaceM);
@@ -1050,9 +1049,9 @@ public class Camera3D implements Paintable {
         Ellipse2D el = new Ellipse2D.Double(posP.getX() - 2, posP.getY() - 2, 4, 4);
         // Colors
         Vector3D RGBValue = new Vector3D(Math.abs(surfP.getX() - bodyPosInSpaceM.getX()),
-                Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
-                Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
-                .scalarDiv(bodyRad).scalarMult(255);
+            Math.abs(surfP.getY() - bodyPosInSpaceM.getY()),
+            Math.abs(surfP.getZ() - bodyPosInSpaceM.getZ()))
+            .scalarDiv(bodyRad).scalarMult(255);
 
         g2d.setColor(new Color((int) RGBValue.getX(), (int) RGBValue.getY(), (int) RGBValue.getZ()));
         g2d.fill(el);
@@ -1092,8 +1091,8 @@ public class Camera3D implements Paintable {
    *
    * @return The position in space of the camera in meters
    */
-  public Vector3D getPositionInSpaceM() {
-    return new Vector3D(positionInSpaceM);
+  public Vector3D getCurPosM() {
+    return new Vector3D(curPosM);
   }
 
   /**
@@ -1167,9 +1166,9 @@ public class Camera3D implements Paintable {
       rotQ.mulQuaternionReverse(pitch);
     }
     // Update orientations
-    curOrientation = Vector3D.qatRot(orientation, rotQ);
-    curXAxis = Vector3D.qatRot(xAxisDirection, rotQ);
-    curYAxis = Vector3D.qatRot(yAxisDirection, rotQ);
+    curOrientation = Vector3D.qatRot(iniOrientation, rotQ);
+    curXAxis = Vector3D.qatRot(iniXAxis, rotQ);
+    curYAxis = Vector3D.qatRot(iniYAxis, rotQ);
     // System.out.println("orientation: " + curOrientation.getX() + " " +
     // curOrientation.getY() + " " + curOrientation.getZ());
   }
@@ -1184,7 +1183,7 @@ public class Camera3D implements Paintable {
    */
   public void moveAlongView(int v) {
     Vector3D direction = Vector3D.normalize(curOrientation).scalarMult(v);
-    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+    curPosM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
     // System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() +
     // " " + positionInSpaceM.getZ());
   }
@@ -1197,7 +1196,7 @@ public class Camera3D implements Paintable {
    */
   public void moveSideways(int v) {
     Vector3D direction = Vector3D.normalize(curXAxis).scalarMult(v);
-    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+    curPosM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
     // System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() +
     // " " + positionInSpaceM.getZ());
   }
@@ -1210,7 +1209,7 @@ public class Camera3D implements Paintable {
    */
   public void moveVertical(int v) {
     Vector3D direction = Vector3D.normalize(curYAxis).scalarMult(v);
-    positionInSpaceM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
+    curPosM.add(direction.scalarMult(stepDistanceM * Math.pow(boostValue, nbBoosts)));
     // System.out.println(positionInSpaceM.getX() + " " + positionInSpaceM.getY() +
     // " " + positionInSpaceM.getZ());
   }
@@ -1255,11 +1254,27 @@ public class Camera3D implements Paintable {
    * Reset camera position to initialPositionM
    */
   public void reset() {
-    positionInSpaceM.setComponents(initialPositionM);
-    curXAxis.setComponents(xAxisDirection);
-    curYAxis.setComponents(yAxisDirection);
-    curOrientation.setComponents(orientation);
+    curPosM.setComponents(iniPosM);
+    curXAxis.setComponents(iniXAxis);
+    curYAxis.setComponents(iniYAxis);
+    curOrientation.setComponents(iniOrientation);
     rotQ = new Quaternion();
+  }
+  /**
+   * Setter for maxImSize
+   *
+   * @param s New maximum image size before quality reduction
+   */
+  public void setMaxImSize(int s) {
+    maxImSize = s;
+  }
+  /**
+   * Getter for the maximum image size
+   *
+   * @return The maximum image size before quality reduction
+   */
+  public int getMaxImSize() {
+    return maxImSize;
   }
 
 }
