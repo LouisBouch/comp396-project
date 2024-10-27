@@ -9,6 +9,8 @@ import lib.Vector3D;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 
+import java.util.*;
+
 /**
  * SolarSystem
  */
@@ -19,12 +21,19 @@ public class SolarSystem implements Paintable {
 
     private double time = 0;
 
+    double G = 6.67430e24; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
+    boolean crash = false;
+    ArrayList<Body> crashed = new ArrayList<Body>();
+
+
     /**
      * Constructor for the Solar System
      */
     public SolarSystem() {
-        bodies.add(new Star(6.96340e9, 1, new Vector3D(0, 0, 100), new Vector3D(-1e5, 0, 0)));
-        bodies.add(new Star(6.96340e9, 0.5, new Vector3D(2e13, 0, 100), new Vector3D(1e5, 0, 0)));
+        bodies.add(new Star(6.96340e8, 1, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0)));
+        bodies.add(new Star(6.96340e8, 1, new Vector3D(2e10, 0, 100), new Vector3D(0, 0, 0)));
+        bodies.add(new Star(6.96340e8, 1, new Vector3D(2e10/2, 2e10, 100), new Vector3D(0, 0, 0)));
+        bodies.add(new Star(6.96340e8, 1, new Vector3D(1e10/2, 4e10, 100), new Vector3D(0, 0, 0)));
         //bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new Vector3D(), Texture.Pink));
         //bodies.add(new GassyPlanet(7e9, 1000, new Vector3D(4e11, 0, 100), new Vector3D()));
         //bodies.add(new RockyPlanet(2.4397e6, 1000, new Vector3D(53.686e9, 0, 100), new Vector3D()));
@@ -56,14 +65,7 @@ public class SolarSystem implements Paintable {
         time++;
         //System.out.println(time);
         bodies = getBodies();
-        ArrayList<Vector3D> newPositions = cmMove(bodies);
-
-
-        for (int i=0; i < bodies.size(); i++){
-            Vector3D newPosition = newPositions.get(i);
-            bodies.get(i).setPos(newPosition);
-            System.out.println(i + " : " + newPosition);
-        }
+        move(bodies);
     }
 
     // TODO: Make solarSystem.reset()
@@ -92,51 +94,71 @@ public class SolarSystem implements Paintable {
         return newPos;
     }
 
-    public Vector3D velocityMove(Body bod){
-
-        Vector3D velocity = bod.getVel();
-
-        double vX = velocity.getX();
-        double vY = velocity.getY();
-
-        double newX = bod.getX() + vX * time;
-        double newY = bod.getY() + vY * time;
 
 
-        Vector3D newPos = bod.getPos();
+    public void move(ArrayList<Body> bodies) {
 
-        newPos.setX(newX);
-        newPos.setY(newY);
+        ArrayList<Vector3D> forces = new ArrayList<Vector3D>();
 
-        return newPos;
-    }
+        // Iterate over each body to calculate forces from other bodies
+        for (Body body : bodies) {
+            // Reset net force for this body
+            Vector3D netForce = new Vector3D(0, 0, 0);
 
-    public ArrayList<Vector3D> cmMove(ArrayList<Body> bods){
-
-        ArrayList<Vector3D> newPos = new ArrayList<>(bods.size());
-
-        double totalMass = 0;
-
-        for (int i=0; i < bods.size(); i++){
-            totalMass += bods.get(i).getMass();
+            // Compute gravitational force from every other body
+            for (Body other : bodies) {
+                if (body != other) { // Avoid self-interaction
+                    Vector3D force = calculateGravitationalForce(body, other);
+                    netForce = netForce.add(force);
+                }
+            }
+            forces.add(netForce);
         }
 
-        double vcm = (bods.get(0).getMass()*bods.get(0).getVel().getX() + bods.get(1).getMass()*bods.get(1).getVel().getX())/totalMass;
+        for (Body body : bodies) {
+            int i = bodies.indexOf(body);
+            Vector3D force = forces.get(i);
+            // Update velocity of the body
+            Vector3D acceleration = force.scale(1.0 / body.getMass());
+            Vector3D newVelocity = Vector3D.add(body.getVel().copy(), acceleration);
+            body.setVel(newVelocity);
 
-        double newX1 = (bods.get(1).getMass()/totalMass)*(bods.get(1).getX()-bods.get(0).getX())+vcm*time;
-        double newX2 = vcm*time-(bods.get(0).getMass()/totalMass)*(bods.get(0).getX()-bods.get(1).getX());
+            // Update position of the body
+            Vector3D pos = body.getPos().copy();
+            Vector3D newPosition = Vector3D.add(pos, newVelocity);
+            body.setPos(newPosition);
+        }
 
+        if (crash){
+            Body newBody = Body.starCombine(crashed);
+            int i = bodies.indexOf(crashed.get(0));
+            bodies.set(i, newBody);
+            for(Body planet:crashed){
+                bodies.remove(planet);
+            }
+            crashed = new ArrayList<Body>();
+            crash = false;
+        }
+    }
 
-        Vector3D x1 = bodies.get(0).getPos();
-        x1.setX(newX1);
-
-        Vector3D x2 = bodies.get(1).getPos();
-        x2.setX(newX2);
-
-        newPos.add(x1);
-        newPos.add(x2);
-
-        return newPos;
+    // Helper method to calculate gravitational force between two bodies
+    private Vector3D calculateGravitationalForce(Body body1, Body body2) {
+        Vector3D pos2 = body2.getPos().copy();
+        Vector3D pos = body1.getPos().copy();
+        Vector3D r = pos2.sub(pos);
+        double distance = r.len();
+        double forceMagnitude = G * body1.getMass() * body2.getMass() / (distance * distance);
+        if (distance < body1.getRadius()){
+            forceMagnitude = 0;
+            crash = true;
+            if (!crashed.contains(body1)){
+                crashed.add(body1);
+            }
+            if (!crashed.contains(body2)){
+                crashed.add(body2);
+            }
+        }
+        return r.normalize().scale(forceMagnitude);
     }
 }
 

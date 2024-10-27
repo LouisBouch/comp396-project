@@ -1,5 +1,9 @@
 package lib;
 
+import environment.Star;
+
+import static java.lang.Math.abs;
+
 public class Vector3D {
 
   double[] components = new double[3];
@@ -46,6 +50,10 @@ public class Vector3D {
     components[0] = 0;
     components[1] = 0;
     components[2] = 0;
+  }
+
+  public Vector3D copy() {
+    return new Vector3D(this);
   }
 
   /**
@@ -156,6 +164,10 @@ public class Vector3D {
    */
   public double len() {
     return Math.sqrt(this.getX() * this.getX() + this.getY() * this.getY() + this.getZ() * this.getZ());
+  }
+
+  public Vector3D scale(double scalar) {
+    return new Vector3D(this.getX() * scalar, this.getY() * scalar, this.getZ() * scalar);
   }
 
   /**
@@ -295,6 +307,7 @@ public class Vector3D {
     components[2] -= vec.getZ();
     return this;
   }
+
 
   /**
    * Subtracts one Vector3D from another and return new Vector3D that is the

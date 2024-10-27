@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -90,6 +91,8 @@ public abstract class Body implements Paintable {
     return mass;
   }
 
+  public Texture getTexture() {return texture;}
+
   /**
    * Obtains position of body
    * 
@@ -110,6 +113,10 @@ public abstract class Body implements Paintable {
    */
   public Vector3D getVel() {
     return velocity;
+  }
+
+  public void setVel(Vector3D vel) {
+    velocity = vel;
   }
 
   /**
@@ -138,6 +145,27 @@ public abstract class Body implements Paintable {
   public double getZ() {
     return position.getZ();
   }
+
+
+
+  public static Body starCombine(ArrayList<Body> crashed){
+    double rad = 0;
+    double mass = 0;
+    Vector3D pos = new Vector3D();
+    Vector3D vel = new Vector3D();
+
+    for (Body planet : crashed){
+      rad += planet.getRadius();
+      mass += planet.getMass();
+      pos = Vector3D.add(pos, planet.getPos());
+      vel = Vector3D.add(vel, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
+
+    }
+
+    Body newBod = new Star(rad, mass, pos.scalarDiv(crashed.size()), vel.scalarDiv(mass));
+    return newBod;
+  }
+
 
   /**
    * Obtain the vector pointing north
