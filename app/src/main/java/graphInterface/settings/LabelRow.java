@@ -1,6 +1,5 @@
 package graphInterface.settings;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 
@@ -12,7 +11,7 @@ public class LabelRow extends SettingRowP {
    * Create a row for a single setting
    */
   public LabelRow(String label) {
-    super(40, (v) -> {}, 0);
+    super(40, (v) -> {}, 0, label);
     setPreferredSize(new Dimension(0, this.getRowH()));
     SpringLayout layout = new SpringLayout();
     setLayout(layout);

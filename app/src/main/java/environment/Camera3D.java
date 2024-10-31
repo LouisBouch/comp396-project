@@ -1276,5 +1276,21 @@ public class Camera3D implements Paintable {
   public int getMaxImSize() {
     return maxImSize;
   }
+  /**
+   * Obtain the sensitivity of the mouse when in 3D mode
+   *
+   * @return the sensitivity value
+   */
+  public double getSensitivity() {
+    return sensitivity;
+  }
+  /**
+   * Set the sensitivity of the mouse when in 3D mode
+   *
+   * @param s The new sensitivity value
+   */
+  public void setSensitivity(double s) {
+    sensitivity = s;
+  }
 
 }

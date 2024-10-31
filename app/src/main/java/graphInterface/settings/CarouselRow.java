@@ -1,6 +1,5 @@
 package graphInterface.settings;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -23,20 +22,25 @@ public class CarouselRow extends SettingRowP {
   JLabel setting;
   // Current index
   int curIndex;
+  // Default index
+  int defIndex;
+  ArrayList<Map.Entry<String, Double>> settingValues;
 
   /**
    * Create a row for a single setting
    */
   public CarouselRow(String label, ArrayList<Map.Entry<String, Double>> settingValues, int startIndex,
       Consumer<Double> applySetting) {
-    super(30, applySetting, settingValues.get(startIndex).getValue());
+    super(30, applySetting, settingValues.get(startIndex).getValue(), label);
+    this.settingValues = settingValues;
     curIndex = startIndex;
+    defIndex = curIndex;
     setPreferredSize(new Dimension(0, this.getRowH()));
     SpringLayout layout = new SpringLayout();
     setLayout(layout);
 
     // The label
-    JLabel l = new JLabel(label);
+    JLabel l = new JLabel(label + ":");
     l.setFont(new Font("Tahoma", Font.PLAIN, 22));
     l.setHorizontalAlignment(JLabel.LEFT);
     add(l);
@@ -75,7 +79,7 @@ public class CarouselRow extends SettingRowP {
       @Override
       public void actionPerformed(ActionEvent arg0) {
         curIndex = (curIndex + 1) % settingValues.size();
-        thisP.setValue(settingValues.get(curIndex).getValue());
+        thisP.setCurV(settingValues.get(curIndex).getValue());
         setting.setText(settingValues.get(curIndex).getKey());
       }
     });
@@ -84,9 +88,30 @@ public class CarouselRow extends SettingRowP {
       @Override
       public void actionPerformed(ActionEvent arg0) {
         curIndex = (curIndex - 1 + settingValues.size()) % settingValues.size();
-        thisP.setValue(settingValues.get(curIndex).getValue());
+        thisP.setCurV(settingValues.get(curIndex).getValue());
         setting.setText(settingValues.get(curIndex).getKey());
       }
     });
+  }
+
+  @Override
+  public void resetValue() {
+    super.resetValue();
+    curIndex = defIndex;
+    setting.setText(settingValues.get(curIndex).getKey());
+  }
+
+  // sets the current value of the carousel
+  @Override
+  public void setCurV(double v) {
+    super.setCurV(v);
+    // Get index from value
+    for (int i = 0; i < settingValues.size(); i++) {
+      Map.Entry<String, Double> tuple = settingValues.get(i);
+      if (tuple.getValue() == v) {
+        curIndex = i;
+        setting.setText(settingValues.get(curIndex).getKey());
+      }
+    }
   }
 }

@@ -170,45 +170,50 @@ public class SimulationP extends JPanel implements Runnable {
     settingsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     this.add(settingsButton);
 
-    // Settings window
     JPanel thisP = this;
+    // Settings window
     // Opens settings window
     settingsButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         // This is the window frame
         JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(thisP);
-        // Initialize settings if not done already
-        if (settings == null) {
-          // The frame where the settings belong
-          settings = new SettingsManager(
-              ownerFrame, null, new Dimension(500, 750), "Settings");
-          // Add the different settings
-
-          // The camera setting section
-          settings.addSetting(new LabelRow("Camera Settings"));
-          // Sensitivity setting
-          // TODO: Implement sensitivity setting
-          settings.addSetting(new SliderRow("Sensitivity:", 1, 10, 5, (v) -> {
-            System.out.println(v);
-          }));
-          // Quality setting
-          // This list contains the possible quality values for the texture
-          ArrayList<Map.Entry<String, Double>> s = new ArrayList<>();
-          int defaultQuality = camera.getMaxImSize();
-          s.add(new AbstractMap.SimpleEntry<>("Very Low", defaultQuality / 3.0));
-          s.add(new AbstractMap.SimpleEntry<>("Low", defaultQuality / 1.5));
-          s.add(new AbstractMap.SimpleEntry<>("Medium", (double) defaultQuality));
-          s.add(new AbstractMap.SimpleEntry<>("High", defaultQuality * 1.5));
-          s.add(new AbstractMap.SimpleEntry<>("Very High", defaultQuality * 3.0));
-          s.add(new AbstractMap.SimpleEntry<>("Just don't", Double.MAX_VALUE));
-          settings.addSetting(new CarouselRow("Texture Quality:", s, 2, (v) -> {
-            camera.setMaxImSize(v.intValue());
-          }));
-        }
+        settings.initializeJDialog(ownerFrame);
         settings.setVisible(true);
       }
     });
+    // Initialize settings if not done already
+    if (settings == null) {
+      // The frame where the settings belong
+      settings = new SettingsManager(null, new Dimension(500, 750), "Settings");
+      // Add the different settings
+
+      // The camera setting section
+      settings.addSetting(new LabelRow("Camera Settings"));
+
+      // Sensitivity setting
+      double defaultSentivity = camera.getSensitivity();
+      settings.addSetting(
+          new SliderRow("Sensitivity", defaultSentivity / 10.0, 4.0 * defaultSentivity, defaultSentivity, (v) -> {
+            camera.setSensitivity(v);
+          }));
+
+      // Quality setting
+      // This list contains the possible quality values for the texture
+      ArrayList<Map.Entry<String, Double>> s = new ArrayList<>();
+      int defaultQuality = camera.getMaxImSize();
+      s.add(new AbstractMap.SimpleEntry<>("Very Low", defaultQuality / 3.0));
+      s.add(new AbstractMap.SimpleEntry<>("Low", defaultQuality / 1.5));
+      s.add(new AbstractMap.SimpleEntry<>("Medium", (double) defaultQuality));
+      s.add(new AbstractMap.SimpleEntry<>("High", defaultQuality * 1.5));
+      s.add(new AbstractMap.SimpleEntry<>("Very High", defaultQuality * 3.0));
+      s.add(new AbstractMap.SimpleEntry<>("Just don't", Double.MAX_VALUE));
+      settings.addSetting(new CarouselRow("Texture Quality", s, 2, (v) -> {
+        camera.setMaxImSize(v.intValue());
+      }));
+    }
+    // Load setttings if they exists
+    settings.loadSettings();
   }
 
   /**

@@ -1,6 +1,5 @@
 package graphInterface.settings;
 
-import java.awt.Dimension;
 import java.util.function.Consumer;
 
 import javax.swing.JPanel;
@@ -8,15 +7,25 @@ import javax.swing.JPanel;
 public class SettingRowP extends JPanel {
   private int rowH;
   private Consumer<Double> applySetting;
-  private double value;
+  /**
+   * Current value of setting
+   */
+  private double curV;
+  private String label;
+  /**
+   * Default value of setting
+   */
+  private double defV;
   private int settingW = 220;
   /**
    * Create a row for a single setting
    */
-  public SettingRowP(int rowH, Consumer<Double> applySetting, double value) {
+  public SettingRowP(int rowH, Consumer<Double> applySetting, double value, String label) {
     this.rowH = rowH;
     this.applySetting = applySetting;
-    this.value = value;
+    this.curV = value;
+    this.defV = curV;
+    this.label = label;
   }
   /**
    * Getter for rowH
@@ -32,23 +41,30 @@ public class SettingRowP extends JPanel {
    * value of the setting.
    */
   public void applyRowSetting() {
-    applySetting.accept(value);
+    applySetting.accept(curV);
+  }
+  /**
+   * Resets the value of the setting to its original value
+   */
+  public void resetValue() {
+    this.curV = defV;
+    applySetting.accept(defV);
   }
   /**
    * Setter for the value field
    *
    * @param v The new value
    */
-  public void setValue(double v) {
-    value = v;
+  public void setCurV(double v) {
+    curV = v;
   }
   /**
    * Getter for the value field
    *
    * @return The value of the setting
    */
-  public double getValue() {
-    return value;
+  public double getCurV() {
+    return curV;
   }
   /**
    * Gets the width of a setting item
@@ -57,5 +73,13 @@ public class SettingRowP extends JPanel {
    */
   public int getSettingW() {
     return settingW;
+  }
+  /**
+   * Getter for the setting label
+   *
+   * @return The label of the setting
+   */
+  public String getLabel() {
+    return label;
   }
 }

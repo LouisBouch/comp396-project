@@ -1,6 +1,5 @@
 package graphInterface.settings;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.function.Consumer;
@@ -13,23 +12,33 @@ import javax.swing.event.ChangeListener;
 
 public class SliderRow extends SettingRowP {
   JSlider slider;
+  double min;
+  double max;
+  double start;
+  // Initial eprcentage on the slider
+  int iniPerc;
+
   /**
    * Create a row for a single setting
    */
-  public SliderRow(String label, int min, int max, int start, Consumer<Double> applySetting) {
-    super(30, applySetting, start);
+  public SliderRow(String label, double min, double max, double start, Consumer<Double> applySetting) {
+    super(30, applySetting, start, label);
+    this.min = min;
+    this.max = max;
+    this.start = start;
     setPreferredSize(new Dimension(0, this.getRowH()));
     SpringLayout layout = new SpringLayout();
     setLayout(layout);
 
     // The label
-    JLabel l = new JLabel(label);
+    JLabel l = new JLabel(label + ":");
     l.setFont(new Font("Tahoma", Font.PLAIN, 22));
     l.setHorizontalAlignment(JLabel.LEFT);
     add(l);
 
     // The slider
-    slider = new JSlider(min, max, start);
+    iniPerc = (int) Math.round(100.0 * (start - min) / ((max - min) * 1.0));
+    slider = new JSlider(0, 100, iniPerc);
     add(slider);
 
     // Constraints
@@ -46,8 +55,20 @@ public class SliderRow extends SettingRowP {
       @Override
       public void stateChanged(ChangeEvent e) {
         JSlider source = (JSlider) e.getSource();
-        thisP.setValue(source.getValue());
+        thisP.setCurV(source.getValue() / 100.0 * (max - min) + min);
       }
     });
+  }
+
+  @Override
+  public void resetValue() {
+    super.resetValue();
+    slider.setValue(iniPerc);
+  }
+  @Override
+  public void setCurV(double v) {
+    super.setCurV(v);
+    int perc = (int) Math.round(100.0 * (v - min) / ((max - min) * 1.0));
+    slider.setValue(perc);
   }
 }
