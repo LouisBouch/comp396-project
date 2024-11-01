@@ -35,4 +35,4 @@ out
 out/*
 
 # Ignore settings file
-*.properties
+settings.properties
