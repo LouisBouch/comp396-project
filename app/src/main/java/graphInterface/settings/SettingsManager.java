@@ -51,7 +51,7 @@ public class SettingsManager {
     this.size = size;
     this.name = name;
     // Path to config file
-    PATH = Paths.get("config", "settings.properties");
+    PATH = Paths.get(System.getProperty("user.dir"), "config", "settings.properties");
 
     // Panel that contains settings
     settingsContainer = new SettingsContainerP();
