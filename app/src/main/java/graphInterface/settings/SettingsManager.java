@@ -37,7 +37,9 @@ public class SettingsManager {
   private SettingsContainerP settingsContainer;
   private HashMap<String, SettingRowP> settings = new HashMap<>();
 
-  final Path PATH;
+  private Path PATH;
+
+  private boolean pathLoadFail = false;
 
   /**
    * Constructs a JDialog manager to handle the simulation settings
@@ -131,7 +133,8 @@ public class SettingsManager {
     }
     try (OutputStream output = Files.newOutputStream(PATH)) {
       props.store(output, "Simulation settings");
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -146,7 +149,14 @@ public class SettingsManager {
       props.load(input);
     } catch (IOException e) {
       // Does nothing if no file exists
-      System.out.println("Could not load settings, using default settings.");
+      if (pathLoadFail == false){
+        PATH = Paths.get(System.getProperty("user.dir"),"app", "config", "settings.properties");
+        loadSettings();
+        pathLoadFail = true;
+      }
+      else{
+        System.out.println("Could not load settings, using default settings.");
+      }
       return;
     }
     // Load the settings

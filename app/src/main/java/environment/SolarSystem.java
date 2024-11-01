@@ -17,7 +17,6 @@ import java.util.*;
 public class SolarSystem implements Paintable {
 
     ArrayList<Body> bodies = new ArrayList<Body>();
-    double timeElapsedSeconds = 0;
 
     private double time = 0;
 
@@ -30,10 +29,8 @@ public class SolarSystem implements Paintable {
      * Constructor for the Solar System
      */
     public SolarSystem() {
-        bodies.add(new Star(6.96340e8, 1, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0)));
-        bodies.add(new Star(6.96340e8, 1, new Vector3D(2e10, 0, 100), new Vector3D(0, 0, 0)));
-        bodies.add(new Star(6.96340e8, 1, new Vector3D(2e10/2, 2e10, 100), new Vector3D(0, 0, 0)));
-        bodies.add(new Star(6.96340e8, 1, new Vector3D(1e10/2, 4e10, 100), new Vector3D(0, 0, 0)));
+        bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0)));
+        bodies.add(new RockyPlanet(3e8, 1, new Vector3D(1.5e10, 0, 100), new Vector3D(0, 20e7, 0), Texture.Earth));
         //bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new Vector3D(), Texture.Pink));
         //bodies.add(new GassyPlanet(7e9, 1000, new Vector3D(4e11, 0, 100), new Vector3D()));
         //bodies.add(new RockyPlanet(2.4397e6, 1000, new Vector3D(53.686e9, 0, 100), new Vector3D()));
