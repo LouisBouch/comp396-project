@@ -59,6 +59,7 @@ public class SimulationP extends JPanel implements Runnable {
   private boolean running = false;
   // Time between physics iterations
   private int sleepTime = 20;
+  private double dt = 1;
   // Number of physics iteration before a repaint
   private int nbItBeforeRepaint = 1;
 
@@ -219,9 +220,9 @@ public class SimulationP extends JPanel implements Runnable {
   /**
    * Steps the simulation
    */
-  public void step() {
+  public void step(double dt) {
     handleKeys();
-    solarSystem.step();
+    solarSystem.step(dt);
   }
 
   /**
@@ -267,7 +268,7 @@ public class SimulationP extends JPanel implements Runnable {
     double end;
     double timeSpent;
     while (running) {
-      step();
+      step(dt);
       if (iteration == 0) {
         SwingUtilities.invokeLater(this::updatePosLabel);
         SwingUtilities.invokeLater(this::updateOriLabel);
