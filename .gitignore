@@ -33,3 +33,6 @@ build
 bin
 out
 out/*
+
+# Ignore settings file
+*.properties
