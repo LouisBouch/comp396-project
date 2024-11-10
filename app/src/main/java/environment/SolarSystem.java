@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import lib.Paintable;
 import lib.Vector3D;
 
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-
-import java.util.*;
-
 /**
  * SolarSystem
  */
@@ -70,7 +65,28 @@ public class SolarSystem implements Paintable {
     return bodies;
   }
 
+  /**
+   * Obtain time of the simulation
+   *
+   * @return Time in seconds inside the simulation
+   */
+  public double getTime() {
+    return time;
+  }
+
+  /**
+   * Sets time of the simulation
+   *
+   * @param t New time in seconds inside the simulation
+   */
+  public void setTime(double t) {
+    time = t;
+  }
+
   public void step(double dt) {
+    // Pointless to step if time does not change
+    if (dt == 0)
+      return;
     time += dt;
     // System.out.println(time);
     bodies = getBodies();

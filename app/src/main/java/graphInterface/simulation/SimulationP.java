@@ -59,6 +59,7 @@ public class SimulationP extends JPanel implements Runnable {
   private boolean running = false;
   // Time between physics iterations
   private int sleepTime = 20;
+  // Time increment between simulation steps
   private double dt = 1;
   // Number of physics iteration before a repaint
   private int nbItBeforeRepaint = 1;
@@ -576,4 +577,30 @@ public class SimulationP extends JPanel implements Runnable {
         + bdX + ", " + bdY + " , " + bdZ + "]</span>" + "</html>");
   }
 
+  /**
+   * Getter for the solar system object
+   *
+   * @return The solar system of the sim
+   */
+  public SolarSystem getSolarSystem() {
+    return solarSystem;
+  }
+
+  /**
+   * Obtain the incremenet of time between simulation steps
+   *
+   * @return dt
+   */
+  public double getDt() {
+    return dt;
+  }
+
+  /**
+   * Sets the incremenet of time between simulation steps
+   *
+   * @param dt New time step value
+   */
+  public void setDt(double dt) {
+    this.dt = dt;
+  }
 }
