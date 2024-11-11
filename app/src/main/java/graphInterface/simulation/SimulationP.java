@@ -79,6 +79,8 @@ public class SimulationP extends JPanel implements Runnable {
    */
   private Camera3D camera;
 
+  private Thread simThread;
+
   /**
    * Cursor position and translation information
    */
@@ -232,7 +234,8 @@ public class SimulationP extends JPanel implements Runnable {
   public void start() {
     if (!running) {
       running = true;
-      new Thread(this).start();
+      simThread = new Thread(this);
+      simThread.start();
     }
   }
 
@@ -240,19 +243,33 @@ public class SimulationP extends JPanel implements Runnable {
    * Handles the stopping of the simulation
    */
   public void stop() {
-    if (running) {
-      running = false;
-    }
+    running = false;
   }
 
   /**
-   * TODO: Resets simulation
+   * Resets the simulation
    */
   public void reset() {
+    // Stops simulation
     stop();
+    try {
+      // Joins threads
+      if (simThread != null) {
+        simThread.join();
+      }
+      // If no thread exists, there's nothing to reset
+      else {
+        return;
+      }
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    // Restarts solar system
     solarSystem.reset();
     camera.reset();
-    resume();
+    // Create new thread
+    start();
   }
 
   public void resume() {

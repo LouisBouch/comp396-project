@@ -23,6 +23,13 @@ public class SolarSystem implements Paintable {
    * Constructor for the Solar System
    */
   public SolarSystem() {
+    createSystem();
+  }
+
+  /**
+   * Creates the bodies and adds them to the bodies list
+   */
+  public void createSystem() {
     bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0)));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(1.5e10, 0, 100), new Vector3D(0, 20e7, 0), Texture.Earth));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(3e10, 0, 100), new Vector3D(0, 10e7, 0), Texture.Mars));
@@ -48,8 +55,12 @@ public class SolarSystem implements Paintable {
     // new Vector3D()));
     // bodies.add(new GassyPlanet(24.622e6, 1000, new Vector3D(4.4717e12, 0, 100),
     // new Vector3D()));
+
   }
 
+  /**
+   * Paints the body when in 2D mode
+   */
   public void paintThis(Graphics2D g2d) {
     for (Body body : bodies) {
       body.paintThis(g2d);
@@ -93,8 +104,12 @@ public class SolarSystem implements Paintable {
     move(bodies, dt);
   }
 
-  // TODO: Make solarSystem.reset()
+  /**
+   * Resets the simulation by removing the bodies and creating them again
+   */
   public void reset() {
+    bodies.clear();
+    createSystem();
   }
 
   public void move(ArrayList<Body> bodies, double dt) {

@@ -1,6 +1,7 @@
 package graphInterface.simulation;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,11 +51,14 @@ public class TimeP extends JPanel {
     timeSlider.setOpaque(false);
     timeSlider.setForeground(Color.WHITE);
     timeSlider.setSnapToTicks(true);
+    Dimension sliderDim = timeSlider.getPreferredSize();
+    timeSlider.setPreferredSize(new Dimension((int) sliderDim.getWidth() + 100, (int) sliderDim.getHeight()));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, timeSlider, 0, SpringLayout.HORIZONTAL_CENTER, this);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, timeSlider, 0, SpringLayout.VERTICAL_CENTER, this);
     add(timeSlider);
     // Slider label
     JLabel sliderLabel = new JLabel("Adjust the speed of the simulation");
+    sliderLabel.setFont(new Font("Dialog", Font.BOLD, 15));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, sliderLabel, 0, SpringLayout.HORIZONTAL_CENTER,
         timeSlider);
     springLayout.putConstraint(SpringLayout.SOUTH, sliderLabel, -4, SpringLayout.NORTH, timeSlider);
@@ -62,6 +66,7 @@ public class TimeP extends JPanel {
     add(sliderLabel);
     // Current speed multiplier
     multLabel = new JLabel(timeMultLabelPrefix + timeSlider.getValue());
+    multLabel.setFont(new Font("Dialog", Font.BOLD, 14));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, multLabel, 0, SpringLayout.HORIZONTAL_CENTER,
         timeSlider);
     springLayout.putConstraint(SpringLayout.NORTH, multLabel, 4, SpringLayout.SOUTH, timeSlider);
@@ -70,9 +75,8 @@ public class TimeP extends JPanel {
     // Button to pause simulation
     timePauseB = new JButton(pauseString);
     timePauseB.setFocusable(false);
-    System.out.println(timePauseB.getFont());
     timePauseB.setFont(new Font("Dialog", Font.BOLD, 14));
-    springLayout.putConstraint(SpringLayout.WEST, timePauseB, 15, SpringLayout.EAST, timeSlider);
+    springLayout.putConstraint(SpringLayout.WEST, timePauseB, 20, SpringLayout.EAST, timeSlider);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, timePauseB, -20, SpringLayout.VERTICAL_CENTER, this);
     add(timePauseB);
     // Button to reset simulation
@@ -80,7 +84,7 @@ public class TimeP extends JPanel {
     JButton resetB = new JButton(resetString);
     resetB.setFocusable(false);
     resetB.setFont(new Font("Dialog", Font.BOLD, 14));
-    springLayout.putConstraint(SpringLayout.WEST, resetB, 15, SpringLayout.EAST, timeSlider);
+    springLayout.putConstraint(SpringLayout.WEST, resetB, 20, SpringLayout.EAST, timeSlider);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, resetB, 20, SpringLayout.VERTICAL_CENTER, this);
     add(resetB);
     // SETUP LISTENERS
@@ -145,7 +149,6 @@ public class TimeP extends JPanel {
    * Resets the simulation
    */
   private void reset() {
-    resume();
     simP.reset();
   }
 
