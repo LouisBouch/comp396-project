@@ -30,7 +30,7 @@ public class TimeP extends JPanel {
   /**
    * Constructor for JPanel
    *
-   * @param solarSystem Solar system to take information from
+   * @param simP Solar system to take information from
    */
   public TimeP(SimulationP simP) {
     this.simP = simP;

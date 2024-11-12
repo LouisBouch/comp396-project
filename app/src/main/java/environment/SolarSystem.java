@@ -16,8 +16,6 @@ public class SolarSystem implements Paintable {
   private double time = 0;
 
   double G = 6.67430e24; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
-  boolean crash = false;
-  ArrayList<Body> crashed = new ArrayList<Body>();
 
   /**
    * Constructor for the Solar System
@@ -74,6 +72,19 @@ public class SolarSystem implements Paintable {
    */
   public ArrayList<Body> getBodies() {
     return bodies;
+  }
+
+  public ArrayList<Body> getSuns() {
+
+    ArrayList<Body> suns = new ArrayList<Body>();
+    bodies = getBodies();
+
+    for (Body body : bodies){
+      if (body instanceof Star){
+        suns.add(body);
+      }
+    }
+    return suns;
   }
 
   /**
@@ -144,8 +155,8 @@ public class SolarSystem implements Paintable {
       Vector3D newPosition = Vector3D.add(pos, Vector3D.scalarMult(newVelocity, dt));
       body.setPos(newPosition);
     }
-
-    if (crash) {
+    ArrayList<Body> crashed = findCrashes(bodies);
+    if (crashed.size() != 0) {
       Body newBody = Body.starCombine(crashed);
       int i = bodies.indexOf(crashed.get(0));
       bodies.set(i, newBody);
@@ -153,10 +164,30 @@ public class SolarSystem implements Paintable {
         bodies.remove(planet);
       }
       crashed = new ArrayList<Body>();
-      crash = false;
     }
   }
-
+  public ArrayList<Body> findCrashes(ArrayList<Body> bodies) {
+    ArrayList<Body> crashed = new ArrayList<Body>();
+    for (Body body1 : bodies) {
+      for (Body body2 : bodies) {
+        Vector3D pos2 = body2.getPos().copy();
+        Vector3D pos = body1.getPos().copy();
+        Vector3D r = pos2.sub(pos);
+        double distance = r.len();
+        if (body1 != body2) { // Avoid self-interaction
+          if (distance < body1.getRadius()) {
+            if (!crashed.contains(body1)) {
+              crashed.add(body1);
+            }
+            if (!crashed.contains(body2)) {
+              crashed.add(body2);
+            }
+          }
+        }
+      }
+    }
+    return crashed;
+  }
   // Helper method to calculate gravitational force between two bodies
   private Vector3D calculateGravitationalForce(Body body1, Body body2) {
     Vector3D pos2 = body2.getPos().copy();
@@ -164,16 +195,7 @@ public class SolarSystem implements Paintable {
     Vector3D r = pos2.sub(pos);
     double distance = r.len();
     double forceMagnitude = G * body1.getMass() * body2.getMass() / (distance * distance);
-    if (distance < body1.getRadius()) {
-      forceMagnitude = 0;
-      crash = true;
-      if (!crashed.contains(body1)) {
-        crashed.add(body1);
-      }
-      if (!crashed.contains(body2)) {
-        crashed.add(body2);
-      }
-    }
+
     return r.normalize().scale(forceMagnitude);
   }
 }
