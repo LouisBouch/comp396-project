@@ -31,6 +31,7 @@ public class SolarSystem implements Paintable {
     bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0)));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(1.5e10, 0, 100), new Vector3D(0, 20e7, 0), Texture.Earth));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(3e10, 0, 100), new Vector3D(0, 10e7, 0), Texture.Mars));
+    //bodies.add(new RockyPlanet(3e8, 5, new Vector3D(0, 3e10, 100), new Vector3D(0, 0, 0), Texture.Pink));
     // bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new
     // Vector3D(), Texture.Pink));
     // bodies.add(new GassyPlanet(7e9, 1000, new Vector3D(4e11, 0, 100), new

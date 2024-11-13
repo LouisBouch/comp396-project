@@ -4,7 +4,7 @@ import lib.Vector3D;
 
 import java.util.ArrayList;
 
-public class atmosphere {
+public class Atmosphere {
     private double pressure = 0;
     private double temperature = 0;
 
@@ -12,7 +12,7 @@ public class atmosphere {
 
     private Gas gas;
 
-    public atmosphere(double pressure, double temperature) {
+    public Atmosphere(double pressure, double temperature) {
         this.pressure = pressure;
         this.temperature = temperature;
     }
@@ -25,23 +25,20 @@ public class atmosphere {
         return temperature;
     }
 
-    public atmosphere habitability(RockyPlanet planet) {
-
-
+    public Atmosphere habitability(RockyPlanet planet, ArrayList<Body> suns) {
 
         double radius = planet.getRadius();
         Vector3D position = planet.getPos();
+
         double atm_thick = getAtmThickness(radius);
-
         double atm_volume = ((4/3)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3)*Math.PI*Math.pow(radius, 3));
-
-        ArrayList<Body> suns;
-        //suns = SolarSystem.getSuns();
-
+        double atm_mass = gas.density * atm_volume;
+        double atm_cross_sec_area = Math.PI*Math.pow((radius + atm_thick), 2);
 
 
 
-        return new atmosphere(pressure, temperature);
+
+        return new Atmosphere(pressure, temperature);
     }
 
     private static double getAtmThickness(double planetRadius){

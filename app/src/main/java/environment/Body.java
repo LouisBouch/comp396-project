@@ -149,20 +149,19 @@ public abstract class Body implements Paintable {
 
 
   public static Body starCombine(ArrayList<Body> crashed){
-    double rad = 0;
     double mass = 0;
     Vector3D pos = new Vector3D();
-    Vector3D vel = new Vector3D();
-
+    Vector3D mom = new Vector3D();
+    double vol = 0;
     for (Body planet : crashed){
-      rad += planet.getRadius();
+      vol += Math.pow(planet.getRadius(), 3) * 4 /3.0 * Math.PI;
       mass += planet.getMass();
-      pos = Vector3D.add(pos, planet.getPos());
-      vel = Vector3D.add(vel, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
+      pos = Vector3D.add(pos, planet.getPos().copy().scalarMult(planet.getMass()));
+      mom = Vector3D.add(mom, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
 
     }
-
-    Body newBod = new Star(rad, mass, pos.scalarDiv(crashed.size()), vel.scalarDiv(mass));
+    double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
+    Body newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass));
     return newBod;
   }
 
