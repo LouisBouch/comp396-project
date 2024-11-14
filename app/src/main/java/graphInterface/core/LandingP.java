@@ -18,7 +18,7 @@ public class LandingP extends JPanel {
     this.setLayout(springLayout);
 
     // Welcome label
-    JLabel welcomeLabel = new JLabel("I've got two assignments due but I can't decide which one to do. So I did this instead.");
+    JLabel welcomeLabel = new JLabel("I`m doing this machine learning assignment and i hate it so much oh my god it sucks so I did this again`");
     welcomeLabel.setFont(new Font("Tahoma", Font.BOLD, 30));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, welcomeLabel, 0, SpringLayout.HORIZONTAL_CENTER, this);
     springLayout.putConstraint(SpringLayout.NORTH, welcomeLabel, 30, SpringLayout.NORTH, this);

@@ -37,7 +37,7 @@ public class BodiesP extends JPanel {
     gbc.anchor = GridBagConstraints.FIRST_LINE_START;
     gbc.weightx = 1;
     gbc.gridx = 0;// Allways align to the left
-    gbc.insets = new Insets(2, 2, 2, 2);// Margin
+    gbc.insets = new Insets(1, 1, 1, 1);// Margin
     gbc.fill = GridBagConstraints.BOTH;// Takes all the space it can
     this.setLayout(gbLayout);
     // Empty label at the end to take up the remaining space

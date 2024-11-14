@@ -10,8 +10,8 @@ import java.awt.geom.Ellipse2D;
  */
 public class GassyPlanet extends Body {
 
-  public GassyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture) {
-    super(radius, mass, position, velocity, texture);
+  public GassyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName) {
+    super(radius, mass, position, velocity, texture, bodyName);
     setColor(Color.red);
   }
   /**

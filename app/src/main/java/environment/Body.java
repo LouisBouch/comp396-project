@@ -3,10 +3,7 @@ package environment;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
 
 import lib.Paintable;
 import lib.Vector3D;
@@ -29,11 +26,12 @@ public abstract class Body implements Paintable {
   private Color color;
 
   private Texture texture;
+  private String bodyName;
 
   /**
    * Create new body
    */
-  public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture) {
+  public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName) {
     // Sets default texture if not specified
     if (texture == null) {
       texture = Texture.Moon;
@@ -45,6 +43,7 @@ public abstract class Body implements Paintable {
     this.north = new Vector3D(0, 0, 1);
     this.equator = new Vector3D(1, 0, 0);
     this.texture = texture;
+    this.bodyName = bodyName;
   }
 
   /**
@@ -153,15 +152,17 @@ public abstract class Body implements Paintable {
     Vector3D pos = new Vector3D();
     Vector3D mom = new Vector3D();
     double vol = 0;
+    String name = "";
     for (Body planet : crashed){
       vol += Math.pow(planet.getRadius(), 3) * 4 /3.0 * Math.PI;
       mass += planet.getMass();
       pos = Vector3D.add(pos, planet.getPos().copy().scalarMult(planet.getMass()));
       mom = Vector3D.add(mom, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
+      name += planet.getBodyName();
 
     }
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
-    Body newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass));
+    Body newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
     return newBod;
   }
 
@@ -218,6 +219,22 @@ public abstract class Body implements Paintable {
    */
   public void setTexture(Texture t) {
     texture = t;
+  }
+  /**
+   * Obtains the name of the body
+   *
+   * @return The body name
+   */
+  public String getBodyName() {
+    return bodyName;
+  }
+  /**
+   * Obtains the name of the body
+   *
+   * @param bodyName The new body name
+   */
+  public void setBodyName(String bodyName) {
+    this.bodyName = bodyName;
   }
 
   /**
