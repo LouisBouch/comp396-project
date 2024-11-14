@@ -31,7 +31,7 @@ public class Atmosphere {
         Vector3D position = planet.getPos();
 
         double atm_thick = getAtmThickness(radius);
-        double atm_volume = ((4/3)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3)*Math.PI*Math.pow(radius, 3));
+        double atm_volume = ((4/3.0)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3.0)*Math.PI*Math.pow(radius, 3));
         double atm_mass = gas.density * atm_volume;
         double atm_cross_sec_area = Math.PI*Math.pow((radius + atm_thick), 2);
 
