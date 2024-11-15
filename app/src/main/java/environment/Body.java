@@ -166,7 +166,7 @@ public abstract class Body implements Paintable {
 
     }
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
-    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name);
+    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null);
     return newBod;
   }
 
