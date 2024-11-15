@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import environment.habitablity.Gas;
 import environment.habitablity.StarType;
-import environment.habitablity.Atmosphere;
 import lib.Paintable;
 import lib.Vector3D;
 
@@ -160,7 +159,7 @@ public class SolarSystem implements Paintable {
     }
     ArrayList<Body> crashed = findCrashes(bodies);
     if (crashed.size() != 0) {
-      Body newBody = Body.starCombine(crashed);
+      Body newBody = Body.bodyCombine(crashed);
       int i = bodies.indexOf(crashed.get(0));
       bodies.set(i, newBody);
       for (Body planet : crashed) {

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Random;
 
 import lib.Paintable;
 import lib.Vector3D;
@@ -151,20 +152,23 @@ public abstract class Body implements Paintable {
    */
   public abstract double getTemp();
 
-  public static Body starCombine(ArrayList<Body> crashed){
+  public static Body bodyCombine(ArrayList<Body> crashed){
     double mass = 0;
     Vector3D pos = new Vector3D();
     Vector3D mom = new Vector3D();
     double vol = 0;
     String name = "";
+    Random rand = new Random();
+
     for (Body planet : crashed){
       vol += Math.pow(planet.getRadius(), 3) * 4 /3.0 * Math.PI;
       mass += planet.getMass();
       pos = Vector3D.add(pos, planet.getPos().copy().scalarMult(planet.getMass()));
       mom = Vector3D.add(mom, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
-      name += planet.getBodyName();
+      name += planet.getBodyName().substring(0, rand.nextInt(planet.getBodyName().length())+1);
 
     }
+    name += "💥";
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
     Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null);
     return newBod;
