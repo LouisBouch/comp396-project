@@ -1,4 +1,4 @@
-package environment;
+package environment.habitablity;
 
 public enum Gas {
     Earthlike(1.225, 1005);

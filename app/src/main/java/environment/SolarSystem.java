@@ -3,6 +3,7 @@ package environment;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 
+import environment.habitablity.StarType;
 import lib.Paintable;
 import lib.Vector3D;
 

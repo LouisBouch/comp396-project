@@ -1,5 +1,7 @@
-package environment;
+package environment.habitablity;
 
+import environment.Body;
+import environment.RockyPlanet;
 import lib.Vector3D;
 
 import java.util.ArrayList;
