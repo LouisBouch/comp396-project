@@ -620,4 +620,12 @@ public class SimulationP extends JPanel implements Runnable {
   public void setDt(double dt) {
     this.dt = dt;
   }
+  /**
+   * Getter for the camera
+   *
+   * @return The camera that sees the solar system
+   */
+  public Camera3D getCamera() {
+    return camera;
+  }
 }

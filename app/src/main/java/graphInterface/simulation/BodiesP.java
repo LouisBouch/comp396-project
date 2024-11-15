@@ -10,6 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import environment.Body;
+import environment.Camera3D;
 
 /**
  * BodiesP
@@ -46,7 +47,6 @@ public class BodiesP extends JPanel {
     gbc.weighty = 1;
     gbc.gridy = nbPanels;
     this.add(emptyL, gbc);
-
   }
 
   /**
@@ -71,5 +71,30 @@ public class BodiesP extends JPanel {
     gbc.weighty = 1;
     gbc.gridy = nbPanels;
     this.add(emptyL, gbc);
+  }
+
+  /**
+   * Populates the panel with a list of bodies
+   *
+   * @param bodies The list of bodies used to populate the panel
+   * @param camera Camera used to look at the bodies
+   */
+  public void populatePanel(ArrayList<Body> bodies, Camera3D camera) {
+    for (Body b : bodies) {
+      addBodyP(new BodyP(b, camera));
+    }
+  }
+
+  /**
+   * Updates the panel with new bodies
+   *
+   * @param bodies The new bodies
+   * @param camera The camera that sees the bodies
+   */
+  public void updatePanel(ArrayList<Body> bodies, Camera3D camera) {
+    removeAll();
+    populatePanel(bodies, camera);
+    revalidate();
+    repaint();
   }
 }

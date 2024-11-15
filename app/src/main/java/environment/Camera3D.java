@@ -1260,6 +1260,7 @@ public class Camera3D implements Paintable {
     curOrientation.setComponents(iniOrientation);
     rotQ = new Quaternion();
   }
+
   /**
    * Setter for maxImSize
    *
@@ -1268,6 +1269,7 @@ public class Camera3D implements Paintable {
   public void setMaxImSize(int s) {
     maxImSize = s;
   }
+
   /**
    * Getter for the maximum image size
    *
@@ -1276,6 +1278,7 @@ public class Camera3D implements Paintable {
   public int getMaxImSize() {
     return maxImSize;
   }
+
   /**
    * Obtain the sensitivity of the mouse when in 3D mode
    *
@@ -1284,6 +1287,7 @@ public class Camera3D implements Paintable {
   public double getSensitivity() {
     return sensitivity;
   }
+
   /**
    * Set the sensitivity of the mouse when in 3D mode
    *
@@ -1293,4 +1297,12 @@ public class Camera3D implements Paintable {
     sensitivity = s;
   }
 
+  /**
+   * Sets new position for the camera
+   *
+   * @param newPos New camera position
+   */
+  public void setCurPosM(Vector3D newPos) {
+    curPosM.setComponents(newPos);
+  }
 }
