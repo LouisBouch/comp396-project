@@ -15,7 +15,7 @@ public class SolarSystem implements Paintable {
 
   private double time = 0;
 
-  double G = 6.67430e24; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
+  double gravity = 6.67430e24; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
 
   /**
    * Constructor for the Solar System
@@ -28,7 +28,7 @@ public class SolarSystem implements Paintable {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0), "Sun"));
+    bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0), "Sun", StarType.G));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(1.5e10, 0, 100), new Vector3D(0, 20e7, 0), Texture.Earth, "Earth"));
     bodies.add(new RockyPlanet(3e8, 1, new Vector3D(3e10, 0, 100), new Vector3D(0, 10e7, 0), Texture.Mars, "Mars"));
     bodies.add(new RockyPlanet(3e8, 5, new Vector3D(0, 3e10, 100), new Vector3D(0, 0, 0), Texture.Pink, "Icarus"));
@@ -44,8 +44,6 @@ public class SolarSystem implements Paintable {
     // Vector3D()));
     // bodies.add(new RockyPlanet(3.3895e6, 1000, new Vector3D(224.75e9, 0, 100),
     // new Vector3D()));
-    // bodies.add(new Asteroid(150e9, 1000, new Vector3D(405e9, 100, 0), new
-    // Vector3D()));
     // bodies.add(new GassyPlanet(69.911e6, 1000, new Vector3D(755.31e9, 0, 100),
     // new Vector3D()));
     // bodies.add(new GassyPlanet(58.232e6, 1000, new Vector3D(1.4442e12, 0, 100),
@@ -195,7 +193,7 @@ public class SolarSystem implements Paintable {
     Vector3D pos = body1.getPos().copy();
     Vector3D r = pos2.sub(pos);
     double distance = r.len();
-    double forceMagnitude = G * body1.getMass() * body2.getMass() / (distance * distance);
+    double forceMagnitude = gravity * body1.getMass() * body2.getMass() / (distance * distance);
 
     return r.normalize().scale(forceMagnitude);
   }

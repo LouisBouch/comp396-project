@@ -27,6 +27,13 @@ public class RockyPlanet extends Body {
     return new RockyPlanet(this);
   }
 
+  /**
+   * TODO: getTemp() for rocky planets
+   */
+  public double getTemp(){
+    return 0;
+  }
+
   @Override
   public void paintThis(Graphics2D g2d) {
     g2d.setColor(getColor());

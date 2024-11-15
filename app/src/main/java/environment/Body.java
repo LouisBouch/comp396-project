@@ -36,6 +36,7 @@ public abstract class Body implements Paintable {
     if (texture == null) {
       texture = Texture.Moon;
     }
+
     this.radius = radius;
     this.mass = mass;
     this.position = position;
@@ -145,7 +146,10 @@ public abstract class Body implements Paintable {
     return position.getZ();
   }
 
-
+  /**
+   * TODO: Temperature for rocky planets (atmosphere) + others
+   */
+  public abstract double getTemp();
 
   public static Body starCombine(ArrayList<Body> crashed){
     double mass = 0;
@@ -162,7 +166,7 @@ public abstract class Body implements Paintable {
 
     }
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
-    Body newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
+    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name);
     return newBod;
   }
 

@@ -15,8 +15,13 @@ import lib.Vector3D;
  * Star
  */
 public class Star extends Body {
-  public Star(double radius, double mass, Vector3D position, Vector3D velocity, String bodyName) {
-    super(radius, mass, position, velocity, Texture.Sun, bodyName);
+
+  private StarType starType;
+  public Star(double radius, double mass, Vector3D position, Vector3D velocity, String bodyName, StarType starType) {
+    super(radius, mass, position, velocity, starType.texture, bodyName);
+
+    this.starType = starType;
+
     setColor(Color.yellow);
     //this.setTexture(textureFromFile("Sun.jpg"));
   }
@@ -32,6 +37,10 @@ public class Star extends Body {
    */
   public Star copy() {
     return new Star(this);
+  }
+
+  public double getTemp(){
+    return starType.temperature;
   }
 
   @Override

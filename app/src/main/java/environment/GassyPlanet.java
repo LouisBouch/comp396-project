@@ -28,6 +28,13 @@ public class GassyPlanet extends Body {
     return new GassyPlanet(this);
   }
 
+  /**
+   * TODO: getTemp() for Gassy planets
+   */
+  public double getTemp(){
+    return 0;
+  }
+
   @Override
   public void paintThis(Graphics2D g2d) {
     g2d.setColor(getColor());

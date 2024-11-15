@@ -22,7 +22,9 @@ public enum Texture {
   Haumea("Haumea.jpg"),
   Ceres("Ceres.jpg"),
   Eris("Eris.jpg"),
-  Pink("Pink.jpg");
+  Pink("Pink.jpg"),
+
+  Crashed("Sun.jpg");
 
   private String resName;
   private BufferedImage UVMap;
