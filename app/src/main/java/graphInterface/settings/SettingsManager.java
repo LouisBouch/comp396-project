@@ -39,7 +39,6 @@ public class SettingsManager {
 
   private Path PATH;
 
-  private boolean pathLoadFail = false;
 
   /**
    * Constructs a JDialog manager to handle the simulation settings
@@ -54,7 +53,9 @@ public class SettingsManager {
     this.name = name;
     // Path to config file
     PATH = Paths.get(System.getProperty("user.dir"), "config", "settings.properties");
-
+    if (!PATH.toString().contains("app/config")) {
+      PATH = Paths.get(System.getProperty("user.dir"), "app", "config", "settings.properties");
+    }
     // Panel that contains settings
     settingsContainer = new SettingsContainerP();
     // Component to ensure the setting container can grow infinitely. A scrollbar
@@ -133,8 +134,7 @@ public class SettingsManager {
     }
     try (OutputStream output = Files.newOutputStream(PATH)) {
       props.store(output, "Simulation settings");
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -148,15 +148,7 @@ public class SettingsManager {
     try (InputStream input = Files.newInputStream(PATH)) {
       props.load(input);
     } catch (IOException e) {
-      // Does nothing if no file exists
-      if (pathLoadFail == false){
-        PATH = Paths.get(System.getProperty("user.dir"),"app", "config", "settings.properties");
-        pathLoadFail = true;
-        loadSettings();
-      }
-      else{
-        System.out.println("Could not load settings, using default settings.");
-      }
+      System.out.println("Could not load settings, using default settings.");
       return;
     }
     // Load the settings

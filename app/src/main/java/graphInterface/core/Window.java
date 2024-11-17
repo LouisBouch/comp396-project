@@ -55,5 +55,4 @@ public class Window {
     // Makes it windowed fullscreen
     frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
   }
-
 }

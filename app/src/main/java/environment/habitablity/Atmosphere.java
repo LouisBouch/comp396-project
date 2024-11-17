@@ -1,14 +1,5 @@
 package environment.habitablity;
 
-import environment.Body;
-import environment.RockyPlanet;
-import environment.Star;
-import lib.Vector3D;
-
-import java.util.ArrayList;
-
-import static lib.Vector3D.sub;
-
 public class Atmosphere {
     public static final double BOLTZ = 5.67e-8;
 
