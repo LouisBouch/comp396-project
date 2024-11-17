@@ -151,8 +151,8 @@ public class SettingsManager {
       // Does nothing if no file exists
       if (pathLoadFail == false){
         PATH = Paths.get(System.getProperty("user.dir"),"app", "config", "settings.properties");
-        loadSettings();
         pathLoadFail = true;
+        loadSettings();
       }
       else{
         System.out.println("Could not load settings, using default settings.");
