@@ -17,7 +17,7 @@ public class SolarSystem implements Paintable {
 
   private double time = 0;
 
-  double gravity = 6.67430e24; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
+  double gravity = 6.67430e-11; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
 
   /**
    * Constructor for the Solar System
@@ -30,10 +30,11 @@ public class SolarSystem implements Paintable {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    bodies.add(new Star(6.96340e8, 100, new Vector3D(0, 0, 100), new Vector3D(0, 0, 0), "Sun", StarType.G));
-    bodies.add(new RockyPlanet(3e8, 1, new Vector3D(1.5e10, 0, 100), new Vector3D(0, 20e7, 0), Texture.Earth, "Earth", Gas.Earthlike));
-    bodies.add(new RockyPlanet(3e8, 1, new Vector3D(3e10, 0, 100), new Vector3D(0, 10e7, 0), Texture.Mars, "Mars", Gas.Earthlike));
-    bodies.add(new RockyPlanet(3e8, 5, new Vector3D(0, 3e10, 100), new Vector3D(0, 0, 0), Texture.Pink, "Icarus", Gas.Earthlike));
+    double scale = 1;
+    bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun", StarType.G));
+    bodies.add(new RockyPlanet(6378137*scale, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike));
+    bodies.add(new RockyPlanet(3389500*scale, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0), Texture.Mars, "Mars", null));
+    bodies.add(new RockyPlanet(6378137*scale, 5.9722e24, new Vector3D(300000000000.0, 0, 0), new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", null));
     // bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new
     // Vector3D(), Texture.Pink));
     // bodies.add(new GassyPlanet(7e9, 1000, new Vector3D(4e11, 0, 100), new

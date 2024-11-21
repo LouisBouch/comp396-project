@@ -39,7 +39,7 @@ public class TimeP extends JPanel {
     setLayout(springLayout);
 
     // Setup delta time slider
-    int max = 10;
+    int max = 15;
     double curValue = simP.getDt();
     // Convert dt value into a slider value (assumes it is possitive)
     int val = (int) Math.round(Math.log(curValue + 1) / Math.log(2));
