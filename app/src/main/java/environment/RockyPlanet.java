@@ -94,9 +94,6 @@ public class RockyPlanet extends Body {
     else{
       this.habitable = false;
     }
-
-    System.out.println("Temp:" + temperature);
-    System.out.println("\nPress:" + pressure);
   }
 
   public double powerFromSun(double rad_star, double temp_star, double area_planet, double distance){
