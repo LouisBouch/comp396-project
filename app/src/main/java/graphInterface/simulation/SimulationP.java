@@ -95,6 +95,7 @@ public class SimulationP extends JPanel implements Runnable {
 
   private boolean orthoView = false;
   JLabel captureLabel;
+  JLabel timeLabel;
   JLabel positionInSpaceLabel;
   JLabel orientationInSpaceLabel;
   JButton settingsButton;
@@ -104,7 +105,6 @@ public class SimulationP extends JPanel implements Runnable {
    * Create the panel.
    */
   public SimulationP() {
-
     solarSystem = new SolarSystem();
     camera = new Camera3D(new Vector3D(0, 0, -1.5e10), solarSystem, 90, 1);
     // camera.rotateCamera(new Point(500, 0), false);
@@ -158,6 +158,13 @@ public class SimulationP extends JPanel implements Runnable {
     sLayout.putConstraint(SpringLayout.WEST, orientationInSpaceLabel, 5, SpringLayout.WEST, this);
     this.add(orientationInSpaceLabel);
     updateOriLabel();
+
+    // Label that contains time of the simulation
+    timeLabel = new JLabel();
+    sLayout.putConstraint(SpringLayout.SOUTH, timeLabel, -5, SpringLayout.SOUTH, this);
+    sLayout.putConstraint(SpringLayout.EAST, timeLabel, -5, SpringLayout.EAST, this);
+    this.add(timeLabel);
+    updateTimeLabel();
 
     // Button used to access settings options for the simulation
     settingsButton = new JButton();
@@ -261,8 +268,7 @@ public class SimulationP extends JPanel implements Runnable {
       else {
         return;
       }
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       e.printStackTrace();
     }
     // Restarts solar system
@@ -290,6 +296,7 @@ public class SimulationP extends JPanel implements Runnable {
       if (iteration == 0) {
         SwingUtilities.invokeLater(this::updatePosLabel);
         SwingUtilities.invokeLater(this::updateOriLabel);
+        SwingUtilities.invokeLater(this::updateTimeLabel);
         SwingUtilities.invokeLater(this::repaint);
       }
       iteration = (iteration + 1) % nbItBeforeRepaint;
@@ -595,6 +602,43 @@ public class SimulationP extends JPanel implements Runnable {
   }
 
   /**
+   * Show the current time of the simulation
+   */
+  public void updateTimeLabel() {
+    double time = solarSystem.getTime();
+    timeLabel.setText("<html>" +
+        "<span style='color:#FFFFFF; font-size: 16; vertical-align: bottom;'>" +
+        "Time since start of sim <br>"
+        + formatTime(time) + "</span>" + "</html>");
+  }
+
+  /**
+   * Formats a time in seconds to the xxx days yyy hours zzz minutes format
+   *
+   * @param time The time in seconds since the start of the simuation
+   *
+   * @return The formatted string of time
+   */
+  public String formatTime(double time) {
+    int sIY = 3600 * 24 * 365;
+    int sID = 3600 * 24;
+    int sIH = 3600;
+    int sIM = 60;
+
+    int y = (int) time / sIY;
+    int d = (int) (time - sIY * y) / sID;
+    int h = (int) (time - sIY * y - sID * d) / sIH;
+    int m = (int) (time - sIY * y - sID * d - sIH * h) / sIM;
+
+    String format = "";
+      format += "year: " + y + "<br>";
+      format += "day: " + d + "<br>";
+      format += "hour: " + h + "<br>";
+      format += "minute: " + m + "<br>";
+    return format;
+  }
+
+  /**
    * Getter for the solar system object
    *
    * @return The solar system of the sim
@@ -620,6 +664,7 @@ public class SimulationP extends JPanel implements Runnable {
   public void setDt(double dt) {
     this.dt = dt;
   }
+
   /**
    * Getter for the camera
    *

@@ -27,7 +27,6 @@ import lib.keyBinds;
 public class ParametersP extends JPanel implements Runnable {
   private SimulationP simP;
   private ArrayList<Body> bodies;
-  private ArrayList<Body> prevBodies;
   private JButton addBodyB;
   private JComboBox<String> bodyTypeBox;
   private Thread paraThread;
@@ -43,7 +42,6 @@ public class ParametersP extends JPanel implements Runnable {
   public ParametersP(SimulationP simP) {
     this.simP = simP;
     this.bodies = this.simP.getSolarSystem().getBodies();
-    this.prevBodies = new ArrayList<>(this.bodies);
     setBackground(Color.decode("#1f1f38"));
     setBorder(new LineBorder(Color.BLACK, 2));
 
@@ -168,24 +166,9 @@ public class ParametersP extends JPanel implements Runnable {
   }
 
   /**
-   * Checks if the bodies lsit has changed. If so, redraw the list of parameters
-   * toreflect new bodies
+   * Redraws the panel of bodies
    */
   public void listenBodies() {
-    boolean changed = false;
-    if (bodies.size() != prevBodies.size()) {
-      changed = true;
-    } else {
-      for (int i = 0; i < bodies.size(); i++) {
-        if (!bodies.get(i).getBodyName().equals(prevBodies.get(i).getBodyName())) {
-          changed = true;
-        }
-      }
-    }
-    // If the list of bodies has changed since the last check, redraw the panel
-    if (changed) {
-      prevBodies = new ArrayList<>(bodies);
       bodiesP.updatePanel(bodies, simP.getCamera());
-    }
   }
 }
