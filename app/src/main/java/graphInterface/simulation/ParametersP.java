@@ -4,10 +4,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,6 +19,7 @@ import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
 import environment.Body;
+import lib.keyBinds;
 
 /**
  * ParaetersP
@@ -29,6 +33,7 @@ public class ParametersP extends JPanel implements Runnable {
   private Thread paraThread;
   private int checkDelay = 500;
   private BodiesP bodiesP;
+  private boolean editMode = false;
 
   /**
    * Constructor for JPanel
@@ -75,6 +80,7 @@ public class ParametersP extends JPanel implements Runnable {
       public void actionPerformed(ActionEvent e) {
         int index = bodyTypeBox.getSelectedIndex();
         String body = bodyTypes[index];
+        editMode = true;
         switch (body) {
           case "Rocky Planet":
             System.out.println(1);
@@ -109,6 +115,30 @@ public class ParametersP extends JPanel implements Runnable {
     bodiesP.populatePanel(bodies, simP.getCamera());
     // Starts the thread
     start();
+    // Sets up keybindings
+    setupKeyBindings();
+  }
+
+  /**
+   * Sets up keybiding for the parameters panel
+   */
+  public void setupKeyBindings() {
+    // Binding to monitor enter keypress
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_ENTER, "Pressed Enter",
+        new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            System.out.println("Enter");
+          }
+        });
+    // Binding to monitor escape keypress
+    keyBinds.addKeyBindingPressedNoMod(this, KeyEvent.VK_ESCAPE, "Pressed Escape",
+        new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            System.out.println("Escape");
+          }
+        });
   }
 
   /**

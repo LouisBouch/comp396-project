@@ -92,63 +92,60 @@ public class BodyP extends JPanel {
     massL.setForeground(Color.WHITE);
 
     // Switch case to bind the body class
-    switch (body) {
-      case RockyPlanet r -> {
-        preferredHeight = 300;
-        // Delimiter
-        JLabel delimiterL = new JLabel("----------------------");
-        delimiterL.setForeground(Color.WHITE);
-        delimiterL.setFont(new Font("Dialog", Font.BOLD, 18));
-        delimiterL.setForeground(Color.WHITE);
-        layout.putConstraint(SpringLayout.NORTH, delimiterL, 10, SpringLayout.SOUTH,
-            radiusL);
-        layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, delimiterL, 0, SpringLayout.HORIZONTAL_CENTER,
-            this);
-        add(delimiterL);
-        // Pressure
-        pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure(), 3) + " Pa");
-        pressureL.setForeground(Color.WHITE);
-        pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
-        pressureL.setForeground(Color.WHITE);
-        layout.putConstraint(SpringLayout.NORTH, pressureL, 15, SpringLayout.SOUTH,
-            delimiterL);
-        layout.putConstraint(SpringLayout.WEST, pressureL, 0, SpringLayout.WEST,
-            this);
-        add(pressureL);
-        // Temperature
-        temperatureL = new JLabel("Temperature: "+ roundToSF(r.getAtm().getTemperature(), 3) + " °K");
-        temperatureL.setForeground(Color.WHITE);
-        temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
-        temperatureL.setForeground(Color.WHITE);
-        layout.putConstraint(SpringLayout.NORTH, temperatureL, 5, SpringLayout.SOUTH,
-            pressureL);
-        layout.putConstraint(SpringLayout.WEST, temperatureL, 0, SpringLayout.WEST,
-            this);
-        add(temperatureL);
-        // Habitability
-        habitabilityL = new JLabel("Habitability: " + "I dunno just yet");
-        habitabilityL.setForeground(Color.WHITE);
-        habitabilityL.setFont(new Font("Dialog", Font.BOLD, 18));
-        habitabilityL.setForeground(Color.WHITE);
-        layout.putConstraint(SpringLayout.NORTH, habitabilityL, 5, SpringLayout.SOUTH,
-            temperatureL);
-        layout.putConstraint(SpringLayout.WEST, habitabilityL, 0, SpringLayout.WEST,
-            this);
-        add(habitabilityL);
-        // Label delimiting habitability
-        // Type
-        typeL.setText(typeL.getText() + "Rocky planet");
-      }
-      case GassyPlanet g -> {
-        // Type
-        typeL.setText(typeL.getText() + "Gassy planet");
-      }
-      case Star r -> {
-        // Type
-        typeL.setText(typeL.getText() + "Star");
-      }
-      default -> System.out.println("Unknown type");
+    if (body instanceof RockyPlanet) {
+      RockyPlanet r = (RockyPlanet) body;
+      preferredHeight = 300;
+      // Delimiter
+      JLabel delimiterL = new JLabel("----------------------");
+      delimiterL.setForeground(Color.WHITE);
+      delimiterL.setFont(new Font("Dialog", Font.BOLD, 18));
+      delimiterL.setForeground(Color.WHITE);
+      layout.putConstraint(SpringLayout.NORTH, delimiterL, 10, SpringLayout.SOUTH,
+          radiusL);
+      layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, delimiterL, 0, SpringLayout.HORIZONTAL_CENTER,
+          this);
+      add(delimiterL);
+      // Pressure
+      pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure(), 3) + " Pa");
+      pressureL.setForeground(Color.WHITE);
+      pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
+      pressureL.setForeground(Color.WHITE);
+      layout.putConstraint(SpringLayout.NORTH, pressureL, 15, SpringLayout.SOUTH,
+          delimiterL);
+      layout.putConstraint(SpringLayout.WEST, pressureL, 0, SpringLayout.WEST,
+          this);
+      add(pressureL);
+      // Temperature
+      temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 3) + " °K");
+      temperatureL.setForeground(Color.WHITE);
+      temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
+      temperatureL.setForeground(Color.WHITE);
+      layout.putConstraint(SpringLayout.NORTH, temperatureL, 5, SpringLayout.SOUTH,
+          pressureL);
+      layout.putConstraint(SpringLayout.WEST, temperatureL, 0, SpringLayout.WEST,
+          this);
+      add(temperatureL);
+      // Habitability
+      habitabilityL = new JLabel("Habitability: " + "I dunno just yet");
+      habitabilityL.setForeground(Color.WHITE);
+      habitabilityL.setFont(new Font("Dialog", Font.BOLD, 18));
+      habitabilityL.setForeground(Color.WHITE);
+      layout.putConstraint(SpringLayout.NORTH, habitabilityL, 5, SpringLayout.SOUTH,
+          temperatureL);
+      layout.putConstraint(SpringLayout.WEST, habitabilityL, 0, SpringLayout.WEST,
+          this);
+      add(habitabilityL);
+      // Label delimiting habitability
+      // Type
+      typeL.setText(typeL.getText() + "Rocky planet");
+    } else if (body instanceof GassyPlanet) {
+      // Type
+      typeL.setText(typeL.getText() + "Gassy planet");
+    } else if (body instanceof Star) {
+      // Type
+      typeL.setText(typeL.getText() + "Star");
     }
+
     // Updat preferred size depending on body type
     Dimension prefSize = getPreferredSize();
     setPreferredSize(new Dimension((int) prefSize.getWidth(), preferredHeight));
