@@ -16,12 +16,11 @@ import static lib.Vector3D.sub;
 public class RockyPlanet extends Body {
 
   Atmosphere atmosphere;
-
   boolean habitable = false;
-  public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas) {
+  public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initP, double initT) {
     super(radius, mass, position, velocity, texture, bodyName);
     setColor(Color.blue);
-    atmosphere = new Atmosphere(0, 0, gas);
+    atmosphere = new Atmosphere(initP, initT, gas);
   }
   /**
    * Copy constructor
@@ -52,10 +51,11 @@ public class RockyPlanet extends Body {
   public boolean getHab(){return habitable;}
   public void setHab(boolean hab){this.habitable = hab;}
 
-  public void update_habitability(ArrayList<Star> suns) {
+  public void update_habitability(ArrayList<Star> suns, double dt) {
 
     Gas gas = atmosphere.getGas();
     double temperature = atmosphere.getTemperature();
+    double pressure = atmosphere.getPressure();
 
     double radius = getRadius();
     Vector3D position = getPos();
@@ -72,18 +72,26 @@ public class RockyPlanet extends Body {
     for (Body sun : suns){
       double distance_sun = sub(position, sun.getPos()).len();
       total_power += powerFromSun(sun.getRadius(), sun.getTemp(), atm_cross_sec_area, distance_sun);
-      total_energy = total_power*(1-gas.albedo);
+      total_energy = total_power*(1-gas.albedo)*dt;
     }
 
-    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4);
+    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4)*dt;
 
     double net_energy = total_energy - energy_loss;
 
     double delta_temp = net_energy / (atm_mass * gas.heat_capacity);
 
+    double slope = (temperature + delta_temp)/temperature;
+
     temperature = temperature + delta_temp;
 
-    double pressure = (atm_moles*Atmosphere.R*temperature)/atm_volume;
+    if (temperature < 0){
+      temperature = 0;
+    }
+
+    //double pressure = (atm_moles*Atmosphere.R*temperature)/atm_volume;
+
+    pressure = pressure * slope;
 
     atmosphere.setPressure(pressure);
     atmosphere.setTemperature(temperature);
@@ -109,7 +117,7 @@ public class RockyPlanet extends Body {
   public void paintThis(Graphics2D g2d) {
     g2d.setColor(getColor());
     Ellipse2D.Double shape = new Ellipse2D.Double(this.getX() - this.getRadius(), this.getY() - this.getRadius(),
-        this.getRadius() * 2, this.getRadius() * 2);
+        this.getRadius() * 2 * this.getScale(), this.getRadius() * 2 * this.getScale());
     g2d.fill(shape);
   }
 }

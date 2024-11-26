@@ -29,6 +29,8 @@ public abstract class Body implements Paintable {
   private Texture texture;
   private String bodyName;
 
+  private final double scale = 1;
+
   /**
    * Create new body
    */
@@ -73,6 +75,10 @@ public abstract class Body implements Paintable {
    */
   public double getRadius() {
     return radius;
+  }
+
+  public double getScale() {
+    return scale;
   }
 
   public Color getColor() {
@@ -170,7 +176,7 @@ public abstract class Body implements Paintable {
     }
     name += "💥";
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
-    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null);
+    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
     return newBod;
   }
 

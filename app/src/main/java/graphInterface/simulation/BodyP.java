@@ -106,7 +106,8 @@ public class BodyP extends JPanel {
           this);
       add(delimiterL);
       // Pressure
-      pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure(), 3) + " Pa");
+      //pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure(), 3) + " Pa");
+      pressureL = new JLabel("Pressure: " + r.getAtm().getPressure() + " Pa");
       pressureL.setForeground(Color.WHITE);
       pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
       pressureL.setForeground(Color.WHITE);
@@ -116,7 +117,8 @@ public class BodyP extends JPanel {
           this);
       add(pressureL);
       // Temperature
-      temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 3) + " °K");
+      //temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 3) + " °K");
+      temperatureL = new JLabel("Temperature: " + r.getAtm().getTemperature() + " °K");
       temperatureL.setForeground(Color.WHITE);
       temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
       temperatureL.setForeground(Color.WHITE);
