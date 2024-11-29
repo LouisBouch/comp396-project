@@ -9,6 +9,8 @@ import java.util.Random;
 import lib.Paintable;
 import lib.Vector3D;
 
+import static environment.habitablity.StarType.O;
+
 /**
  * Body
  */
@@ -167,6 +169,8 @@ public abstract class Body implements Paintable {
     double vol = 0;
     String name = "";
     Random rand = new Random();
+    boolean star = false;
+    Body newBod;
 
     for (Body planet : crashed){
       vol += Math.pow(planet.getRadius(), 3) * 4 /3.0 * Math.PI;
@@ -174,11 +178,19 @@ public abstract class Body implements Paintable {
       pos = Vector3D.add(pos, planet.getPos().copy().scalarMult(planet.getMass()));
       mom = Vector3D.add(mom, Vector3D.scalarMult(planet.getVel(), planet.getMass()));
       name += planet.getBodyName().substring(0, rand.nextInt(planet.getBodyName().length())+1);
-
+      if (planet instanceof Star){
+        star = true;
+      }
     }
     name += "💥";
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
-    Body newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
+
+    if (star == true){
+      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, O);
+    }
+    else {
+      newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
+    }
     return newBod;
   }
 

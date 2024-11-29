@@ -3,7 +3,13 @@ package environment.habitablity;
 public enum Gas {
     Earthlike(1.225, 1005, 0.3, 0.02896),
 
-    Marslike(0.02, 742.6, 0.25, 0.0433);
+    Marslike(0.02, 742.6, 0.25, 0.0433),
+
+    Venuslike(65, 1160, 0.75, 0.044),
+
+    Mercurylike(0, 0, 0.9, 0),
+
+    Titanlike(1.5, 1040, 0.21, 0.026);
 
     public double density;
 

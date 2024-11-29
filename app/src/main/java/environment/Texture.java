@@ -24,7 +24,7 @@ public enum Texture {
   Eris("Eris.jpg"),
   Pink("Pink.jpg"),
 
-  Crashed("Sun.jpg");
+  Crashed("Crashed.jpg");
 
   private String resName;
   private BufferedImage UVMap;

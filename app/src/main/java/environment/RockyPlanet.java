@@ -64,45 +64,45 @@ public class RockyPlanet extends Body {
     double atm_volume = ((4/3.0)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3.0)*Math.PI*Math.pow(radius, 3));
     double atm_mass = gas.density * atm_volume;
     double atm_cross_sec_area = Math.PI*Math.pow((radius + atm_thick), 2);
-    double atm_moles = atm_mass/gas.molar_mass;
+    double atm_moles = atm_mass / gas.molar_mass;
 
+    // Step 1: Calculate energy absorbed from all stars
     double total_power = 0;
-    double total_energy = 0;
-
-    for (Body sun : suns){
+    for (Body sun : suns) {
       double distance_sun = sub(position, sun.getPos()).len();
-      total_power += powerFromSun(sun.getRadius(), sun.getTemp(), atm_cross_sec_area, distance_sun);
-      total_energy = total_power*(1-gas.albedo)*dt;
+      double powerFromCurrentSun = powerFromSun(sun.getRadius(), sun.getTemp(), atm_cross_sec_area, distance_sun);
+      total_power += powerFromCurrentSun;
     }
 
-    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4)*dt;
+    // Energy absorbed over time step
+    double total_energy = total_power * (1 - gas.albedo) * dt;
 
+    // Step 2: Energy lost due to blackbody radiation
+    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4) * dt;
+
+    // Step 3: Net energy and temperature change
     double net_energy = total_energy - energy_loss;
-
     double delta_temp = net_energy / (atm_mass * gas.heat_capacity);
 
-    double slope = (temperature + delta_temp)/temperature;
+    // Update temperature, ensuring no negative values
+    temperature = Math.max(temperature + delta_temp, 0);
 
-    temperature = temperature + delta_temp;
+    // Step 4: Update pressure using the ideal gas law
+    pressure = (atm_moles * Atmosphere.R * temperature) / atm_volume;
 
-    if (temperature < 0){
-      temperature = 0;
-    }
-
-    //double pressure = (atm_moles*Atmosphere.R*temperature)/atm_volume;
-
-    pressure = pressure * slope;
-
+    // Step 5: Update atmosphere properties
     atmosphere.setPressure(pressure);
     atmosphere.setTemperature(temperature);
 
-    if(temperature > 273.15 + -0.0001*(pressure-101325) && Math.log(pressure) > 23.196-(3816/temperature)){
+    // Step 6: Determine habitability
+    if (temperature > 273.15 + -0.0001 * (pressure - 101325) &&
+            Math.log(pressure) > 23.196 - (3816 / temperature)) {
       this.habitable = true;
-      }
-    else{
+    } else {
       this.habitable = false;
     }
   }
+
 
   public double powerFromSun(double rad_star, double temp_star, double area_planet, double distance){
     double luminosity_star = 4 * Math.PI * Math.pow(rad_star, 2) * Atmosphere.BOLTZ * Math.pow(temp_star, 4);
