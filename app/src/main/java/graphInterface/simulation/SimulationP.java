@@ -584,15 +584,15 @@ public class SimulationP extends JPanel implements Runnable {
    * @return The formatted string of time
    */
   public String formatTime(double time) {
-    int sIY = 3600 * 24 * 365;
-    int sID = 3600 * 24;
-    int sIH = 3600;
-    int sIM = 60;
+    double sIY = 3600 * 24 * 365;
+    double sID = 3600 * 24;
+    double sIH = 3600;
+    double sIM = 60;
 
-    int y = (int) time / sIY;
-    int d = (int) (time - sIY * y) / sID;
-    int h = (int) (time - sIY * y - sID * d) / sIH;
-    int m = (int) (time - sIY * y - sID * d - sIH * h) / sIM;
+    int y = (int) (time / sIY);
+    int d = (int) ((time - sIY * y) / sID);
+    int h = (int) ((time - sIY * y - sID * d) / sIH);
+    int m = (int) ((time - sIY * y - sID * d - sIH * h) / sIM);
 
     String format = "";
       format += "year: " + y + "<br>";

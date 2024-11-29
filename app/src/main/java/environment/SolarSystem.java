@@ -30,7 +30,7 @@ public class SolarSystem {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun", StarType.O));
+    bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun", StarType.G));
     bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike, 101325, 293));
     bodies.add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0),
         Texture.Mars, "Mars", Gas.Marslike, 700, 210));
