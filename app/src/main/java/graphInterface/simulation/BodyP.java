@@ -1,10 +1,13 @@
 package graphInterface.simulation;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -40,7 +43,7 @@ public class BodyP extends JPanel {
    *
    * @param bodies List of bodies in the solar system
    */
-  public BodyP(Body body, Camera3D camera) {
+  public BodyP(Body body, Camera3D camera, Runnable deleteAction) {
     this.camera = camera;
     this.body = body;
     setBorder(new LineBorder(Color.BLACK, 2));
@@ -59,7 +62,7 @@ public class BodyP extends JPanel {
     // Goto button that moves camera in front of planet
     JButton gotoB = new JButton("Go to");
     gotoB.setFocusable(false);
-    layout.putConstraint(SpringLayout.NORTH, gotoB, 10, SpringLayout.NORTH, this);
+    layout.putConstraint(SpringLayout.NORTH, gotoB, 50, SpringLayout.NORTH, this);
     layout.putConstraint(SpringLayout.EAST, gotoB, -10, SpringLayout.EAST, this);
     add(gotoB);
 
@@ -69,6 +72,18 @@ public class BodyP extends JPanel {
     layout.putConstraint(SpringLayout.NORTH, lookB, 10, SpringLayout.SOUTH, gotoB);
     layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, lookB, 0, SpringLayout.HORIZONTAL_CENTER, gotoB);
     add(lookB);
+
+    // Delete button that deletes the body
+    JButton deleteB = new JButton("X");
+    deleteB.setFocusable(false);
+    deleteB.setBorderPainted(false);
+    deleteB.setContentAreaFilled(false);
+    deleteB.setFont(new Font("Dialog", Font.BOLD, 18));
+    deleteB.setForeground(Color.WHITE);
+    deleteB.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    layout.putConstraint(SpringLayout.NORTH, deleteB, 0, SpringLayout.NORTH, this);
+    layout.putConstraint(SpringLayout.EAST, deleteB, 0, SpringLayout.EAST, this);
+    add(deleteB);
 
     // Listener for button. Places the camera near the planet
     gotoB.addActionListener(new ActionListener() {
@@ -88,6 +103,20 @@ public class BodyP extends JPanel {
         Vector3D bodyPos = body.getPos().copy();
         camera.lookAt(bodyPos);
       }
+    });
+    deleteB.addMouseListener(new MouseListener() {
+      @Override
+      public void mouseClicked(MouseEvent e) {}
+      @Override
+      public void mouseEntered(MouseEvent e) {}
+      @Override
+      public void mouseExited(MouseEvent e) {}
+      @Override
+      public void mousePressed(MouseEvent e) {
+        deleteAction.run();
+      }
+      @Override
+      public void mouseReleased(MouseEvent e) { }
     });
     // Labels
     typeL = new JLabel("Type: ");
@@ -120,8 +149,9 @@ public class BodyP extends JPanel {
           this);
       add(delimiterL);
       // Pressure
-      //pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure(), 3) + " Pa");
-      pressureL = new JLabel("Pressure: " + r.getAtm().getPressure() + " Pa");
+      // pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure()/1000.0, 3)
+      // + " kPa");
+      pressureL = new JLabel("Pressure: " + r.getAtm().getPressure()/1000.0 + " kPa");
       pressureL.setForeground(Color.WHITE);
       pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
       pressureL.setForeground(Color.WHITE);
@@ -131,7 +161,8 @@ public class BodyP extends JPanel {
           this);
       add(pressureL);
       // Temperature
-      //temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 3) + " °K");
+      // temperatureL = new JLabel("Temperature: " +
+      // roundToSF(r.getAtm().getTemperature(), 3) + " °K");
       temperatureL = new JLabel("Temperature: " + r.getAtm().getTemperature() + " °K");
       temperatureL.setForeground(Color.WHITE);
       temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));

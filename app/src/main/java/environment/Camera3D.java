@@ -25,7 +25,7 @@ public class Camera3D implements Paintable {
   public static final int UP = -1;
 
   private int mode = 4;
-  private int scale = 100;
+  private int scale = 1;
 
   // Backgrounds universe
   private ArrayList<Vector3D> stars;
@@ -1318,6 +1318,10 @@ public class Camera3D implements Paintable {
     Vector3D direction = Vector3D.sub(pos, curPosM);
     Vector3D rotVec = Vector3D.cross(curOrientation, direction);
     double angle = Vector3D.separationAngle(direction, curOrientation);
+    // Don't do anything if you're already looking at the planet
+    if (angle == 0 || rotVec.len() < 0.000001) {
+      return;
+    }
     Quaternion rot = Quaternion.fromAxisAngle(angle, rotVec.normalize());
     rotQ.mulQuaternionReverse(rot);
     // Update orientations
@@ -1333,5 +1337,13 @@ public class Camera3D implements Paintable {
    */
   public int getScale() {
     return scale;
+  }
+  /**
+   * Set the scale of planets
+   *
+   * @param scale The new scale value for the radius
+   */
+  public void setScale(int scale) {
+    this.scale = scale;
   }
 }

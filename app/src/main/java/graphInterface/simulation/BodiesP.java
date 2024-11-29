@@ -81,7 +81,7 @@ public class BodiesP extends JPanel {
    */
   public void populatePanel(ArrayList<Body> bodies, Camera3D camera) {
     for (Body b : bodies) {
-      addBodyP(new BodyP(b, camera));
+      addBodyP(new BodyP(b, camera, () -> {bodies.remove(b);}));
     }
   }
 

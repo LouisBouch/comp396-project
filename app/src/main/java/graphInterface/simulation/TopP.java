@@ -17,12 +17,15 @@ import javax.swing.event.ChangeListener;
 /**
  * TimeEvolutionP
  */
-public class TimeP extends JPanel {
+public class TopP extends JPanel {
   private SimulationP simP;
   private boolean timePaused = false;
   private JSlider timeSlider;
+  private JSlider scaleSlider;
   private JLabel multLabel;
+  private JLabel scaleLabel;
   private String timeMultLabelPrefix = "Current time multiplier: x";
+  private String scaleMultLabelPrefix = "Current scale multiplier: x";
   private String pauseString = "⏹ Pause";
   private String resumeString = "▶ Resume";
   private JButton timePauseB;
@@ -32,18 +35,52 @@ public class TimeP extends JPanel {
    *
    * @param simP Solar system to take information from
    */
-  public TimeP(SimulationP simP) {
+  public TopP(SimulationP simP) {
     this.simP = simP;
     setBackground(Color.decode("#1f1f38"));
     SpringLayout springLayout = new SpringLayout();
     setLayout(springLayout);
 
+    // Setup scale slider
+    int maxS = 15;
+    double curS = simP.getCamera().getScale();
+    // Convert value into a slider valuec
+    int valS = (int) Math.round(Math.log(curS) / Math.log(1.5));
+    scaleSlider = new JSlider(0, maxS, valS);
+    scaleSlider.setMajorTickSpacing(5);
+    scaleSlider.setMinorTickSpacing(1);
+    scaleSlider.setPaintTicks(true);
+    scaleSlider.setOpaque(false);
+    scaleSlider.setForeground(Color.WHITE);
+    scaleSlider.setSnapToTicks(true);
+    Dimension sliderDimTop = scaleSlider.getPreferredSize();
+    scaleSlider.setPreferredSize(new Dimension((int) sliderDimTop.getWidth() + 50, (int) sliderDimTop.getHeight()));
+    springLayout.putConstraint(SpringLayout.WEST, scaleSlider, 100, SpringLayout.WEST, this);
+    springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, scaleSlider, 0, SpringLayout.VERTICAL_CENTER, this);
+    add(scaleSlider);
+    // Slider label
+    JLabel sliderLabelScale = new JLabel("Adjust the scale of the planets (Visual change only)");
+    sliderLabelScale.setFont(new Font("Dialog", Font.BOLD, 15));
+    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, sliderLabelScale, 0, SpringLayout.HORIZONTAL_CENTER,
+        scaleSlider);
+    springLayout.putConstraint(SpringLayout.SOUTH, sliderLabelScale, -4, SpringLayout.NORTH, scaleSlider);
+    sliderLabelScale.setForeground(Color.WHITE);
+    add(sliderLabelScale);
+    // Current scale multiplier
+    scaleLabel = new JLabel(scaleMultLabelPrefix + curS);
+    scaleLabel.setFont(new Font("Dialog", Font.BOLD, 14));
+    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, scaleLabel, 0, SpringLayout.HORIZONTAL_CENTER,
+        scaleSlider);
+    springLayout.putConstraint(SpringLayout.NORTH, scaleLabel, 4, SpringLayout.SOUTH, scaleSlider);
+    scaleLabel.setForeground(Color.WHITE);
+    add(scaleLabel);
+
     // Setup delta time slider
-    int max = 20;
-    double curValue = simP.getDt();
+    int maxT = 20;
+    double curDT = simP.getDt();
     // Convert dt value into a slider value (assumes it is possitive)
-    int val = (int) Math.round(Math.log(curValue + 1) / Math.log(2));
-    timeSlider = new JSlider(-max, max, val);
+    int valT = (int) Math.round(Math.log(curDT + 1) / Math.log(2));
+    timeSlider = new JSlider(-maxT, maxT, valT);
     timeSlider.setMajorTickSpacing(5);
     timeSlider.setMinorTickSpacing(1);
     timeSlider.setPaintTicks(true);
@@ -51,21 +88,21 @@ public class TimeP extends JPanel {
     timeSlider.setOpaque(false);
     timeSlider.setForeground(Color.WHITE);
     timeSlider.setSnapToTicks(true);
-    Dimension sliderDim = timeSlider.getPreferredSize();
-    timeSlider.setPreferredSize(new Dimension((int) sliderDim.getWidth() + 100, (int) sliderDim.getHeight()));
+    Dimension sliderDimTime = timeSlider.getPreferredSize();
+    timeSlider.setPreferredSize(new Dimension((int) sliderDimTime.getWidth() + 100, (int) sliderDimTime.getHeight()));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, timeSlider, 0, SpringLayout.HORIZONTAL_CENTER, this);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, timeSlider, 0, SpringLayout.VERTICAL_CENTER, this);
     add(timeSlider);
     // Slider label
-    JLabel sliderLabel = new JLabel("Adjust the speed of the simulation");
-    sliderLabel.setFont(new Font("Dialog", Font.BOLD, 15));
-    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, sliderLabel, 0, SpringLayout.HORIZONTAL_CENTER,
+    JLabel sliderLabelTime = new JLabel("Adjust the speed of the simulation");
+    sliderLabelTime.setFont(new Font("Dialog", Font.BOLD, 15));
+    springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, sliderLabelTime, 0, SpringLayout.HORIZONTAL_CENTER,
         timeSlider);
-    springLayout.putConstraint(SpringLayout.SOUTH, sliderLabel, -4, SpringLayout.NORTH, timeSlider);
-    sliderLabel.setForeground(Color.WHITE);
-    add(sliderLabel);
+    springLayout.putConstraint(SpringLayout.SOUTH, sliderLabelTime, -4, SpringLayout.NORTH, timeSlider);
+    sliderLabelTime.setForeground(Color.WHITE);
+    add(sliderLabelTime);
     // Current speed multiplier
-    multLabel = new JLabel(timeMultLabelPrefix + timeSlider.getValue());
+    multLabel = new JLabel(timeMultLabelPrefix + curDT);
     multLabel.setFont(new Font("Dialog", Font.BOLD, 14));
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, multLabel, 0, SpringLayout.HORIZONTAL_CENTER,
         timeSlider);
@@ -89,7 +126,7 @@ public class TimeP extends JPanel {
     add(resetB);
     // SETUP LISTENERS
 
-    // Slider listener
+    // Time slider listener
     timeSlider.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
@@ -98,6 +135,17 @@ public class TimeP extends JPanel {
         double newDt = getDt(value);
         simP.setDt(newDt);
         multLabel.setText(timeMultLabelPrefix + (int) newDt);
+      }
+    });
+    // Scale slider listener
+    scaleSlider.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        JSlider slider = ((JSlider) e.getSource());
+        int value = slider.getValue();
+        double newS = getScale(value);
+        simP.getCamera().setScale((int) newS);
+        scaleLabel.setText(scaleMultLabelPrefix + (int) newS);
       }
     });
     // Pause button listener
@@ -164,6 +212,17 @@ public class TimeP extends JPanel {
     }
     return -Math.pow(2, -val) + 1;
 
+  }
+
+  /**
+   * Takes a value from the scale slider and transforms it into a scale value for
+   * the camera
+   *
+   * @param val The slider value
+   * @return the scale value
+   */
+  private double getScale(int val) {
+    return Math.pow(1.5, val);
   }
 
 }
