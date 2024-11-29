@@ -25,6 +25,7 @@ public class Camera3D implements Paintable {
   public static final int UP = -1;
 
   private int mode = 4;
+  private int scale = 100;
 
   // Backgrounds universe
   private ArrayList<Vector3D> stars;
@@ -230,6 +231,7 @@ public class Camera3D implements Paintable {
         // Also copy body to prevent the same issue but with the body movement
         Body bodyCopy = body.copy();
         // Radius scale factor
+        bodyCopy.setRadius(bodyCopy.getRadius() * scale);
         cam.textureView(g2d, bodyCopy);
       }
       // Least computationally expensive mode. Shows approximation to sphere
@@ -1305,5 +1307,26 @@ public class Camera3D implements Paintable {
    */
   public void setCurPosM(Vector3D newPos) {
     curPosM.setComponents(newPos);
+  }
+
+  /**
+   * Angles the camera towards a point
+   *
+   * @param pos Where to look at
+   */
+  public void lookAt(Vector3D pos) {
+    Vector3D direction = Vector3D.sub(pos, curPosM);
+    Vector3D rotVec = curOrientation.cross(direction);
+    double angle = Vector3D.separationAngle(direction, curOrientation);
+    Quaternion rot = Quaternion.fromAxisAngle(angle, rotVec.normalize());
+    curOrientation.qatRot(rot);
+  }
+  /**
+   * Get the scale of planets
+   *
+   * @return The value used to scale the radius
+   */
+  public int getScale() {
+    return scale;
   }
 }

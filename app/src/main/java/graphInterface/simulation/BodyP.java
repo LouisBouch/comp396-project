@@ -77,7 +77,7 @@ public class BodyP extends JPanel {
         Vector3D pos = body.getPos();
         Vector3D ori = camera.getCurOrientation();
         double rad = body.getRadius();
-        Vector3D exitCenter = Vector3D.scalarMult(ori, -2 * rad);
+        Vector3D exitCenter = Vector3D.scalarMult(ori, -2 * rad * camera.getScale());
         Vector3D newPos = Vector3D.add(pos, exitCenter);
         camera.setCurPosM(newPos);
       }
@@ -87,7 +87,7 @@ public class BodyP extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         Vector3D bodyPos = body.getPos().copy();
-        //camera.lookAt(bodyPos);
+        camera.lookAt(bodyPos);
       }
     });
     // Labels

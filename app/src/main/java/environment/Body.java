@@ -29,8 +29,6 @@ public abstract class Body implements Paintable {
   private Texture texture;
   private String bodyName;
 
-  private final double scale = 1;
-
   /**
    * Create new body
    */
@@ -83,10 +81,6 @@ public abstract class Body implements Paintable {
    */
   public void setRadius(double newRad) {
     radius = newRad;
-  }
-
-  public double getScale() {
-    return scale;
   }
 
   public Color getColor() {

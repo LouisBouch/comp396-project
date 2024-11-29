@@ -117,7 +117,7 @@ public class RockyPlanet extends Body {
   public void paintThis(Graphics2D g2d) {
     g2d.setColor(getColor());
     Ellipse2D.Double shape = new Ellipse2D.Double(this.getX() - this.getRadius(), this.getY() - this.getRadius(),
-        this.getRadius() * 2 * this.getScale(), this.getRadius() * 2 * this.getScale());
+        this.getRadius() * 2, this.getRadius() * 2);
     g2d.fill(shape);
   }
 }
