@@ -229,6 +229,7 @@ public class Camera3D implements Paintable {
         Camera3D cam = new Camera3D(this);
         // Also copy body to prevent the same issue but with the body movement
         Body bodyCopy = body.copy();
+        // Radius scale factor
         cam.textureView(g2d, bodyCopy);
       }
       // Least computationally expensive mode. Shows approximation to sphere

@@ -63,6 +63,13 @@ public class BodyP extends JPanel {
     layout.putConstraint(SpringLayout.EAST, gotoB, -10, SpringLayout.EAST, this);
     add(gotoB);
 
+    // Look button that makes camera look at body
+    JButton lookB = new JButton("Look");
+    lookB.setFocusable(false);
+    layout.putConstraint(SpringLayout.NORTH, lookB, 10, SpringLayout.SOUTH, gotoB);
+    layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, lookB, 0, SpringLayout.HORIZONTAL_CENTER, gotoB);
+    add(lookB);
+
     // Listener for button. Places the camera near the planet
     gotoB.addActionListener(new ActionListener() {
       @Override
@@ -73,6 +80,14 @@ public class BodyP extends JPanel {
         Vector3D exitCenter = Vector3D.scalarMult(ori, -2 * rad);
         Vector3D newPos = Vector3D.add(pos, exitCenter);
         camera.setCurPosM(newPos);
+      }
+    });
+    // TODO: Make camera look at body (Maybe implement "lookAt" function in camera)
+    lookB.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Vector3D bodyPos = body.getPos().copy();
+        //camera.lookAt(bodyPos);
       }
     });
     // Labels

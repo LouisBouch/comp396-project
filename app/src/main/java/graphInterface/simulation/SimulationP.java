@@ -141,7 +141,7 @@ public class SimulationP extends JPanel implements Runnable {
     // Label that says whether the mouse is captured or not
     captureLabel = new JLabel();
     sLayout.putConstraint(SpringLayout.SOUTH, captureLabel, -5, SpringLayout.SOUTH, this);
-    sLayout.putConstraint(SpringLayout.WEST, captureLabel, 5, SpringLayout.WEST, this);
+    sLayout.putConstraint(SpringLayout.EAST, captureLabel, -5, SpringLayout.EAST, this);
     this.add(captureLabel);
     capturedLabel();
 
@@ -162,7 +162,7 @@ public class SimulationP extends JPanel implements Runnable {
     // Label that contains time of the simulation
     timeLabel = new JLabel();
     sLayout.putConstraint(SpringLayout.SOUTH, timeLabel, -5, SpringLayout.SOUTH, this);
-    sLayout.putConstraint(SpringLayout.EAST, timeLabel, -5, SpringLayout.EAST, this);
+    sLayout.putConstraint(SpringLayout.WEST, timeLabel, 5, SpringLayout.WEST, this);
     this.add(timeLabel);
     updateTimeLabel();
 
@@ -608,7 +608,7 @@ public class SimulationP extends JPanel implements Runnable {
     double time = solarSystem.getTime();
     timeLabel.setText("<html>" +
         "<span style='color:#FFFFFF; font-size: 16; vertical-align: bottom;'>" +
-        "Time since start of sim <br>"
+        "Elapsed time<br>"
         + formatTime(time) + "</span>" + "</html>");
   }
 

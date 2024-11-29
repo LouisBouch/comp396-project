@@ -74,6 +74,14 @@ public abstract class Body implements Paintable {
   public double getRadius() {
     return radius;
   }
+  /**
+   * Sets the radius of the body
+   * 
+   * @params newRad Value of radius in meters
+   */
+  public void setRadius(double newRad) {
+    radius = newRad;
+  }
 
   public Color getColor() {
     return color;
