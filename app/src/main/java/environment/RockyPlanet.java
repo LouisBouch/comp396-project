@@ -19,7 +19,6 @@ public class RockyPlanet extends Body {
   boolean habitable = false;
   public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initP, double initT) {
     super(radius, mass, position, velocity, texture, bodyName);
-    setColor(Color.blue);
     atmosphere = new Atmosphere(initP, initT, gas);
   }
   /**
@@ -27,8 +26,6 @@ public class RockyPlanet extends Body {
    */
   public RockyPlanet(RockyPlanet planet) {
     super(planet);
-    setColor(Color.blue);
-
     atmosphere = new Atmosphere(0, 0, planet.getAtm().getGas());
   }
   /**
@@ -63,7 +60,8 @@ public class RockyPlanet extends Body {
     double atm_thick = atmosphere.getAtmThickness(radius);
     double atm_volume = ((4/3.0)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3.0)*Math.PI*Math.pow(radius, 3));
     double atm_mass = gas.density * atm_volume;
-    double atm_cross_sec_area = Math.PI*Math.pow((radius + atm_thick), 2);
+    double atm_area = 4 * Math.PI * Math.pow(radius + atm_thick, 2);
+    double atm_cross_sec_area = atm_area/2;
     double atm_moles = atm_mass / gas.molar_mass;
 
     // Step 1: Calculate energy absorbed from all stars
@@ -78,7 +76,7 @@ public class RockyPlanet extends Body {
     double total_energy = total_power * (1 - gas.albedo) * dt;
 
     // Step 2: Energy lost due to blackbody radiation
-    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4) * dt;
+    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4) * dt * atm_area;
 
     // Step 3: Net energy and temperature change
     double net_energy = total_energy - energy_loss;
@@ -113,11 +111,4 @@ public class RockyPlanet extends Body {
 
   }
 
-  @Override
-  public void paintThis(Graphics2D g2d) {
-    g2d.setColor(getColor());
-    Ellipse2D.Double shape = new Ellipse2D.Double(this.getX() - this.getRadius(), this.getY() - this.getRadius(),
-        this.getRadius() * 2, this.getRadius() * 2);
-    g2d.fill(shape);
-  }
 }

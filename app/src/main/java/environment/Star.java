@@ -17,16 +17,12 @@ public class Star extends Body {
     super(radius, mass, position, velocity, starType.getTexture(), bodyName);
 
     this.starType = starType;
-
-    setColor(Color.yellow);
-    //this.setTexture(textureFromFile("Sun.jpg"));
   }
   /**
    * Copy constructor
    */
   public Star(Star star) {
     super(star);
-    setColor(Color.yellow);
   }
   /**
    * Creates a copy of the star
@@ -39,12 +35,4 @@ public class Star extends Body {
     return starType.getTemperature();
   }
 
-  @Override
-  public void paintThis(Graphics2D g2d) {
-    g2d.setColor(getColor());
-    Ellipse2D.Double shape = new Ellipse2D.Double(this.getX() - this.getRadius(), this.getY() - this.getRadius(),
-        this.getRadius() * 2, this.getRadius() * 2);
-    g2d.fill(shape);
-
-  }
 }

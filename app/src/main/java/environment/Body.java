@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
 
+import environment.habitablity.StarType;
 import lib.Paintable;
 import lib.Vector3D;
 
@@ -14,7 +15,7 @@ import static environment.habitablity.StarType.O;
 /**
  * Body
  */
-public abstract class Body implements Paintable {
+public abstract class Body {
 
   private double radius;
   private double mass;
@@ -186,10 +187,10 @@ public abstract class Body implements Paintable {
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
 
     if (star == true){
-      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, O);
+      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, StarType.O);
     }
     else {
-      newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
+      newBod = new CrashedPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
     }
     return newBod;
   }
@@ -264,14 +265,5 @@ public abstract class Body implements Paintable {
   public void setBodyName(String bodyName) {
     this.bodyName = bodyName;
   }
-
-  /**
-   * Abstract class implemented in the respective subclasses: Asteroid,
-   * GassyPlanet, RockyPlanet and Star
-   * 
-   * @param g2d The paintbrush
-   */
-  @Override
-  public abstract void paintThis(Graphics2D g2d);
 
 }

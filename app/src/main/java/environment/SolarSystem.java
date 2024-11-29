@@ -11,7 +11,7 @@ import lib.Vector3D;
 /**
  * SolarSystem
  */
-public class SolarSystem implements Paintable {
+public class SolarSystem {
 
   ArrayList<Body> bodies = new ArrayList<Body>();
 
@@ -30,20 +30,13 @@ public class SolarSystem implements Paintable {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    //bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun", StarType.G));
-    //bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0),
-    //        new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike, 101325, 293));
-    //bodies.add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0),
-    //    Texture.Mars, "Mars", Gas.Marslike, 700, 210));
-    //bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(300000000000.0, 0, 0),
-    //    new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", null, 0, 0));
+    bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun", StarType.O));
+    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike, 101325, 293));
+    bodies.add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0),
+        Texture.Mars, "Mars", Gas.Marslike, 700, 210));
+    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(300000000000.0, 0, 0), new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", null, 0, 0));
 
-
-    bodies.add(new RockyPlanet(10, 100, new Vector3D(0, 0, 0),
-            new Vector3D(0, 0, 0), Texture.Earth, "Icarus", null, 0, 0));
-
-    bodies.add(new RockyPlanet(10, 1000, new Vector3D(10000, 0, 0),
-            new Vector3D(0, 0, 0), Texture.Pink, "Icarus", null, 0, 0));
+    bodies.add(new RockyPlanet(1000000, 1e22, new Vector3D(600000000000.0, 0, 0), new Vector3D(10000, 0, 0), Texture.Minute, "Minute", null, 0, 0));
 
 
     // bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new
@@ -69,14 +62,6 @@ public class SolarSystem implements Paintable {
 
   }
 
-  /**
-   * Paints the body when in 2D mode
-   */
-  public void paintThis(Graphics2D g2d) {
-    for (Body body : bodies) {
-      body.paintThis(g2d);
-    }
-  }
 
   /**
    * Getter for the bodies ArrayList

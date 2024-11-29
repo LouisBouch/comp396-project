@@ -3,13 +3,13 @@ package environment.habitablity;
 import environment.Texture;
 
 public enum StarType {
-    O(35000, Texture.Sun),
-    B(20000, Texture.Sun),
-    A(8000, Texture.Sun),
-    F(7000, Texture.Sun),
-    G(5500, Texture.Sun),
-    K(4000, Texture.Sun),
-    M(3000, Texture.Sun);
+    O(35000, Texture.O),
+    B(20000, Texture.B),
+    A(8000, Texture.A),
+    F(7000, Texture.F),
+    G(5500, Texture.G),
+    K(4000, Texture.K),
+    M(3000, Texture.M);
 
     private double temperature;
 

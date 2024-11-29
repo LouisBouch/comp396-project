@@ -9,7 +9,15 @@ import javax.imageio.ImageIO;
  * Contains all possible textures
  */
 public enum Texture {
-  Sun("Sun.jpg"),
+
+  Minute("minute.jpg"),
+  O("O.jpg"),
+  B("B.jpg"),
+  A("A.jpg"),
+  F("F.jpg"),
+  G("G.jpg"),
+  K("K.jpg"),
+  M("M.jpg"),
   Mercury("Mercury.jpg"),
   Venus("Venus.jpg"),
   Earth("Earth.jpg"),
