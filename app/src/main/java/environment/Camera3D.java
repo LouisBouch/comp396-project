@@ -1316,11 +1316,16 @@ public class Camera3D implements Paintable {
    */
   public void lookAt(Vector3D pos) {
     Vector3D direction = Vector3D.sub(pos, curPosM);
-    Vector3D rotVec = curOrientation.cross(direction);
+    Vector3D rotVec = Vector3D.cross(curOrientation, direction);
     double angle = Vector3D.separationAngle(direction, curOrientation);
     Quaternion rot = Quaternion.fromAxisAngle(angle, rotVec.normalize());
-    curOrientation.qatRot(rot);
+    rotQ.mulQuaternionReverse(rot);
+    // Update orientations
+    curOrientation = Vector3D.qatRot(iniOrientation, rotQ);
+    curXAxis = Vector3D.qatRot(iniXAxis, rotQ);
+    curYAxis = Vector3D.qatRot(iniYAxis, rotQ);
   }
+
   /**
    * Get the scale of planets
    *
