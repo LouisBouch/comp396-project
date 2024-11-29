@@ -1,7 +1,9 @@
 package environment.habitablity;
 
 public enum Gas {
-    Earthlike(1.225, 1005, 0.3, 0.02896);
+    Earthlike(1.225, 1005, 0.3, 0.02896),
+
+    Marslike(0.02, 742.6, 0.25, 0.0433);
 
     public double density;
 
