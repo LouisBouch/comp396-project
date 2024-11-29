@@ -11,7 +11,13 @@ import javax.imageio.ImageIO;
 public enum Texture {
 
   Minute("minute.jpg"),
-  Sun("Sun.jpg"),
+  O("O.jpg"),
+  B("B.jpg"),
+  A("A.jpg"),
+  F("F.jpg"),
+  G("G.jpg"),
+  K("K.jpg"),
+  M("M.jpg"),
   Mercury("Mercury.jpg"),
   Venus("Venus.jpg"),
   Earth("Earth.jpg"),

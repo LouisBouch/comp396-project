@@ -92,8 +92,6 @@ public class SimulationP extends JPanel implements Runnable {
    * Can be used to move the mouse around
    */
   private Robot r;
-
-  private boolean orthoView = false;
   JLabel captureLabel;
   JLabel timeLabel;
   JLabel positionInSpaceLabel;
@@ -329,10 +327,6 @@ public class SimulationP extends JPanel implements Runnable {
     // Save the original transform
     AffineTransform originalTransform = g2d.getTransform();
 
-    // Orthonormal / perspective paint
-    if (orthoView)
-      orthoPaint(g2d);
-    else
       cameraPaint(g2d);
     // Restore the original transform
     g2d.setTransform(originalTransform);
@@ -342,26 +336,6 @@ public class SimulationP extends JPanel implements Runnable {
     // g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() *
     // pixelPerMeter);
     // g2d.fillRect(0, 0, 1, 1);
-  }
-
-  /**
-   * Prints the solar system using a top-down projection
-   *
-   * @param g2d graphics component
-   */
-  public void orthoPaint(Graphics2D g2d) {
-    // THE FOLLOWING TRANSFORMATIONS ARE EXECTUED IN THE REVERSE ORDER THAT THEY
-    // APPEAR
-    // translate -> scale
-
-    // Scale by necessary factor because bodies use their coordinates in meters
-    g2d.scale(pixelPerMeter, pixelPerMeter);
-
-    // Translate by necesary amount in meters
-    g2d.translate(translationM.getX(), translationM.getY());
-
-    // Paint solar system
-    solarSystem.paintThis(g2d);
   }
 
   /**
@@ -448,20 +422,10 @@ public class SimulationP extends JPanel implements Runnable {
     this.addMouseWheelListener(new MouseWheelListener() {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
-        if (orthoView) {
-          // If e.get.. is negative then we have scrollup, which is zoom in
-          // So we need positive value
-          nbZooms += -e.getWheelRotation();
-          double zoomMulti = Math.pow(zoomValue, -e.getWheelRotation());
-          translationM.setLocation(
-              (e.getX() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getX()) / zoomMulti,
-              (e.getY() / pixelPerMeter * (1 - zoomMulti) + zoomMulti * translationM.getY()) / zoomMulti);
-          pixelPerMeter = basePixelPerMeter * Math.pow(zoomValue, nbZooms);
-        } else {
           // Increases boost
           camera.addBoost(-e.getWheelRotation());
         }
-      }
+
     });
   }
 

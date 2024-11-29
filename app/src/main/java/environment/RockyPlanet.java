@@ -19,7 +19,6 @@ public class RockyPlanet extends Body {
   boolean habitable = false;
   public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initP, double initT) {
     super(radius, mass, position, velocity, texture, bodyName);
-    setColor(Color.blue);
     atmosphere = new Atmosphere(initP, initT, gas);
   }
   /**
@@ -27,8 +26,6 @@ public class RockyPlanet extends Body {
    */
   public RockyPlanet(RockyPlanet planet) {
     super(planet);
-    setColor(Color.blue);
-
     atmosphere = new Atmosphere(0, 0, planet.getAtm().getGas());
   }
   /**
@@ -114,11 +111,4 @@ public class RockyPlanet extends Body {
 
   }
 
-  @Override
-  public void paintThis(Graphics2D g2d) {
-    g2d.setColor(getColor());
-    Ellipse2D.Double shape = new Ellipse2D.Double(this.getX() - this.getRadius(), this.getY() - this.getRadius(),
-        this.getRadius() * 2, this.getRadius() * 2);
-    g2d.fill(shape);
-  }
 }

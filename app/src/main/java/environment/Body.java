@@ -15,7 +15,7 @@ import static environment.habitablity.StarType.O;
 /**
  * Body
  */
-public abstract class Body implements Paintable {
+public abstract class Body {
 
   private double radius;
   private double mass;
@@ -190,7 +190,7 @@ public abstract class Body implements Paintable {
       newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, StarType.O);
     }
     else {
-      newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
+      newBod = new CrashedPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
     }
     return newBod;
   }
@@ -265,14 +265,5 @@ public abstract class Body implements Paintable {
   public void setBodyName(String bodyName) {
     this.bodyName = bodyName;
   }
-
-  /**
-   * Abstract class implemented in the respective subclasses: Asteroid,
-   * GassyPlanet, RockyPlanet and Star
-   * 
-   * @param g2d The paintbrush
-   */
-  @Override
-  public abstract void paintThis(Graphics2D g2d);
 
 }
