@@ -82,7 +82,6 @@ public class BodyP extends JPanel {
         camera.setCurPosM(newPos);
       }
     });
-    // TODO: Make camera look at body (Maybe implement "lookAt" function in camera)
     lookB.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
