@@ -9,6 +9,8 @@ import javax.imageio.ImageIO;
  * Contains all possible textures
  */
 public enum Texture {
+
+  Minute("minute.jpg"),
   Sun("Sun.jpg"),
   Mercury("Mercury.jpg"),
   Venus("Venus.jpg"),

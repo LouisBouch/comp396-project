@@ -63,7 +63,8 @@ public class RockyPlanet extends Body {
     double atm_thick = atmosphere.getAtmThickness(radius);
     double atm_volume = ((4/3.0)*Math.PI*Math.pow((radius + atm_thick), 3)) - ((4/3.0)*Math.PI*Math.pow(radius, 3));
     double atm_mass = gas.density * atm_volume;
-    double atm_cross_sec_area = Math.PI*Math.pow((radius + atm_thick), 2);
+    double atm_area = 4 * Math.PI * Math.pow(radius + atm_thick, 2);
+    double atm_cross_sec_area = atm_area/2;
     double atm_moles = atm_mass / gas.molar_mass;
 
     // Step 1: Calculate energy absorbed from all stars
@@ -78,7 +79,7 @@ public class RockyPlanet extends Body {
     double total_energy = total_power * (1 - gas.albedo) * dt;
 
     // Step 2: Energy lost due to blackbody radiation
-    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4) * dt;
+    double energy_loss = Atmosphere.BOLTZ * Math.pow(temperature, 4) * dt * atm_area;
 
     // Step 3: Net energy and temperature change
     double net_energy = total_energy - energy_loss;

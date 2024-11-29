@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
 
+import environment.habitablity.StarType;
 import lib.Paintable;
 import lib.Vector3D;
 
@@ -186,7 +187,7 @@ public abstract class Body implements Paintable {
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
 
     if (star == true){
-      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, O);
+      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, StarType.O);
     }
     else {
       newBod = new RockyPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), Texture.Crashed, name, null, 0, 0);
