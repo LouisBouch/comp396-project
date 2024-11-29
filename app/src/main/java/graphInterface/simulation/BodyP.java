@@ -106,17 +106,25 @@ public class BodyP extends JPanel {
     });
     deleteB.addMouseListener(new MouseListener() {
       @Override
-      public void mouseClicked(MouseEvent e) {}
+      public void mouseClicked(MouseEvent e) {
+      }
+
       @Override
-      public void mouseEntered(MouseEvent e) {}
+      public void mouseEntered(MouseEvent e) {
+      }
+
       @Override
-      public void mouseExited(MouseEvent e) {}
+      public void mouseExited(MouseEvent e) {
+      }
+
       @Override
       public void mousePressed(MouseEvent e) {
         deleteAction.run();
       }
+
       @Override
-      public void mouseReleased(MouseEvent e) { }
+      public void mouseReleased(MouseEvent e) {
+      }
     });
     // Labels
     typeL = new JLabel("Type: ");
@@ -149,9 +157,7 @@ public class BodyP extends JPanel {
           this);
       add(delimiterL);
       // Pressure
-      // pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure()/1000.0, 3)
-      // + " kPa");
-      pressureL = new JLabel("Pressure: " + r.getAtm().getPressure()/1000.0 + " kPa");
+      pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure() / 1000.0, 4) + " kPa");
       pressureL.setForeground(Color.WHITE);
       pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
       pressureL.setForeground(Color.WHITE);
@@ -161,9 +167,7 @@ public class BodyP extends JPanel {
           this);
       add(pressureL);
       // Temperature
-      // temperatureL = new JLabel("Temperature: " +
-      // roundToSF(r.getAtm().getTemperature(), 3) + " °K");
-      temperatureL = new JLabel("Temperature: " + r.getAtm().getTemperature() + " °K");
+      temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 4) + " °K");
       temperatureL.setForeground(Color.WHITE);
       temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
       temperatureL.setForeground(Color.WHITE);
