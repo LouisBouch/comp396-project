@@ -6,12 +6,15 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,6 +41,7 @@ public class ParametersP extends JPanel implements Runnable {
   private BodiesP bodiesP;
   private boolean editMode = false;
   private AddBodyManager newBodyD;
+  private boolean initializeJDialog = false;
 
   /**
    * Constructor for JPanel
@@ -169,26 +173,65 @@ public class ParametersP extends JPanel implements Runnable {
         int index = bodyTypeBox.getSelectedIndex();
         String body = bodyTypes[index];
         editMode = true;
+        addBodyB.setEnabled(false);
         int width = 500;
         int height = 475;
         Consumer<Body> addBody = b -> simP.getSolarSystem().getBodies().add(b);
         switch (body) {
           case "Rocky Planet":
-            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.ROCKY, addBody, simP.getCamera());
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.ROCKY, addBody,
+                simP.getCamera());
             break;
 
           case "Gas Planet":
-            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.GASSY, addBody, simP.getCamera());
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.GASSY, addBody,
+                simP.getCamera());
             break;
 
           case "Star":
-            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.SUNNY, addBody, simP.getCamera());
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.SUNNY, addBody,
+                simP.getCamera());
             break;
         }
         // This is the window frame
         JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(thisP);
-        newBodyD.initializeJDialog(ownerFrame);
-        newBodyD.setVisible(true);
+        if (!initializeJDialog) {
+          JDialog JDialogBox = newBodyD.initializeJDialog(ownerFrame);
+          newBodyD.setVisible(true);
+          initializeJDialog = true;
+          JDialogBox.addWindowListener(new WindowListener() {
+            @Override
+            public void windowActivated(WindowEvent arg0) {
+            }
+
+            @Override
+            public void windowClosed(WindowEvent arg0) {
+              addBodyB.setEnabled(true);
+            }
+
+            @Override
+            public void windowClosing(WindowEvent arg0) {
+              addBodyB.setEnabled(true);
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent arg0) {
+              addBodyB.setEnabled(true);
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent arg0) {
+            }
+
+            @Override
+            public void windowIconified(WindowEvent arg0) {
+            }
+
+            @Override
+            public void windowOpened(WindowEvent arg0) {
+            }
+          });
+        }
       }
     });
   }

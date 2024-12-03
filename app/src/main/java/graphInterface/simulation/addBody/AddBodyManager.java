@@ -52,10 +52,10 @@ public class AddBodyManager {
    *
    * @param owner Jframe that hosts the body window. Can be null
    */
-  public void initializeJDialog(JFrame owner) {
+  public JDialog initializeJDialog(JFrame owner) {
     // Only initialize JDialog once
     if (initialized)
-      return;
+      return null;
     initialized = true;
     this.owner = owner;
     setD = new JDialog(this.owner, "New body");
@@ -69,6 +69,7 @@ public class AddBodyManager {
 
     // Add the scrollable component to the JDialog
     setD.add(scrollPane);
+    return setD;
   }
 
   /**
