@@ -1,24 +1,28 @@
 package graphInterface.simulation;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SpringLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
 import environment.Body;
+import graphInterface.simulation.addBody.AddBodyManager;
 import lib.keyBinds;
 
 /**
@@ -33,6 +37,7 @@ public class ParametersP extends JPanel implements Runnable {
   private int checkDelay = 500;
   private BodiesP bodiesP;
   private boolean editMode = false;
+  private AddBodyManager newBodyD;
 
   /**
    * Constructor for JPanel
@@ -71,29 +76,7 @@ public class ParametersP extends JPanel implements Runnable {
     layout.putConstraint(SpringLayout.NORTH, addBodyB, 10, SpringLayout.SOUTH, bodyTypeBox);
     layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, addBodyB, 0, SpringLayout.HORIZONTAL_CENTER, bodyTypeBox);
     add(addBodyB);
-
-    // Button listener
-    addBodyB.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        int index = bodyTypeBox.getSelectedIndex();
-        String body = bodyTypes[index];
-        editMode = true;
-        switch (body) {
-          case "Rocky Planet":
-            System.out.println(1);
-            break;
-
-          case "Gas Planet":
-            System.out.println(2);
-            break;
-
-          case "Star":
-            System.out.println(3);
-            break;
-        }
-      }
-    });
+    setupAddBodyFunctionality();
 
     // Scrollpane where parameters for each body will be
     bodiesP = new BodiesP(this.bodies);
@@ -169,6 +152,44 @@ public class ParametersP extends JPanel implements Runnable {
    * Redraws the panel of bodies
    */
   public void listenBodies() {
-      bodiesP.updatePanel(bodies, simP.getCamera());
+    bodiesP.updatePanel(bodies, simP.getCamera());
+  }
+
+  /**
+   * Sets up the logic behind add body
+   */
+  public void setupAddBodyFunctionality() {
+    String[] bodyTypes = { "Rocky Planet", "Gas Planet", "Star" };
+    JPanel thisP = this;
+    // Button listener
+    addBodyB.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        int index = bodyTypeBox.getSelectedIndex();
+        String body = bodyTypes[index];
+        editMode = true;
+        int width = 500;
+        int height = 475;
+        Consumer<Body> addBody = b -> simP.getSolarSystem().getBodies().add(b);
+        switch (body) {
+          case "Rocky Planet":
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.ROCKY, addBody, simP.getCamera());
+            break;
+
+          case "Gas Planet":
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.GASSY, addBody, simP.getCamera());
+            break;
+
+          case "Star":
+            newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.SUNNY, addBody, simP.getCamera());
+            break;
+        }
+        // This is the window frame
+        JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(thisP);
+        newBodyD.initializeJDialog(ownerFrame);
+        newBodyD.setVisible(true);
+      }
+    });
   }
 }

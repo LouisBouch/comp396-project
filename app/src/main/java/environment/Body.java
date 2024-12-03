@@ -1,16 +1,12 @@
 package environment;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
 
 import environment.habitablity.StarType;
-import lib.Paintable;
 import lib.Vector3D;
-
-import static environment.habitablity.StarType.O;
 
 /**
  * Body

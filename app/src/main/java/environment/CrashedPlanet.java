@@ -1,10 +1,6 @@
 package environment;
 
-import environment.habitablity.Atmosphere;
-import environment.habitablity.Gas;
 import lib.Vector3D;
-
-import java.awt.*;
 
 public class CrashedPlanet extends Body{
 

@@ -7,9 +7,12 @@ public enum Gas {
 
     Venuslike(65, 1160, 0.75, 0.044),
 
-    Mercurylike(0, 0, 0.9, 0),
+    Mercurylike(0, 0, 0.9, 0.1),// TODO: FIx that thing
+
+    Vacuum(0, 0, 0.21, 0.026),// TODO: Vacuum
 
     Titanlike(1.5, 1040, 0.21, 0.026);
+
 
     public double density;
 
