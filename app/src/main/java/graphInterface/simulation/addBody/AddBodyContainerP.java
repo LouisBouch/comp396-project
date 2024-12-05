@@ -20,6 +20,8 @@ import javax.swing.event.ChangeListener;
 
 import environment.Body;
 import environment.Camera3D;
+import environment.GassyPlanet;
+import environment.RockyPlanet;
 import environment.Star;
 import environment.Texture;
 import environment.habitablity.Gas;
@@ -72,6 +74,7 @@ public class AddBodyContainerP extends JPanel {
     setLayout(layout);
     setUpComps();
     listeners();
+    hideComponents();
   }
 
   // Places panels
@@ -231,9 +234,9 @@ public class AddBodyContainerP extends JPanel {
     addB.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Gas atmV = (Gas) atmC.getSelectedItem();
-        double tempV = tempS.getValue();
-        Texture texV = (Texture) texC.getSelectedItem();
+        Texture texV;
+        Gas atmV;
+        double tempV;
         double massExpV = Double.parseDouble(massExpT.getText());
         double massManV = Double.parseDouble(massManT.getText());
         double radExpV = Double.parseDouble(radExpT.getText());
@@ -241,23 +244,32 @@ public class AddBodyContainerP extends JPanel {
         String nameV = nameT.getText();
 
         double rad = radManV * Math.pow(10, radExpV);
+        Vector3D pos= cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad));
         double mass = massManV * Math.pow(10, massExpV);
-        add.accept(
-        //switch (body) {
-        //  case "Rocky Planet":
-        //    newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.ROCKY, addBody, simP.getCamera());
-        //    break;
-        //
-        //  case "Gas Planet":
-        //    newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.GASSY, addBody, simP.getCamera());
-        //    break;
-        //
-        //  case "Star":
-        //    newBodyD = new AddBodyManager(null, new Dimension(width, height), AddBodyManager.SUNNY, addBody, simP.getCamera());
-        //    break;
-        //}
-            new Star(rad, mass, cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad)),
-                new Vector3D(0, 0, 0), nameV, StarType.G));
+        Body newBody;
+        switch (bodyTypes[type]) {
+          case "Rocky Planet":
+            atmV = (Gas) atmC.getSelectedItem();
+            texV = (Texture) texC.getSelectedItem();
+            tempV = tempS.getValue();
+            newBody = new RockyPlanet(rad, mass, pos, new Vector3D(), texV, nameV, atmV, 0, tempV);
+            break;
+
+          case "Gas Planet":
+            texV = (Texture) texC.getSelectedItem();
+            newBody = new GassyPlanet(rad, mass, pos, new Vector3D(), texV, nameV);
+            break;
+
+          case "Star":
+            newBody = new Star(rad, mass, pos, new Vector3D(), nameV, StarType.G);
+            break;
+          default:
+            newBody = new GassyPlanet(rad, mass,
+                cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad)), new Vector3D(0, 0, 0),
+                Texture.Jupiter, nameV);
+
+        }
+         add.accept(newBody);
       }
     });
     // Temperature slider listener
@@ -267,5 +279,23 @@ public class AddBodyContainerP extends JPanel {
         currentTempL.setText(((JSlider) e.getSource()).getValue() + "°K");
       }
     });
+  }
+
+  /**
+   * Hides components based on the type of body that is added
+   */
+  public void hideComponents() {
+    switch (bodyTypes[type]) {
+      case "Star":
+        texL.setVisible(false);
+        texC.setVisible(false);
+      case "Gas Planet":
+        atmC.setVisible(false);
+        atmL.setVisible(false);
+        tempL.setVisible(false);
+        tempS.setVisible(false);
+        currentTempL.setVisible(false);
+        break;
+    }
   }
 }

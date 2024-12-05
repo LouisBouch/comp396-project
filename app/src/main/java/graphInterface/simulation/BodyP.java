@@ -177,7 +177,8 @@ public class BodyP extends JPanel {
           this);
       add(temperatureL);
       // Habitability
-      habitabilityL = new JLabel("Habitable: " + r.getHab());
+      String habitabilityBool = r.getHab() ? "<span style='color: green'>true</span>" : "<span style='color: red'>false</span>";
+      habitabilityL = new JLabel("<html>Habitable: " + habitabilityBool + "</html>");
       habitabilityL.setForeground(Color.WHITE);
       habitabilityL.setFont(new Font("Dialog", Font.BOLD, 18));
       habitabilityL.setForeground(Color.WHITE);

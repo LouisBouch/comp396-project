@@ -41,7 +41,6 @@ public class ParametersP extends JPanel implements Runnable {
   private BodiesP bodiesP;
   private boolean editMode = false;
   private AddBodyManager newBodyD;
-  private boolean initializeJDialog = false;
 
   /**
    * Constructor for JPanel
@@ -142,8 +141,8 @@ public class ParametersP extends JPanel implements Runnable {
   @Override
   public void run() {
     while (true) {
-      listenBodies();
-      repaint();
+      SwingUtilities.invokeLater(this::listenBodies);
+      SwingUtilities.invokeLater(this::repaint);
       try {
         Thread.sleep(checkDelay);
       } catch (InterruptedException e) {
@@ -195,43 +194,40 @@ public class ParametersP extends JPanel implements Runnable {
         }
         // This is the window frame
         JFrame ownerFrame = (JFrame) SwingUtilities.getWindowAncestor(thisP);
-        if (!initializeJDialog) {
-          JDialog JDialogBox = newBodyD.initializeJDialog(ownerFrame);
-          newBodyD.setVisible(true);
-          initializeJDialog = true;
-          JDialogBox.addWindowListener(new WindowListener() {
-            @Override
-            public void windowActivated(WindowEvent arg0) {
-            }
+        JDialog JDialogBox = newBodyD.initializeJDialog(ownerFrame);
+        newBodyD.setVisible(true);
+        JDialogBox.addWindowListener(new WindowListener() {
+          @Override
+          public void windowActivated(WindowEvent arg0) {
+          }
 
-            @Override
-            public void windowClosed(WindowEvent arg0) {
-              addBodyB.setEnabled(true);
-            }
+          @Override
+          public void windowClosed(WindowEvent arg0) {
+            System.out.println("ed");
+            addBodyB.setEnabled(true);
+          }
 
-            @Override
-            public void windowClosing(WindowEvent arg0) {
-              addBodyB.setEnabled(true);
-            }
+          @Override
+          public void windowClosing(WindowEvent arg0) {
+            addBodyB.setEnabled(true);
+          }
 
-            @Override
-            public void windowDeactivated(WindowEvent arg0) {
-              addBodyB.setEnabled(true);
-            }
+          @Override
+          public void windowDeactivated(WindowEvent arg0) {
+          }
 
-            @Override
-            public void windowDeiconified(WindowEvent arg0) {
-            }
+          @Override
+          public void windowDeiconified(WindowEvent arg0) {
+          }
 
-            @Override
-            public void windowIconified(WindowEvent arg0) {
-            }
+          @Override
+          public void windowIconified(WindowEvent arg0) {
+          }
 
-            @Override
-            public void windowOpened(WindowEvent arg0) {
-            }
-          });
-        }
+          @Override
+          public void windowOpened(WindowEvent arg0) {
+          }
+        });
       }
     });
   }
