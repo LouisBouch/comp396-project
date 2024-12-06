@@ -208,7 +208,7 @@ public class SolarSystem {
         suns.add((Star) body);
       }
       if (body instanceof RockyPlanet) {
-        if (((RockyPlanet) body).getAtm().getGas() != null) {
+        if (((RockyPlanet) body).getAtm().getGas() != Gas.Vacuum ) {
           ((RockyPlanet) body).update_habitability(suns, dt);
         }
       }

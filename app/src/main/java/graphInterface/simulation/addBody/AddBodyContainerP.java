@@ -55,7 +55,7 @@ public class AddBodyContainerP extends JPanel {
   private Texture[] textures = { Texture.Mercury, Texture.Venus, Texture.Earth, Texture.Mars, Texture.Jupiter,
       Texture.Saturn, Texture.Uranus, Texture.Neptune, Texture.Moon, Texture.Haumea, Texture.Ceres, Texture.Eris,
       Texture.Pink };
-  private Gas[] gasses = { Gas.Earthlike, Gas.Marslike, Gas.Venuslike, Gas.Mercurylike, Gas.Titanlike, Gas.Vacuum };
+  private Gas[] gasses = { Gas.Earthlike, Gas.Marslike, Gas.Venuslike, Gas.Titanlike, Gas.Vacuum };
   private SpringLayout layout;
 
   private Consumer<Body> add;
