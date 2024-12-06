@@ -34,9 +34,9 @@ public class SolarSystem {
     bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike, 293));
     bodies.add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0),
         Texture.Mars, "Mars", Gas.Marslike, 210));
-    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(300000000000.0, 0, 0), new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", null, 0));
+    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(300000000000.0, 0, 0), new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", Gas.Vacuum, 0));
 
-    bodies.add(new RockyPlanet(1000000, 1e22, new Vector3D(600000000000.0, 0, 0), new Vector3D(10000, 0, 0), Texture.Minute, "Angus", null, 0));
+    bodies.add(new RockyPlanet(1000000, 1e22, new Vector3D(600000000000.0, 0, 0), new Vector3D(10000, 0, 0), Texture.Minute, "Angus", Gas.Vacuum, 0));
 
 
     // bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new
