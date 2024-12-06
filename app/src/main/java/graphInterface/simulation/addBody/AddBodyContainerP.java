@@ -39,7 +39,10 @@ public class AddBodyContainerP extends JPanel {
   private JTextField massManT;
   private JTextField radExpT;
   private JTextField radManT;
+  private JTextField velExpT;
+  private JTextField velManT;
   private JTextField nameT;
+  private JLabel velL;
   private JLabel atmL;
   private JLabel tempL;
   private JLabel currentTempL;
@@ -49,6 +52,7 @@ public class AddBodyContainerP extends JPanel {
   private JLabel nameL;
   private JLabel expMassL = new JLabel("×10^", SwingConstants.CENTER);
   private JLabel expRadL = new JLabel("×10^", SwingConstants.CENTER);
+  private JLabel expVelL = new JLabel("×10^", SwingConstants.CENTER);
 
   private String[] bodyTypes = { "Rocky Planet", "Gas Planet", "Star" };
   private int type;
@@ -91,6 +95,9 @@ public class AddBodyContainerP extends JPanel {
     radL = new JLabel("Radius: ");
     radL.setFont(new Font("Dialog", Font.BOLD, fontSize));
     add(radL);
+    velL = new JLabel("Velocity: ");
+    velL.setFont(new Font("Dialog", Font.BOLD, fontSize));
+    add(velL);
     massL = new JLabel("Mass: ");
     massL.setFont(new Font("Dialog", Font.BOLD, fontSize));
     add(massL);
@@ -110,6 +117,8 @@ public class AddBodyContainerP extends JPanel {
     add(expRadL);
     expMassL.setFont(new Font("Dialog", Font.PLAIN, fontSize));
     add(expMassL);
+    expVelL.setFont(new Font("Dialog", Font.PLAIN, fontSize));
+    add(expVelL);
 
     // Text
     nameT = new JTextField();
@@ -121,6 +130,12 @@ public class AddBodyContainerP extends JPanel {
     radExpT = new JTextField();
     radExpT.setFont(new Font("Dialog", Font.PLAIN, fontSize));
     add(radExpT);
+    velManT = new JTextField("0");
+    velManT.setFont(new Font("Dialog", Font.PLAIN, fontSize));
+    add(velManT);
+    velExpT = new JTextField("1");
+    velExpT.setFont(new Font("Dialog", Font.PLAIN, fontSize));
+    add(velExpT);
     massManT = new JTextField();
     massManT.setFont(new Font("Dialog", Font.PLAIN, fontSize));
     add(massManT);
@@ -162,6 +177,7 @@ public class AddBodyContainerP extends JPanel {
     // Property label
     layout.putConstraint(SpringLayout.WEST, nameL, 15, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, radL, 15, SpringLayout.WEST, this);
+    layout.putConstraint(SpringLayout.WEST, velL, 15, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, massL, 15, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, texL, 15, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, tempL, 15, SpringLayout.WEST, this);
@@ -170,7 +186,8 @@ public class AddBodyContainerP extends JPanel {
     layout.putConstraint(SpringLayout.NORTH, nameL, spaceBetweenLabels + 50, SpringLayout.NORTH, this);
     layout.putConstraint(SpringLayout.NORTH, radL, spaceBetweenLabels, SpringLayout.SOUTH, nameL);
     layout.putConstraint(SpringLayout.NORTH, massL, spaceBetweenLabels, SpringLayout.SOUTH, radL);
-    layout.putConstraint(SpringLayout.NORTH, texL, spaceBetweenLabels, SpringLayout.SOUTH, massL);
+    layout.putConstraint(SpringLayout.NORTH, velL, spaceBetweenLabels, SpringLayout.SOUTH, massL);
+    layout.putConstraint(SpringLayout.NORTH, texL, spaceBetweenLabels, SpringLayout.SOUTH, velL);
     layout.putConstraint(SpringLayout.NORTH, tempL, spaceBetweenLabels, SpringLayout.SOUTH, texL);
     layout.putConstraint(SpringLayout.NORTH, atmL, spaceBetweenLabels, SpringLayout.SOUTH, tempL);
 
@@ -180,6 +197,8 @@ public class AddBodyContainerP extends JPanel {
     layout.putConstraint(SpringLayout.WEST, nameT, start, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, radManT, start, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, radExpT, end - 50, SpringLayout.WEST, this);
+    layout.putConstraint(SpringLayout.WEST, velManT, start, SpringLayout.WEST, this);
+    layout.putConstraint(SpringLayout.WEST, velExpT, end - 50, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, massManT, start, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, massExpT, end - 50, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.WEST, texC, start, SpringLayout.WEST, this);
@@ -189,6 +208,8 @@ public class AddBodyContainerP extends JPanel {
     layout.putConstraint(SpringLayout.EAST, nameT, end, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.EAST, radManT, start + 50, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.EAST, radExpT, end, SpringLayout.WEST, this);
+    layout.putConstraint(SpringLayout.EAST, velManT, start + 50, SpringLayout.WEST, this);
+    layout.putConstraint(SpringLayout.EAST, velExpT, end, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.EAST, massManT, start + 50, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.EAST, massExpT, end, SpringLayout.WEST, this);
     layout.putConstraint(SpringLayout.EAST, texC, end, SpringLayout.WEST, this);
@@ -198,6 +219,8 @@ public class AddBodyContainerP extends JPanel {
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, nameT, 0, SpringLayout.VERTICAL_CENTER, nameL);
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, radManT, 0, SpringLayout.VERTICAL_CENTER, radL);
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, radExpT, 0, SpringLayout.VERTICAL_CENTER, radL);
+    layout.putConstraint(SpringLayout.VERTICAL_CENTER, velManT, 0, SpringLayout.VERTICAL_CENTER, velL);
+    layout.putConstraint(SpringLayout.VERTICAL_CENTER, velExpT, 0, SpringLayout.VERTICAL_CENTER, velL);
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, massManT, 0, SpringLayout.VERTICAL_CENTER, massL);
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, massExpT, 0, SpringLayout.VERTICAL_CENTER, massL);
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, texC, 0, SpringLayout.VERTICAL_CENTER, texL);
@@ -219,6 +242,9 @@ public class AddBodyContainerP extends JPanel {
     layout.putConstraint(SpringLayout.VERTICAL_CENTER, expRadL, 0, SpringLayout.VERTICAL_CENTER, radL);
     layout.putConstraint(SpringLayout.WEST, expRadL, 0, SpringLayout.EAST, radManT);
     layout.putConstraint(SpringLayout.EAST, expRadL, 0, SpringLayout.WEST, radExpT);
+    layout.putConstraint(SpringLayout.VERTICAL_CENTER, expVelL, 0, SpringLayout.VERTICAL_CENTER, velL);
+    layout.putConstraint(SpringLayout.WEST, expVelL, 0, SpringLayout.EAST, velManT);
+    layout.putConstraint(SpringLayout.EAST, expVelL, 0, SpringLayout.WEST, velExpT);
 
     // Live labels
     layout.putConstraint(SpringLayout.WEST, currentTempL, 15, SpringLayout.EAST, tempS);
@@ -234,42 +260,50 @@ public class AddBodyContainerP extends JPanel {
     addB.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Texture texV;
-        Gas atmV;
-        double tempV;
-        double massExpV = Double.parseDouble(massExpT.getText());
-        double massManV = Double.parseDouble(massManT.getText());
-        double radExpV = Double.parseDouble(radExpT.getText());
-        double radManV = Double.parseDouble(radManT.getText());
-        String nameV = nameT.getText();
+        try {
+          Texture texV;
+          Gas atmV;
+          double tempV;
+          double massExpV = Double.parseDouble(massExpT.getText());
+          double massManV = Double.parseDouble(massManT.getText());
+          double radExpV = Double.parseDouble(radExpT.getText());
+          double radManV = Double.parseDouble(radManT.getText());
+          double velExpV = Double.parseDouble(velExpT.getText());
+          double velManV = Double.parseDouble(velManT.getText());
+          String nameV = nameT.getText();
 
-        double rad = radManV * Math.pow(10, radExpV);
-        Vector3D pos= cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad));
-        double mass = massManV * Math.pow(10, massExpV);
-        Body newBody;
-        switch (bodyTypes[type]) {
-          case "Rocky Planet":
-            atmV = (Gas) atmC.getSelectedItem();
-            texV = (Texture) texC.getSelectedItem();
-            tempV = tempS.getValue();
-            newBody = new RockyPlanet(rad, mass, pos, new Vector3D(), texV, nameV, atmV, tempV);
-            break;
+          double rad = radManV * Math.pow(10, radExpV);
+          Vector3D vel = new Vector3D(cam.getCurOrientation()).scalarMult(velManV * Math.pow(10, velExpV));
+          Vector3D pos = cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad));
+          double mass = massManV * Math.pow(10, massExpV);
+          Body newBody;
+          switch (bodyTypes[type]) {
+            case "Rocky Planet":
+              atmV = (Gas) atmC.getSelectedItem();
+              texV = (Texture) texC.getSelectedItem();
+              tempV = tempS.getValue();
+              newBody = new RockyPlanet(rad, mass, pos, vel, texV, nameV, atmV, tempV);
+              break;
 
-          case "Gas Planet":
-            texV = (Texture) texC.getSelectedItem();
-            newBody = new GassyPlanet(rad, mass, pos, new Vector3D(), texV, nameV);
-            break;
+            case "Gas Planet":
+              texV = (Texture) texC.getSelectedItem();
+              newBody = new GassyPlanet(rad, mass, pos, vel, texV, nameV);
+              break;
 
-          case "Star":
-            newBody = new Star(rad, mass, pos, new Vector3D(), nameV);
-            break;
-          default:
-            newBody = new GassyPlanet(rad, mass,
-                cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad)), new Vector3D(0, 0, 0),
-                Texture.Jupiter, nameV);
+            case "Star":
+              newBody = new Star(rad, mass, pos, vel, nameV);
+              break;
+            default:
+              newBody = new GassyPlanet(rad, mass,
+                  cam.getCurPosM().copy().add(cam.getCurOrientation().copy().scalarMult(2 * rad)),
+                  new Vector3D(0, 0, 0),
+                  Texture.Jupiter, nameV);
 
+          }
+          add.accept(newBody);
+        } catch (Exception er) {
+          System.out.println("Invalid value(s)");
         }
-         add.accept(newBody);
       }
     });
     // Temperature slider listener
