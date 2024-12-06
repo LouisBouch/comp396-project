@@ -183,7 +183,7 @@ public abstract class Body {
     double newRad = Math.pow(3*vol/4.0/Math.PI, 1/3.0);
 
     if (star == true){
-      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name, StarType.O);
+      newBod = new Star(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
     }
     else {
       newBod = new CrashedPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);

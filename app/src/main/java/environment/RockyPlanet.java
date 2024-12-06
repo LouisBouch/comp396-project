@@ -17,16 +17,16 @@ public class RockyPlanet extends Body {
 
   Atmosphere atmosphere;
   boolean habitable = false;
-  public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initP, double initT) {
+  public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initT) {
     super(radius, mass, position, velocity, texture, bodyName);
-    atmosphere = new Atmosphere(initP, initT, gas);
+    atmosphere = new Atmosphere(initT, gas);
   }
   /**
    * Copy constructor
    */
   public RockyPlanet(RockyPlanet planet) {
     super(planet);
-    atmosphere = new Atmosphere(0, 0, planet.getAtm().getGas());
+    atmosphere = new Atmosphere(0,  planet.getAtm().getGas());
   }
   /**
    * Creates a copy of the planet
@@ -52,7 +52,6 @@ public class RockyPlanet extends Body {
 
     Gas gas = atmosphere.getGas();
     double temperature = atmosphere.getTemperature();
-    double pressure = atmosphere.getPressure();
 
     double radius = getRadius();
     Vector3D position = getPos();
@@ -86,7 +85,7 @@ public class RockyPlanet extends Body {
     temperature = Math.max(temperature + delta_temp, 0);
 
     // Step 4: Update pressure using the ideal gas law
-    pressure = (atm_moles * Atmosphere.R * temperature) / atm_volume;
+    double pressure = (atm_moles * Atmosphere.R * temperature) / atm_volume;
 
     // Step 5: Update atmosphere properties
     atmosphere.setPressure(pressure);

@@ -8,8 +8,7 @@ public class Atmosphere {
     private double temperature = 0;
     private Gas gas;
 
-    public Atmosphere(double pressure, double temperature, Gas gas) {
-        this.pressure = pressure;
+    public Atmosphere(double temperature, Gas gas) {
         this.temperature = temperature;
         this.gas = gas;
     }

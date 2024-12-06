@@ -13,10 +13,9 @@ import lib.Vector3D;
 public class Star extends Body {
 
   private StarType starType;
-  public Star(double radius, double mass, Vector3D position, Vector3D velocity, String bodyName, StarType starType) {
-    super(radius, mass, position, velocity, starType.getTexture(), bodyName);
-
-    this.starType = starType;
+  public Star(double radius, double mass, Vector3D position, Vector3D velocity, String bodyName) {
+    super(radius, mass, position, velocity, StarType.getStarType(mass).getTexture(), bodyName);
+    this.starType = StarType.getStarType(mass);
   }
   /**
    * Copy constructor

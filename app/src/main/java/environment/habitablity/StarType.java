@@ -32,4 +32,32 @@ public enum StarType {
      */
     public double getTemperature(){return this.temperature;}
 
+    public static StarType getStarType(double mass){
+        double m_sun = 1.989e30;
+        StarType type = null;
+
+        if (mass < 0.45*m_sun){
+            return type = M;
+        }
+        else if (mass < 0.8*m_sun){
+            return type = K;
+        }
+        else if (mass < 1.04*m_sun){
+            return type = G;
+        }
+        else if (mass < 1.4*m_sun){
+            return type = F;
+        }
+        else if (mass < 2.1*m_sun){
+            return type = A;
+        }
+        else if (mass < 16*m_sun){
+            return type = B;
+        }
+        else if (mass >= 16*m_sun){
+            return type = O;
+        }
+        return type;
+    }
+
 }

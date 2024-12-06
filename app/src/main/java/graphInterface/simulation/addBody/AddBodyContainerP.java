@@ -252,7 +252,7 @@ public class AddBodyContainerP extends JPanel {
             atmV = (Gas) atmC.getSelectedItem();
             texV = (Texture) texC.getSelectedItem();
             tempV = tempS.getValue();
-            newBody = new RockyPlanet(rad, mass, pos, new Vector3D(), texV, nameV, atmV, 0, tempV);
+            newBody = new RockyPlanet(rad, mass, pos, new Vector3D(), texV, nameV, atmV, tempV);
             break;
 
           case "Gas Planet":
@@ -261,7 +261,7 @@ public class AddBodyContainerP extends JPanel {
             break;
 
           case "Star":
-            newBody = new Star(rad, mass, pos, new Vector3D(), nameV, StarType.G);
+            newBody = new Star(rad, mass, pos, new Vector3D(), nameV);
             break;
           default:
             newBody = new GassyPlanet(rad, mass,
