@@ -30,36 +30,15 @@ public class SolarSystem {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    bodies.add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun"));
-    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0), Texture.Earth, "Earth", Gas.Earthlike, 293));
-    bodies.add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0),
-        Texture.Mars, "Mars", Gas.Marslike, 210));
-    bodies.add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(300000000000.0, 0, 0), new Vector3D(0, 20000, 0), Texture.Pink, "Icarus", Gas.Vacuum, 0));
+    bodies.add(new Star(6.9634e8*0.121, 1.989e30*0.089, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "TRAPPIST-1"));
 
-    bodies.add(new RockyPlanet(1000000, 1e22, new Vector3D(600000000000.0, 0, 0), new Vector3D(10000, 0, 0), Texture.Minute, "Angus", Gas.Vacuum, 0));
-
-
-    // bodies.add(new RockyPlanet(4e9, 1000, new Vector3D(2e11, 0, 100), new
-    // Vector3D(), Texture.Pink));
-    // bodies.add(new GassyPlanet(7e9, 1000, new Vector3D(4e11, 0, 100), new
-    // Vector3D()));
-    // bodies.add(new RockyPlanet(2.4397e6, 1000, new Vector3D(53.686e9, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new RockyPlanet(6.0518e6, 1000, new Vector3D(108.59e9, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new RockyPlanet(6.371e6, 1000, new Vector3D(150.08e9, 0, 100), new
-    // Vector3D()));
-    // bodies.add(new RockyPlanet(3.3895e6, 1000, new Vector3D(224.75e9, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new GassyPlanet(69.911e6, 1000, new Vector3D(755.31e9, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new GassyPlanet(58.232e6, 1000, new Vector3D(1.4442e12, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new GassyPlanet(25.362e6, 1000, new Vector3D(2.9264e12, 0, 100),
-    // new Vector3D()));
-    // bodies.add(new GassyPlanet(24.622e6, 1000, new Vector3D(4.4717e12, 0, 100),
-    // new Vector3D()));
-
+    bodies.add(new RockyPlanet(6.378e6*1.127, 5.9722e24*1.02, new Vector3D(0.01150*1.496e11, 0, 0), new Vector3D(0, 82806.91989, 0), Texture.Crashed, "TRAPPIST-1b", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*1.100, 5.9722e24*1.16, new Vector3D(0.01576*1.496e11, 0, 0), new Vector3D(0, 70796.91277, 0), Texture.Crashed, "TRAPPIST-1c", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*0.788, 5.9722e24*0.297, new Vector3D(0.02219*1.496e11, 0, 0), new Vector3D(0, 59607.97867, 0), Texture.Crashed, "TRAPPIST-1d", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*0.915, 5.9722e24*0.772, new Vector3D(0.02916*1.496e11, 0, 0), new Vector3D(0, 52014.39408, 0), Texture.Crashed, "TRAPPIST-1e", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*1.052, 5.9722e24*0.934, new Vector3D(0.03836*1.496e11, 0, 0), new Vector3D(0, 45334.09240, 0), Texture.Crashed, "TRAPPIST-1f", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*1.154, 5.9722e24*1.148, new Vector3D(0.0467*1.496e11, 0, 0), new Vector3D(0, 41123.52890, 0), Texture.Crashed, "TRAPPIST-1g", Gas.Vacuum, 0));
+    bodies.add(new RockyPlanet(6.378e6*0.777, 5.9722e24*0.331, new Vector3D(0.0617*1.496e11, 0, 0), new Vector3D(0, 35765.63797, 0), Texture.Crashed, "TRAPPIST-1h", Gas.Vacuum, 0));
   }
 
 
