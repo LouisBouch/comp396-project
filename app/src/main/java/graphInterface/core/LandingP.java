@@ -23,7 +23,7 @@ public class LandingP extends JPanel {
 
     // Welcome label
     JLabel welcomeLabel = new JLabel(
-        "<html><div style='text-align: center'>Solar system simulator, <br/> By <br/> Maddy Walkington & Louis Bouchard<div/></html>");
+        "<html><div style='text-align: center'>Solar System Simulator, <br/> By <br/> Maddy Walkington & Louis Bouchard<div/></html>");
     welcomeLabel.setFont(new Font("Dialog", Font.BOLD, 30));
     welcomeLabel.setForeground(Color.white);
     springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, welcomeLabel, 0, SpringLayout.HORIZONTAL_CENTER, this);
