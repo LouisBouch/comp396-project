@@ -4,6 +4,7 @@ import java.awt.EventQueue;
 import java.awt.Rectangle;
 
 import javax.swing.JFrame;
+import javax.swing.UIManager;
 
 public class Window {
   private int frameWidth = 1200;
@@ -39,6 +40,12 @@ public class Window {
    * Initialize the content of the frame
    */
   private void initialize() {
+    // Make every platform look the same
+    try {
+      UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     frame = new JFrame();
     // Set windowed size
     frame.setBounds(100, 100, frameWidth, frameHeight);
