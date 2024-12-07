@@ -23,7 +23,7 @@ public class HelpP extends JPanel {
     // Welcome label
     JEditorPane welcomePane = new JEditorPane();
     try {
-      URL htmlPage = getClass().getResource("/" + "WelcomePage.html");
+      URL htmlPage = getClass().getResource("/" + "HelpPage.html");
       welcomePane.setPage(htmlPage);
     } catch (IOException e) {
       e.printStackTrace();
