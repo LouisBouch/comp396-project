@@ -2,6 +2,7 @@ package environment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import environment.habitablity.Gas;
 import lib.Vector3D;
@@ -10,8 +11,7 @@ import lib.Vector3D;
  * Contains all possible systems
  */
 public enum Systems {
-
-  SolarSystem(new ArrayList<Body>() {
+  SolarSystem("Solar System", new ArrayList<Body>() {
     {
       add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun"));
       add(new RockyPlanet(2.44e6, 3.302e23, new Vector3D(46006000000.0, 0, 0), new Vector3D(0, 47000, 0),
@@ -33,7 +33,7 @@ public enum Systems {
           "Neptune"));
     }
   }),
-  Trappist(new ArrayList<Body>(){{
+  Trappist1("TRAPPIST-1", new ArrayList<Body>(){{
     add(new Star(6.9634e8*0.121, 1.989e30*0.089, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "TRAPPIST-1"));
 
     add(new RockyPlanet(6.378e6*1.127, 5.9722e24*1.02, new Vector3D(0.01150*1.496e11, 0, 0), new Vector3D(0, 82806.91989, 0), Texture.Crashed, "TRAPPIST-1b", Gas.Vacuum, 0));
@@ -46,9 +46,11 @@ public enum Systems {
   }});
 
   private ArrayList<Body> bodies;
+  private String name;
 
-  Systems(ArrayList<Body> bodies) {
+  Systems(String name, ArrayList<Body> bodies) {
     this.bodies = bodies;
+    this.name = name;
   }
 
   /**
@@ -61,11 +63,28 @@ public enum Systems {
   }
 
   /**
-   * A getter for the field bodies
+   * A getter for the bodies field
    *
    * @return The array of bodies that make up the system
    */
   public ArrayList<Body> getBodies() {
     return bodies;
+  }
+  /**
+   * A getter for the name field
+   *
+   * @return The name of the enum
+   */
+  public String getName() {
+    return name;
+  }
+  /**
+   * Override the toString method
+   *
+   * @return The name of the enum
+   */
+  @Override
+  public String toString() {
+    return name;
   }
 }
