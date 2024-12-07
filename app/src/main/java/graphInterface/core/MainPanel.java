@@ -4,6 +4,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.LayoutManager;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -94,13 +95,30 @@ public class MainPanel extends JPanel {
       }
     });
 
+    // Button for switching card back to homepage from help page
+    JButton btnSwitchFromHelp = new JButton("←");
+    btnSwitchFromHelp.setFont(smallBoldFont);
+    btnSwitchFromHelp.setFocusable(false);
+    btnSwitchFromHelp.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        cardLayout.show(thisP, LANDING_NAME);
+        thisP.revalidate();
+      }
+    });
+
     // Place switch button in application panel
     applicationP.getTopP().add(btnSwitchFromApp);
     SpringLayout simLayout = (SpringLayout) applicationP.getTopP().getLayout();
     simLayout.putConstraint(SpringLayout.EAST, btnSwitchFromApp, -6, SpringLayout.EAST, applicationP.getTopP());
     simLayout.putConstraint(SpringLayout.NORTH, btnSwitchFromApp, 6, SpringLayout.NORTH, applicationP.getTopP());
 
-    // Place switch button in application panel
+    // Place switch button in help panel
+    SpringLayout helpLayout = (SpringLayout) helpP.getLayout();
+    helpP.add(btnSwitchFromHelp);
+    helpLayout.putConstraint(SpringLayout.EAST, btnSwitchFromHelp, -6, SpringLayout.EAST, helpP);
+    helpLayout.putConstraint(SpringLayout.NORTH, btnSwitchFromHelp, 6, SpringLayout.NORTH, helpP);
+
+    // Place switch button in landing panel
     landingP.add(btnSwitchFromLanding);
     landingP.add(btnSwitchToHelp);
     SpringLayout appLayout = (SpringLayout) landingP.getLayout();

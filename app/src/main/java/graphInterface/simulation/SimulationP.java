@@ -100,7 +100,7 @@ public class SimulationP extends JPanel implements Runnable {
    */
   public SimulationP() {
     solarSystem = new SolarSystem(Systems.SolarSystem);
-    //solarSystem = new SolarSystem(Systems.SolarSystem);
+    // solarSystem = new SolarSystem(Systems.SolarSystem);
     camera = new Camera3D(new Vector3D(0, 0, -1.5e10), solarSystem, 90, 1);
     // camera.rotateCamera(new Point(500, 0), false);
 
@@ -260,9 +260,9 @@ public class SimulationP extends JPanel implements Runnable {
         simThread.join();
       }
       //// If no thread exists, there's nothing to reset
-      //else {
-      //  return;
-      //}
+      // else {
+      // return;
+      // }
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
@@ -324,7 +324,7 @@ public class SimulationP extends JPanel implements Runnable {
     // Save the original transform
     AffineTransform originalTransform = g2d.getTransform();
 
-      cameraPaint(g2d);
+    cameraPaint(g2d);
     // Restore the original transform
     g2d.setTransform(originalTransform);
 
@@ -412,9 +412,9 @@ public class SimulationP extends JPanel implements Runnable {
     this.addMouseWheelListener(new MouseWheelListener() {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
-          // Increases boost
-          camera.addBoost(-e.getWheelRotation());
-        }
+        // Increases boost
+        camera.addBoost(-e.getWheelRotation());
+      }
 
     });
   }
@@ -585,10 +585,10 @@ public class SimulationP extends JPanel implements Runnable {
     int m = (int) ((time - sIY * y - sID * d - sIH * h) / sIM);
 
     String format = "";
-      format += "year: " + y + "<br>";
-      format += "day: " + d + "<br>";
-      format += "hour: " + h + "<br>";
-      format += "minute: " + m + "<br>";
+    format += "year: " + y + "<br>";
+    format += "day: " + d + "<br>";
+    format += "hour: " + h + "<br>";
+    format += "minute: " + m + "<br>";
     return format;
   }
 

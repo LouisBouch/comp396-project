@@ -1,6 +1,7 @@
 package graphInterface.core;
 
 import java.awt.Color;
+import java.awt.Insets;
 import java.io.IOException;
 import java.net.URL;
 
@@ -19,9 +20,12 @@ public class HelpP extends JPanel {
     SpringLayout springLayout = new SpringLayout();
     setLayout(springLayout);
     setBackground(Color.decode("#1f1f38"));
+    setBorder(null);
 
     // Welcome label
     JEditorPane welcomePane = new JEditorPane();
+    welcomePane.setOpaque(false);// Prevents borders from appearing
+    welcomePane.setMargin(new Insets(0, 0, 0, 0));// No margins
     try {
       URL htmlPage = getClass().getResource("/" + "HelpPage.html");
       welcomePane.setPage(htmlPage);
@@ -32,7 +36,7 @@ public class HelpP extends JPanel {
     springLayout.putConstraint(SpringLayout.NORTH, welcomePane, 0, SpringLayout.NORTH, this);
     springLayout.putConstraint(SpringLayout.SOUTH, welcomePane, 0, SpringLayout.SOUTH, this);
     springLayout.putConstraint(SpringLayout.WEST, welcomePane, 0, SpringLayout.WEST, this);
-    springLayout.putConstraint(SpringLayout.EAST, welcomePane, 0, SpringLayout.EAST, this);
+    springLayout.putConstraint(SpringLayout.EAST, welcomePane, -100, SpringLayout.EAST, this);
     add(welcomePane);
   }
 }
