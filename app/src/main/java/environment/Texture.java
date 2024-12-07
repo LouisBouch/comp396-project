@@ -53,11 +53,6 @@ public enum Texture {
     // Get texture
     try {
       BufferedImage texture = ImageIO.read(getClass().getResource("/" + resName));
-      // BufferedImage textureARGB = new
-      // BufferedImage(texture.getWidth(),texture.getHeight(),
-      // BufferedImage.TYPE_INT_ARGB);
-      // //Convert to transparent image
-      // textureARGB.getGraphics().drawImage(texture, 0, 0, null);
       UVMap = texture;
     } catch (IOException e) {
       e.printStackTrace();

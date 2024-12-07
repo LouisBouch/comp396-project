@@ -55,6 +55,13 @@ public class ApplicationP extends JPanel {
   public SimulationP getSimPanel() {
     return simPanel;
   }
+  /**
+   * Getter for the top panel
+   * @return an instance of the top panel
+   */
+  public TopP getTopP() {
+    return topP;
+  }
 }
 
 

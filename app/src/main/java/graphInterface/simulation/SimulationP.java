@@ -42,6 +42,7 @@ import javax.swing.SwingUtilities;
 
 import environment.Camera3D;
 import environment.SolarSystem;
+import environment.Systems;
 import graphInterface.settings.CarouselRow;
 import graphInterface.settings.LabelRow;
 import graphInterface.settings.SettingsManager;
@@ -70,10 +71,6 @@ public class SimulationP extends JPanel implements Runnable {
 
   private double basePixelPerMeter = 1115 / 4.5e11;
   private double pixelPerMeter = basePixelPerMeter;
-  // Positive means zoom in, negative means zoom out
-  private double nbZooms = 0;
-  // Each level of nbZooms multiplies pixelPerMeter by this value
-  private double zoomValue = 1.5;
   /**
    * Position of the observer in meters
    */
@@ -85,7 +82,6 @@ public class SimulationP extends JPanel implements Runnable {
    * Cursor position and translation information
    */
   private Point2D lastMouseClickPosM = new Point2D.Double();
-  private Point2D translationM = new Point2D.Double();
   private Point lastMouseClickPosP = new Point(-1, -1);
   private boolean captured = false;
   /**
@@ -103,7 +99,8 @@ public class SimulationP extends JPanel implements Runnable {
    * Create the panel.
    */
   public SimulationP() {
-    solarSystem = new SolarSystem();
+    solarSystem = new SolarSystem(Systems.SolarSystem);
+    //solarSystem = new SolarSystem(Systems.SolarSystem);
     camera = new Camera3D(new Vector3D(0, 0, -1.5e10), solarSystem, 90, 1);
     // camera.rotateCamera(new Point(500, 0), false);
 
@@ -262,10 +259,10 @@ public class SimulationP extends JPanel implements Runnable {
       if (simThread != null) {
         simThread.join();
       }
-      // If no thread exists, there's nothing to reset
-      else {
-        return;
-      }
+      //// If no thread exists, there's nothing to reset
+      //else {
+      //  return;
+      //}
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
@@ -331,11 +328,6 @@ public class SimulationP extends JPanel implements Runnable {
     // Restore the original transform
     g2d.setTransform(originalTransform);
 
-    // Paints point at center of universe
-    // g2d.setColor(Color.WHITE);
-    // g2d.translate(translationM.getX() * pixelPerMeter, translationM.getY() *
-    // pixelPerMeter);
-    // g2d.fillRect(0, 0, 1, 1);
   }
 
   /**
@@ -357,8 +349,6 @@ public class SimulationP extends JPanel implements Runnable {
     this.addMouseMotionListener(new MouseMotionListener() {
       @Override
       public void mouseDragged(MouseEvent e) {
-        translationM.setLocation(translationM.getX() + (e.getX() / pixelPerMeter - lastMouseClickPosM.getX()),
-            translationM.getY() + (e.getY() / pixelPerMeter - lastMouseClickPosM.getY()));
         lastMouseClickPosM.setLocation(e.getX() / pixelPerMeter, e.getY() / pixelPerMeter);
       }
 

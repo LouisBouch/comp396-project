@@ -1,11 +1,8 @@
 package environment;
 
-import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 import environment.habitablity.Gas;
-import environment.habitablity.StarType;
-import lib.Paintable;
 import lib.Vector3D;
 
 /**
@@ -18,11 +15,13 @@ public class SolarSystem {
   private double time = 0;
 
   double gravity = 6.67430e-11; // Gravitational constant in m^3 kg^-1 s^-2, 6.67430e-11
+  Systems system;
 
   /**
    * Constructor for the Solar System
    */
-  public SolarSystem() {
+  public SolarSystem(Systems system) {
+    this.system = system;
     createSystem();
   }
 
@@ -30,15 +29,9 @@ public class SolarSystem {
    * Creates the bodies and adds them to the bodies list
    */
   public void createSystem() {
-    bodies.add(new Star(6.9634e8*0.121, 1.989e30*0.089, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "TRAPPIST-1"));
-
-    bodies.add(new RockyPlanet(6.378e6*1.127, 5.9722e24*1.02, new Vector3D(0.01150*1.496e11, 0, 0), new Vector3D(0, 82806.91989, 0), Texture.Crashed, "TRAPPIST-1b", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*1.100, 5.9722e24*1.16, new Vector3D(0.01576*1.496e11, 0, 0), new Vector3D(0, 70796.91277, 0), Texture.Crashed, "TRAPPIST-1c", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*0.788, 5.9722e24*0.297, new Vector3D(0.02219*1.496e11, 0, 0), new Vector3D(0, 59607.97867, 0), Texture.Crashed, "TRAPPIST-1d", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*0.915, 5.9722e24*0.772, new Vector3D(0.02916*1.496e11, 0, 0), new Vector3D(0, 52014.39408, 0), Texture.Crashed, "TRAPPIST-1e", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*1.052, 5.9722e24*0.934, new Vector3D(0.03836*1.496e11, 0, 0), new Vector3D(0, 45334.09240, 0), Texture.Crashed, "TRAPPIST-1f", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*1.154, 5.9722e24*1.148, new Vector3D(0.0467*1.496e11, 0, 0), new Vector3D(0, 41123.52890, 0), Texture.Crashed, "TRAPPIST-1g", Gas.Vacuum, 0));
-    bodies.add(new RockyPlanet(6.378e6*0.777, 5.9722e24*0.331, new Vector3D(0.0617*1.496e11, 0, 0), new Vector3D(0, 35765.63797, 0), Texture.Crashed, "TRAPPIST-1h", Gas.Vacuum, 0));
+    for (Body body: system.getBodies()) {
+      bodies.add(body);
+    }
   }
 
 
@@ -192,5 +185,13 @@ public class SolarSystem {
         }
       }
     }
+  }
+  /**
+   * Setter for the system field
+   *
+   * @param system New solar system type
+   */
+  public void setSsytem(Systems system) {
+    this.system = system;
   }
 }

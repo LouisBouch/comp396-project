@@ -41,6 +41,8 @@ public class TopP extends JPanel {
     SpringLayout springLayout = new SpringLayout();
     setLayout(springLayout);
 
+    // Slider offset from edge
+    int sliderOffset = 170;
     // Setup scale slider
     int maxS = 15;
     double curS = simP.getCamera().getScale();
@@ -55,7 +57,7 @@ public class TopP extends JPanel {
     scaleSlider.setSnapToTicks(true);
     Dimension sliderDimTop = scaleSlider.getPreferredSize();
     scaleSlider.setPreferredSize(new Dimension((int) sliderDimTop.getWidth() + 50, (int) sliderDimTop.getHeight()));
-    springLayout.putConstraint(SpringLayout.EAST, scaleSlider, -150, SpringLayout.EAST, this);
+    springLayout.putConstraint(SpringLayout.EAST, scaleSlider, -sliderOffset, SpringLayout.EAST, this);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, scaleSlider, 0, SpringLayout.VERTICAL_CENTER, this);
     add(scaleSlider);
     // Slider label
@@ -90,7 +92,7 @@ public class TopP extends JPanel {
     timeSlider.setSnapToTicks(true);
     Dimension sliderDimTime = timeSlider.getPreferredSize();
     timeSlider.setPreferredSize(new Dimension((int) sliderDimTime.getWidth() + 100, (int) sliderDimTime.getHeight()));
-    springLayout.putConstraint(SpringLayout.WEST, timeSlider, 150, SpringLayout.WEST, this);
+    springLayout.putConstraint(SpringLayout.WEST, timeSlider, sliderOffset, SpringLayout.WEST, this);
     springLayout.putConstraint(SpringLayout.VERTICAL_CENTER, timeSlider, 0, SpringLayout.VERTICAL_CENTER, this);
     add(timeSlider);
     // Slider label
