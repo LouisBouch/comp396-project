@@ -22,6 +22,7 @@ import environment.Camera3D;
 import environment.GassyPlanet;
 import environment.RockyPlanet;
 import environment.Star;
+import environment.habitablity.Gas;
 import lib.Vector3D;
 
 /**
@@ -144,52 +145,54 @@ public class BodyP extends JPanel {
 
     // Switch case to bind the body class
     if (body instanceof RockyPlanet) {
-      RockyPlanet r = (RockyPlanet) body;
-      preferredHeight = 300;
-      // Delimiter
-      JLabel delimiterL = new JLabel("----------------------");
-      delimiterL.setForeground(Color.WHITE);
-      delimiterL.setFont(new Font("Dialog", Font.BOLD, 18));
-      delimiterL.setForeground(Color.WHITE);
-      layout.putConstraint(SpringLayout.NORTH, delimiterL, 10, SpringLayout.SOUTH,
-          radiusL);
-      layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, delimiterL, 0, SpringLayout.HORIZONTAL_CENTER,
-          this);
-      add(delimiterL);
-      // Pressure
-      pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure() / 1000.0, 4) + " kPa");
-      pressureL.setForeground(Color.WHITE);
-      pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
-      pressureL.setForeground(Color.WHITE);
-      layout.putConstraint(SpringLayout.NORTH, pressureL, 15, SpringLayout.SOUTH,
-          delimiterL);
-      layout.putConstraint(SpringLayout.WEST, pressureL, 0, SpringLayout.WEST,
-          this);
-      add(pressureL);
-      // Temperature
-      temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 4) + " °K");
-      temperatureL.setForeground(Color.WHITE);
-      temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
-      temperatureL.setForeground(Color.WHITE);
-      layout.putConstraint(SpringLayout.NORTH, temperatureL, 5, SpringLayout.SOUTH,
-          pressureL);
-      layout.putConstraint(SpringLayout.WEST, temperatureL, 0, SpringLayout.WEST,
-          this);
-      add(temperatureL);
-      // Habitability
-      String habitabilityBool = r.getHab() ? "<span style='color: green'>true</span>" : "<span style='color: red'>false</span>";
-      habitabilityL = new JLabel("<html>Habitable: " + habitabilityBool + "</html>");
-      habitabilityL.setForeground(Color.WHITE);
-      habitabilityL.setFont(new Font("Dialog", Font.BOLD, 18));
-      habitabilityL.setForeground(Color.WHITE);
-      layout.putConstraint(SpringLayout.NORTH, habitabilityL, 5, SpringLayout.SOUTH,
-          temperatureL);
-      layout.putConstraint(SpringLayout.WEST, habitabilityL, 0, SpringLayout.WEST,
-          this);
-      add(habitabilityL);
-      // Label delimiting habitability
       // Type
       typeL.setText(typeL.getText() + "Rocky planet");
+      RockyPlanet r = (RockyPlanet) body;
+      if (r.getAtm().getGas() != Gas.Vacuum) {
+        preferredHeight = 300;
+        // Delimiter
+        JLabel delimiterL = new JLabel("----------------------");
+        delimiterL.setForeground(Color.WHITE);
+        delimiterL.setFont(new Font("Dialog", Font.BOLD, 18));
+        delimiterL.setForeground(Color.WHITE);
+        layout.putConstraint(SpringLayout.NORTH, delimiterL, 10, SpringLayout.SOUTH,
+            radiusL);
+        layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, delimiterL, 0, SpringLayout.HORIZONTAL_CENTER,
+            this);
+        add(delimiterL);
+        // Pressure
+        pressureL = new JLabel("Pressure: " + roundToSF(r.getAtm().getPressure() / 1000.0, 4) + " kPa");
+        pressureL.setForeground(Color.WHITE);
+        pressureL.setFont(new Font("Dialog", Font.BOLD, 18));
+        pressureL.setForeground(Color.WHITE);
+        layout.putConstraint(SpringLayout.NORTH, pressureL, 15, SpringLayout.SOUTH,
+            delimiterL);
+        layout.putConstraint(SpringLayout.WEST, pressureL, 0, SpringLayout.WEST,
+            this);
+        add(pressureL);
+        // Temperature
+        temperatureL = new JLabel("Temperature: " + roundToSF(r.getAtm().getTemperature(), 4) + " °K");
+        temperatureL.setForeground(Color.WHITE);
+        temperatureL.setFont(new Font("Dialog", Font.BOLD, 18));
+        temperatureL.setForeground(Color.WHITE);
+        layout.putConstraint(SpringLayout.NORTH, temperatureL, 5, SpringLayout.SOUTH,
+            pressureL);
+        layout.putConstraint(SpringLayout.WEST, temperatureL, 0, SpringLayout.WEST,
+            this);
+        add(temperatureL);
+        // Habitability
+        String habitabilityBool = r.getHab() ? "<span style='color: green'>true</span>"
+            : "<span style='color: red'>false</span>";
+        habitabilityL = new JLabel("<html>Habitable: " + habitabilityBool + "</html>");
+        habitabilityL.setForeground(Color.WHITE);
+        habitabilityL.setFont(new Font("Dialog", Font.BOLD, 18));
+        habitabilityL.setForeground(Color.WHITE);
+        layout.putConstraint(SpringLayout.NORTH, habitabilityL, 5, SpringLayout.SOUTH,
+            temperatureL);
+        layout.putConstraint(SpringLayout.WEST, habitabilityL, 0, SpringLayout.WEST,
+            this);
+        add(habitabilityL);
+      }
     } else if (body instanceof GassyPlanet) {
       // Type
       typeL.setText(typeL.getText() + "Gassy planet");
