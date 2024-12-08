@@ -22,6 +22,7 @@ public class Star extends Body {
    */
   public Star(Star star) {
     super(star);
+    this.starType = StarType.getStarType(getMass());
   }
   /**
    * Creates a copy of the star

@@ -30,7 +30,7 @@ public class SolarSystem {
    */
   public void createSystem() {
     for (Body body: system.getBodies()) {
-      bodies.add(body);
+      bodies.add(body.copy());
     }
   }
 
