@@ -51,6 +51,7 @@ public abstract class Body {
    * Copy body
    */
   public Body(Body body) {
+    bodyName = body.getBodyName();
     radius = body.radius;
     mass = body.mass;
     position = new Vector3D(body.position);
