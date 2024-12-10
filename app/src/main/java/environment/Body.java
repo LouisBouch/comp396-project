@@ -13,23 +13,28 @@ import lib.Vector3D;
  */
 public abstract class Body {
 
-  private double radius;
-  private double mass;
+  private double radius; // m
+  private double mass; // kg
 
-  private Vector3D north;
-  private Vector3D equator;
+  private Vector3D north; // Body's north-pointing planetary axis vector
+  private Vector3D equator; // Body's equator vector (perpendicular to planetary axis)
 
-  private Vector3D position;
+  private Vector3D position; // Position relative to (0, 0, 0), in m
 
-  private Vector3D velocity;
+  private Vector3D velocity; // 3D Velocity in m/s
 
-  private Color color;
-
-  private Texture texture;
-  private String bodyName;
+  private Color color; // Colour in simulation (2D view)
+  private Texture texture; // Texture in simulation (3D view)
+  private String bodyName; // Body's name
 
   /**
-   * Create new body
+   * Constructor for body
+   * @param radius in meters
+   * @param mass in kilograms
+   * @param position as 3D vector in meters
+   * @param velocity as 3D vector in meters per second
+   * @param texture
+   * @param bodyName as string
    */
   public Body(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName) {
     // Sets default texture if not specified
@@ -48,7 +53,8 @@ public abstract class Body {
   }
 
   /**
-   * Copy body
+   * Copy constructor for a body
+   * @param body to be copied
    */
   public Body(Body body) {
     bodyName = body.getBodyName();
@@ -62,104 +68,191 @@ public abstract class Body {
   }
 
   /**
-   * Copy method to allow us to make copies of any body
+   * Abstract copy method for a body
    */
   public abstract Body copy();
 
   /**
-   * Obtains radius of Body
-   * 
-   * @return Value of radius in meters
+   * Getter for body's radius
+   * @return radius in meters
    */
   public double getRadius() {
     return radius;
   }
   /**
-   * Sets the radius of the body
-   * 
-   * @params newRad Value of radius in meters
+   * Setter for body's radius
+   * @params newRad, new radius in meters
    */
   public void setRadius(double newRad) {
     radius = newRad;
   }
 
+  /**
+   * Getter for body's colour
+   * @return colour of body (2D view)
+   */
+
   public Color getColor() {
     return color;
   }
 
+  /**
+   * Setter for body's colour
+   * @param color
+   */
   public void setColor(Color color) {
     this.color = color;
   }
 
   /**
-   * Obtains mass of Body
-   * 
-   * @return Value of mass in kg
+   * Getter for mass of body
+   * @return mass in kg
    */
   public double getMass() {
     return mass;
   }
 
+
+  /**
+   * Getter for body's texture
+   * @return texture (3D view)
+   */
   public Texture getTexture() {return texture;}
 
   /**
-   * Obtains position of body
-   * 
-   * @return Value of position as a Vector3D in meters
+   * Getter for position of body
+   * @return position as a Vector3D in meters
    */
   public Vector3D getPos() {
     return position;
   }
 
+  /**
+   * Setter for position of body
+   * @param pos as a Vector3D in meters
+   */
   public void setPos(Vector3D pos) {
     position = pos;
   }
 
   /**
-   * Obtains velocity of body
-   * 
+   * Getter for velocity of body
    * @return Value of velocity as a Vector3D in meters/second
    */
   public Vector3D getVel() {
     return velocity;
   }
 
+  /**
+   * Setter for velocity of body
+   * @param vel as a Vector3D in meters/second
+   */
   public void setVel(Vector3D vel) {
     velocity = vel;
   }
 
   /**
-   * Obtains X position of Body
-   * 
-   * @return Value of X position in meters
+   * Obtains x coordinate of body
+   * @return x coord in meters
    */
   public double getX() {
     return position.getX();
   }
 
   /**
-   * Obtains Y position of Body
-   * 
-   * @return Value of Y position in meters
+   * Obtains y coordinate of body
+   * @return y coord in meters
    */
   public double getY() {
     return position.getY();
   }
 
   /**
-   * Obtains Z position of Body
-   * 
-   * @return Value of Z position in meters
+   * Obtains z coordinate of body
+   * @return z coord in meters
    */
   public double getZ() {
     return position.getZ();
   }
 
   /**
-   * TODO: Temperature for rocky planets (atmosphere) + others
+   * Getter for the vector pointing north of a body
+   * @return 3D vector pointing in the north direction
    */
-  public abstract double getTemp();
+  public Vector3D getNorth() {
+    return north;
+  }
 
+  /**
+   * Getter for the vector pointing to the equator of a body
+   * @return 3D vector pointing in the equator's direction
+   */
+  public Vector3D getEquator() {
+    return equator;
+  }
+
+  /**
+   * Setter for the vector pointing north of a body
+   * @param north 3D vector pointing in the north direction
+   */
+  public void setNorth(Vector3D north) {
+    this.north = north;
+  }
+
+  /**
+   * Setter for the vector pointing to the equator of a body
+   * @param equator 3D vector pointing in the equator's direction
+   */
+  public void setEquator(Vector3D equator) {
+    this.equator = equator;
+  }
+
+  /**
+   * Getter for the texture of the body
+   * @return Texture of body (As a UV map)
+   */
+  public BufferedImage getUVMap() {
+    return texture.getUVMap();
+  }
+
+  /**
+   * Setter for the texture of a body
+   * @param t new texture
+   */
+  public void setTexture(Texture t) {
+    texture = t;
+  }
+
+  /**
+   * Getter for the name of the body
+   * @return The body name as a string
+   */
+  public String getBodyName() {
+    return bodyName;
+  }
+
+  /**
+   * Setter for the name of the body
+   * @param bodyName new body name as a string
+   */
+  public void setBodyName(String bodyName) {
+    this.bodyName = bodyName;
+  }
+
+  /**
+   * Function to combine bodies when they crash into each other
+   * The crashed bodies are deleted and replaced with a new body
+   *
+   * The new body has a radius and mass corresponding to the sum of the crashed bodies' volume and mass
+   * Its position is set to the center of mass of the crashed bodies, and it's velocity is
+   * modelled as an inelastic collision
+   * The new body's name is a concatenation of random substrings of the crashed bodies
+   *
+   * If there is a star in the collision, the new body is a Star. If not, it is a CrashedPlanet
+   *
+   * @param crashed list of crashed bodies
+   * @return new body resulting from crash
+   */
   public static Body bodyCombine(ArrayList<Body> crashed){
     double mass = 0;
     Vector3D pos = new Vector3D();
@@ -190,77 +283,6 @@ public abstract class Body {
       newBod = new CrashedPlanet(newRad, mass, pos.scalarDiv(mass), mom.scalarDiv(mass), name);
     }
     return newBod;
-  }
-
-
-  /**
-   * Obtain the vector pointing north
-   *
-   * @return The VectorPointing in the north direction
-   */
-  public Vector3D getNorth() {
-    return north;
-  }
-
-  /**
-   * Obtain the vector pointing at the equator
-   *
-   * @return The Vector pointing towrads the equator
-   */
-  public Vector3D getEquator() {
-    return equator;
-  }
-
-  /**
-   * Obtain the vector pointing north
-   *
-   * @param north The VectorPointing in the north direction
-   */
-  public void setNorth(Vector3D north) {
-    this.north = north;
-  }
-
-  /**
-   * Obtain the vector pointing at the equator
-   *
-   * @param equator The Vector pointing towrads the equator
-   */
-  public void setEquator(Vector3D equator) {
-    this.equator = equator;
-  }
-
-  /**
-   * Obtains the texture of the body
-   *
-   * @return Texture of body (As a UV map)
-   */
-  public BufferedImage getUVMap() {
-    return texture.getUVMap();
-  }
-
-  /**
-   * Sets the texture of the body
-   *
-   * @param t The new texture
-   */
-  public void setTexture(Texture t) {
-    texture = t;
-  }
-  /**
-   * Obtains the name of the body
-   *
-   * @return The body name
-   */
-  public String getBodyName() {
-    return bodyName;
-  }
-  /**
-   * Obtains the name of the body
-   *
-   * @param bodyName The new body name
-   */
-  public void setBodyName(String bodyName) {
-    this.bodyName = bodyName;
   }
 
 }

@@ -3,6 +3,10 @@ package environment.habitablity;
 import environment.Texture;
 
 public enum StarType {
+
+    /**
+     * Templates for the (average) temperature and texture of a star based off it's type
+     */
     O(35000, Texture.O),
     B(20000, Texture.B),
     A(8000, Texture.A),
@@ -11,10 +15,15 @@ public enum StarType {
     K(4000, Texture.K),
     M(3000, Texture.M);
 
-    private double temperature;
+    private double temperature; // K
 
-    private Texture texture;
+    private Texture texture; // Texture in simulation
 
+    /**
+     * Constructor for a star's type
+     * @param temp in Kelvin
+     * @param text texture
+     */
     StarType(double temp, Texture text) {
         this.temperature = temp;
         this.texture = text;
@@ -32,9 +41,14 @@ public enum StarType {
      */
     public double getTemperature(){return this.temperature;}
 
+    /**
+     * Determines the star's type according to it's mass
+     * @param mass in kilograms
+     * @return star's type
+     */
     public static StarType getStarType(double mass){
         double m_sun = 1.989e30;
-        StarType type = null;
+        StarType type = G;
 
         if (mass < 0.45*m_sun){
             return type = M;
