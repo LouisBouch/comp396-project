@@ -74,7 +74,7 @@ public class MainPanel extends JPanel {
       public void actionPerformed(ActionEvent e) {
         cardLayout.show(thisP, APP_NAME);
         thisP.revalidate();
-        applicationP.getSimPanel().getSolarSystem().setSsytem((Systems) systemCB.getSelectedItem());
+        applicationP.getSimPanel().getSolarSystem().setSystem((Systems) systemCB.getSelectedItem());
         applicationP.getSimPanel().reset();
       }
     });

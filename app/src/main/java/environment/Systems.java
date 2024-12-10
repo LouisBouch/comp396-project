@@ -7,10 +7,11 @@ import java.util.HashMap;
 import environment.habitablity.Gas;
 import lib.Vector3D;
 
-/**
- * Contains all possible systems
- */
 public enum Systems {
+
+  /**
+   * Default system options when initializing simulation; Solar System and TRAPPIST-1 system
+   */
   SolarSystem("Solar System", new ArrayList<Body>() {
     {
       add(new Star(6.9634e8, 1.989e30, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), "Sun"));
@@ -48,6 +49,11 @@ public enum Systems {
   private ArrayList<Body> bodies;
   private String name;
 
+  /**
+   * Constuctor for the system
+   * @param name of system
+   * @param bodies list of bodies in system
+   */
   Systems(String name, ArrayList<Body> bodies) {
     this.bodies = bodies;
     this.name = name;
@@ -55,32 +61,30 @@ public enum Systems {
 
   /**
    * Gets the list of enumeration as a list of strings
-   *
-   * @return The list of names representating the enum constants
+   * @return The list of names representing the enum constants
    */
   public static String[] getEnumNamesAsArrayList() {
     return Arrays.stream(Systems.values()).map(Enum::name).toArray(String[]::new);
   }
 
   /**
-   * A getter for the bodies field
-   *
-   * @return The array of bodies that make up the system
+   * Getter for the bodies in system
+   * @return The array of bodies in system
    */
   public ArrayList<Body> getBodies() {
     return bodies;
   }
+
   /**
-   * A getter for the name field
-   *
+   * Getter for the name of the system
    * @return The name of the enum
    */
   public String getName() {
     return name;
   }
+
   /**
    * Override the toString method
-   *
    * @return The name of the enum
    */
   @Override

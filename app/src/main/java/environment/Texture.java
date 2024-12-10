@@ -5,11 +5,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-/**
- * Contains all possible textures
- */
 public enum Texture {
-
+  /**
+   * Contains texture options for bodies
+   */
   Minute("minute.jpg"),
   O("O.jpg"),
   B("B.jpg"),
@@ -31,24 +30,31 @@ public enum Texture {
   Ceres("Ceres.jpg"),
   Eris("Eris.jpg"),
   Pink("Pink.jpg"),
-
   Crashed("Crashed.jpg");
 
   private String resName;
   private BufferedImage UVMap;
 
+  /**
+   * Constructor for textures
+   * @param resName filename of UVMap in resource folder
+   */
   Texture(String resName) {
     this.resName = resName;
     loadUVMap();
   }
 
-  /*
-   * Return buffered image that contains UV map
+  /**
+   * Getter for UVMap of texture
+   * @return buffered image that contains UV map
    */
   public BufferedImage getUVMap() {
     return UVMap;
   }
 
+  /**
+   * Load UVMap for texture
+   */
   public void loadUVMap() {
     // Get texture
     try {
