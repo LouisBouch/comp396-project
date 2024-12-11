@@ -18,7 +18,7 @@ public enum Systems {
       add(new RockyPlanet(2.44e6, 3.302e23, new Vector3D(46006000000.0, 0, 0), new Vector3D(0, 47000, 0),
           Texture.Mercury, "Mercury", Gas.Vacuum, 0));
       add(new RockyPlanet(6.0518e6, 4.867e24, new Vector3D(108.58e9, 0, 0), new Vector3D(0, 35000, 0), Texture.Venus,
-          "Venus", Gas.Venuslike, 0));
+          "Venus", Gas.Venuslike, 737));
       add(new RockyPlanet(6378137, 5.9722e24, new Vector3D(149597870700.0, 0, 0), new Vector3D(0, 29784.8, 0),
           Texture.Earth, "Earth", Gas.Earthlike, 293));
       add(new RockyPlanet(3389500, 6.42e23, new Vector3D(235940000000.0, 0, 0), new Vector3D(0, 24080, 0), Texture.Mars,

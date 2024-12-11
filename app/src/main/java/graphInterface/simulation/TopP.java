@@ -46,7 +46,7 @@ public class TopP extends JPanel {
     // Setup scale slider
     int maxS = 15;
     double curS = simP.getCamera().getScale();
-    // Convert value into a slider valuec
+    // Convert value into a slider value
     int valS = (int) Math.round(Math.log(curS) / Math.log(1.5));
     scaleSlider = new JSlider(0, maxS, valS);
     scaleSlider.setMajorTickSpacing(5);
@@ -78,10 +78,10 @@ public class TopP extends JPanel {
     add(scaleLabel);
 
     // Setup delta time slider
-    int maxT = 20;
+    int maxT = 19;
     double curDT = simP.getDt();
-    // Convert dt value into a slider value (assumes it is possitive)
-    int valT = (int) Math.round(Math.log(curDT + 1) / Math.log(2));
+    // Convert dt value into a slider value (assumes it is positive)
+    int valT = (int) Math.round(Math.log(curDT + 1) / Math.log(1.9));
     timeSlider = new JSlider(-maxT, maxT, valT);
     timeSlider.setMajorTickSpacing(5);
     timeSlider.setMinorTickSpacing(1);

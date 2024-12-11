@@ -5,7 +5,7 @@ public class Atmosphere {
 
     public static final double R = 8.31; // Ideal gas constant, J * mol^(-1) * K^(-1)
     private double pressure = 0; // Pa
-    private double temperature = 0; // K
+    private double temperature; // K
     private Gas gas; // Gas composition
 
     /**

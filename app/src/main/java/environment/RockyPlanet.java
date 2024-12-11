@@ -12,6 +12,7 @@ public class RockyPlanet extends Body {
 
   Atmosphere atmosphere; // Planet's atmosphere
   boolean habitable = false; // Planet's habitability
+  double initTemp; // Initial temperature of planet's atmosphere
 
   /**
    * Constructor for rocky planets
@@ -27,6 +28,7 @@ public class RockyPlanet extends Body {
   public RockyPlanet(double radius, double mass, Vector3D position, Vector3D velocity, Texture texture, String bodyName, Gas gas, double initT) {
     super(radius, mass, position, velocity, texture, bodyName);
     atmosphere = new Atmosphere(initT, gas);
+    initTemp = initT;
   }
 
   /**
@@ -35,7 +37,7 @@ public class RockyPlanet extends Body {
    */
   public RockyPlanet(RockyPlanet planet) {
     super(planet);
-    atmosphere = new Atmosphere(0,  planet.getAtm().getGas());
+    atmosphere = new Atmosphere(planet.getInitTemp(), planet.getAtm().getGas());
   }
   /**
    * Method to copy rocky planet
@@ -50,6 +52,13 @@ public class RockyPlanet extends Body {
    * @return atmosphere of planet
    */
   public Atmosphere getAtm(){return atmosphere;}
+
+
+    /**
+     * Getter for a rocky planet's initial atmospheric temperature
+     * @return initial atmospheric temperature of planet
+     */
+    public double getInitTemp(){return initTemp;}
 
   /**
    * Getter for a rocky planet's habitability
@@ -107,7 +116,7 @@ public class RockyPlanet extends Body {
       double atm_volume = ((4 / 3.0) * Math.PI * Math.pow((radius + atm_thick), 3)) - ((4 / 3.0) * Math.PI * Math.pow(radius, 3));
       double atm_mass = gas.density * atm_volume;
       double atm_area = 4 * Math.PI * Math.pow(radius + atm_thick, 2);
-      double atm_absorbing_area = atm_area / 2; // Half the atmosphere's area that is facing the star
+      double atm_absorbing_area = atm_area / 2; // Half the atmosphere's area is facing the star
       double atm_moles = atm_mass / gas.molar_mass;
 
       // Calculate energy absorbed from all stars over time step

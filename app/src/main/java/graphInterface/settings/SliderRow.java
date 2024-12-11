@@ -15,7 +15,7 @@ public class SliderRow extends SettingRowP {
   double min;
   double max;
   double start;
-  // Initial eprcentage on the slider
+  // Initial percentage on the slider
   int iniPerc;
 
   /**
