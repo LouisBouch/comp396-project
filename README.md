@@ -14,9 +14,25 @@ This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downl
   - Select/download JDK. Consider Oracle OpenJDK: version 19
   - TODO
 
-- [Gradle](https://gradle.org/)
+- [Gradle](https://gradle.org/install/)
   - Clone repo into a project directory
-  - TODO
+  - cd to the project directory (Where .git resides)
+  - Run "gradle init" in the cloned directory, and enter the following values:
+    -  yes
+    -  1 (Application)
+    -  1 (Java)
+    -  21 (Java21)
+    -  Enter (default name)
+    -  1 (Single application)
+    -  1 (Kotlin)
+    -  4 (JUnit Jupiter)
+    -  Enter (default "no")
+  - Edit the ./app/build.gradle.kts file
+    - Search for a line containing the word "mainClass"
+    - Replace "org.example.App" with "graphInterface.core.Window"
+  - Go back to the root directory (Where .git resides)
+  - Execute ./gradlew run
+  - Enjoy the sim!
 
 
 ## Current features
