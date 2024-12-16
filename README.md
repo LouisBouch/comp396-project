@@ -6,6 +6,11 @@ This simulation aims to serve as an interactive tool to better understand and vi
 To do so, it will simulate the motions of planets, suns and other various celestial bodies as they interact through gravity. The habitability of each planet will be computed based on the intensity of the suns, their proximity and atmospheric conditions.  
 More aspect are likely to be considered as the project evolves.  
 
+## Demo
+
+Here is a quick demo of this project  
+[![YouTube](https://i3.ytimg.com/vi/LNxFyyh6oBs/maxresdefault.jpg)](https://www.youtube.com/watch?v=LNxFyyh6oBs)
+
 ## Installation
 
 This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downloads/#java21). Make you have java installed before running this application.  
