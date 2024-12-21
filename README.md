@@ -43,12 +43,7 @@ This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downl
 ## Current features
 
 This is an interactive simulation, and as such, the user has complete control over the environment.  
-**Feature 1**
-  - Description
-
-## Future features
-
-**Future feature 1**
-  - Description
+****
+  - 
 
 This repository is automatically mirrored in McGill's Computer Science GitLab servers!
