@@ -16,8 +16,12 @@ Here is a quick demo of this project
 This project uses [java 21](https://www.oracle.com/ca-en/java/technologies/downloads/#java21). Make you have java installed before running this application.  
 - [Intellij](https://www.jetbrains.com/idea/)
   - Clone repo into a project directory
+  - Open the project in IntelliJ, select “Trust Project”
+  - Where it says “Project JDK is not defined”, click “Setup SDK”
   - Select/download JDK. Consider Oracle OpenJDK: version 19
-  - TODO
+  - Right-click on the “resources” folder (path: comp396-project/app/src/main/) in the project’s structure, and select “Mark Directory as” -> “Resources Root”
+  - Open the “Window.java” file (path: comp396-project/app/src/main/java/graphInterface/core/) and run it to launch the simulator
+  - Enjoy the sim!
 
 - [Gradle](https://gradle.org/install/)
   - Clone repo into a project directory
